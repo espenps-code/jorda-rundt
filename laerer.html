@@ -116,6 +116,7 @@
         <div>
           <div class="kort">
             <h2>Venter på deg</h2>
+            <div id="diktater"></div>
             <div id="dueller"></div>
             <div id="reiselogger"></div>
           </div>
@@ -178,6 +179,8 @@
             <div class="felt"><label>Geografiquizer per dag</label><input type="number" name="quizPerDag" min="0"></div>
             <div class="felt"><label>Kr per riktig quizsvar</label><input type="number" name="quizBelop" min="0" step="50"></div>
             <div class="felt"><label>Duellpremie (kr)</label><input type="number" name="duellPremie" min="0" step="500"></div>
+            <div class="felt"><label>Parlør-diktat: minutter</label><input type="number" name="diktatMinutter" min="0" max="30"><div class="hjelp">Tid elevene har etter at du åpner diktaten. 0 = ingen grense.</div></div>
+            <div class="felt"><label>Parlør-diktat: kr per elev</label><input type="number" name="diktatBelopPerElev" min="0" step="500"><div class="hjelp">Gis for 5 av 5 riktige, én gang per land. Gruppe på 4 får 4 × beløpet. 0 = av.</div></div>
             <div class="felt"><label>Landquiz: riktige av 5 for å låse</label><input type="number" name="landquizKrav" min="0" max="5"><div class="hjelp">Gruppa kan låse et eget land med landquiz. 0 = av. Ett forsøk per land per dag.</div></div>
           </div>
           <div class="felt rad" style="gap:.5rem"><input type="checkbox" name="pause" id="pause" style="width:1.2em;height:1.2em"><label for="pause" style="margin:0">Pause – ingen kan kjøpe noe akkurat nå</label></div>
@@ -203,7 +206,7 @@
 
 <script type="module">
 import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
-import { startBank, godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling } from './js/bank.js';
+import { startBank, godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
 import { STANDARD_INNSTILLINGER, GRUPPEFARGER, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
 import { tilfeldigStart } from './data/motor.js';
@@ -335,6 +338,17 @@ function tegnOversikt() {
     nt.textContent = dager > 0 ? `${dager} dager igjen` : 'Spillet er slutt'; nt.classList.remove('skjult');
   } else nt.classList.add('skjult');
 
+  // diktater
+  const diktater = Object.entries(spill.diktatKo || {});
+  $('#diktater').innerHTML = diktater.map(([gid, k]) => {
+    const l = landEtterId[k.land];
+    const igjen = k.aapnet && i.diktatMinutter ? Math.max(0, Math.ceil((k.aapnet + i.diktatMinutter * 60000 - Date.now()) / 1000)) : null;
+    return `<div class="oppgave"><span class="flagg">✍️</span><div class="vokser"><b>${prikk(gid)} ${esc(gnavn(gid))}</b> ber om parlør-diktat<br><span class="liten">${l.flagg} ${esc(l.navn)} · ${k.aapnet ? `<span class="merke gress">åpen${igjen != null ? ` – <span data-slutt="${k.aapnet + i.diktatMinutter * 60000}">${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}</span> igjen` : ''}</span>` : '<span class="merke sol">venter på deg</span>'}</span></div>
+      ${k.aapnet ? `<button class="knapp lys mini" data-lukkdk="${gid}">Lukk</button>` : `<button class="knapp gress mini" data-aapnedk="${gid}">Åpne diktat</button><button class="knapp lys mini" data-lukkdk="${gid}">Ikke nå</button>`}</div>`;
+  }).join('');
+  $$('[data-aapnedk]').forEach((b) => b.onclick = () => { b.disabled = true; aapneDiktat(spillId, b.dataset.aapnedk); });
+  $$('[data-lukkdk]').forEach((b) => b.onclick = () => { b.disabled = true; lukkDiktat(spillId, b.dataset.lukkdk); });
+
   // dueller
   const dueller = Object.entries(spill.dueller || {}).filter(([, d]) => d.status === 'venter');
   $('#dueller').innerHTML = dueller.map(([id, d]) => {
@@ -361,10 +375,10 @@ function tegnOversikt() {
     const merknad = !e ? '<span class="merke gress">ledig land</span>' : e.gruppe === x.gid ? '<span class="merke">eier allerede</span>' : erLaast(e, i) ? '<span class="merke">låst – gir ikke landet</span>' : `<span class="merke korall">⚔️ gir duell mot ${esc(gnavn(e.gruppe))}</span>`;
     return `<div class="oppgave"><span class="flagg">${l.flagg}</span><div class="vokser"><b>${esc(l.navn)}</b><br><span class="liten">${prikk(x.gid)} ${esc(gnavn(x.gid))} · reiselogg levert</span> ${merknad}</div>
       <button class="knapp gress mini" data-godkjenn="${x.gid}|${x.land}">Godkjenn</button><button class="knapp lys mini" data-avvis="${x.gid}|${x.land}">Ikke godkjent</button></div>`;
-  }).join('') : (dueller.length ? '' : '<p class="tom">Ingen reiselogger venter. 👍</p>');
+  }).join('') : (dueller.length || diktater.length ? '' : '<p class="tom">Ingen reiselogger venter. 👍</p>');
   $$('[data-godkjenn]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.godkjenn.split('|'); const t = await godkjennReiselogg(spillId, g, l); varsle(`${gnavn(g)} ${t}`, 'ok'); });
   $$('[data-avvis]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.avvis.split('|'); await avvisReiselogg(spillId, g, l); varsle('Reiseloggen ble sendt tilbake.'); });
-  const antall = levert.length + dueller.length;
+  const antall = levert.length + dueller.length + diktater.filter(([, k]) => !k.aapnet).length;
   $('#badgeOppgaver').textContent = antall; $('#badgeOppgaver').classList.toggle('skjult', !antall);
 
   // strøm
@@ -388,6 +402,7 @@ function tegnGrupper() {
         <button class="knapp mini lys" data-rediger="${gid}">✏️ Rediger</button>
         <button class="knapp mini lys" data-flytt="${gid}">📍 Flytt</button>
         <button class="knapp mini lys" data-nypin="${gid}">🔑 Ny PIN</button>
+        <button class="knapp mini lys" data-diktat="${gid}" title="Godkjenn parlør-diktat manuelt">✍️ Diktat</button>
         <button class="knapp mini lys" data-slett="${gid}" title="Slett gruppa">🗑️</button>
       </div></div>`;
   }).join('') : '<div class="kort"><p class="tom">Ingen grupper ennå. Trykk «Ny gruppe». Hver gruppe får en tilfeldig startposisjon i verden.</p></div>';
@@ -415,6 +430,14 @@ function tegnGrupper() {
     if (!d) return;
     await update(r(`spill/${spillId}/grupper/${gid}`), { posisjon: d.land, hotell: null });
     varsle('Gruppa er flyttet.', 'ok');
+  });
+  $$('[data-diktat]').forEach((b) => b.onclick = async () => {
+    const gid = b.dataset.diktat; const g = spill.grupper[gid];
+    const land = Object.keys(spill.reiselogger?.[gid] || {}).filter((id) => !g.diktat?.[id]);
+    if (!land.length) { varsle('Gruppa har ingen leverte reiselogger uten godkjent diktat.'); return; }
+    const d = await skjemaModal(`Godkjenn diktat – ${g.navn}`, `<p class="liten dempet">Bruk dette hvis gruppa har skrevet riktig, men med en skrivemåte spillet ikke kjente igjen. Gruppa får ${formaterKr(innst(spill).diktatBelopPerElev * (g.personer || 4))}.</p><div class="felt"><label>Land</label><select name="land">${land.map((id) => `<option value="${id}">${landEtterId[id].flagg} ${esc(landEtterId[id].navn)}</option>`).join('')}</select></div>`, 'Godkjenn og betal');
+    if (!d) return;
+    varsle(await godkjennDiktatManuelt(spillId, gid, d.land), 'ok');
   });
   $$('[data-nypin]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.nypin;
@@ -518,7 +541,7 @@ function tegnInnstillinger() {
   if (innstRedigeres) return;
   const i = innst(spill); const f = $('#innstskjema');
   f.navn.value = spill.info?.navn || '';
-  for (const k of ['startdato', 'sluttdato', 'startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav']) f[k].value = i[k] ?? '';
+  for (const k of ['startdato', 'sluttdato', 'startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav', 'diktatBelopPerElev', 'diktatMinutter']) f[k].value = i[k] ?? '';
   f.pause.checked = !!i.pause;
 }
 $('#innstskjema').onsubmit = async (e) => {
@@ -529,7 +552,7 @@ $('#innstskjema').onsubmit = async (e) => {
     [`mineSpill/${bruker.uid}/${spillId}`]: f.navn.value.trim() || 'Jorda rundt',
     [`spill/${spillId}/innstillinger/startdato`]: f.startdato.value,
     [`spill/${spillId}/innstillinger/sluttdato`]: f.sluttdato.value,
-    ...Object.fromEntries(['startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
+    ...Object.fromEntries(['startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav', 'diktatBelopPerElev', 'diktatMinutter'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
     [`spill/${spillId}/innstillinger/pause`]: f.pause.checked,
   });
   innstRedigeres = false; varsle('Reglene er lagret.', 'ok');
@@ -552,6 +575,7 @@ function tegnLogg() {
 }
 // Oppdater "låses om"-tekst jevnlig
 setInterval(() => { if (spill) { tegnLand(); } }, 60000);
+setInterval(() => { for (const el of $$('[data-slutt]')) { const t = Math.max(0, Math.ceil((Number(el.dataset.slutt) - Date.now()) / 1000)); el.textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; } }, 1000);
 </script>
 </body>
 </html>

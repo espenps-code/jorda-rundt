@@ -159,6 +159,7 @@ import { auth, r, get, set, push, onValue, loggInnElev, loggUt, vedInnlogging, b
 import { flyTilbud, hoteller, formaterVarighet, iLokalValuta, avstandKm } from './data/motor.js';
 import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, lagLandquiz, formaterKr, nyId, LAND, landEtterId, KONTINENTER } from './js/felles.js';
 import { lagKlode } from './js/klode.js';
+import { ORD as PARLOR_ORD, SPRAK, sprakFor } from './data/parlor.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -167,7 +168,7 @@ const lagre = (k, v) => { try { v == null ? localStorage.removeItem(k) : localSt
 const hent = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 
 let spillId = null, gid = null, spill = null, g = null, klode = null, stopp = null;
-let lq = null;
+let lq = null, dk = { land: null, svar: [] };
 let fane = 'reis', reiseMal = null, sokTekst = '', jobb = null, quiz = null, quizSvar = [], venterPa = {};
 
 function varsle(tekst, type = '') {
@@ -254,7 +255,7 @@ function tegnNeste() {
   else {
     const st = reiseloggStatus();
     if (!st || st === 'avvist') { ikon = '📓'; tekst = `<b>Gjør reiseloggen for ${esc(l.navn)}</b><br>Fyll ut den fysiske reiseloggen og trykk «Levert» under Reiselogg.`; }
-    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere jobbe eller ta en quiz.'; }
+    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere ta parlør-diktaten under Reiselogg, jobbe eller ta en quiz.'; }
     else if (st === 'duell') { ikon = '⚔️'; tekst = '<b>Duell!</b><br>Læreren setter opp en duell om landet.'; }
     else { ikon = '✈️'; tekst = '<b>Klar for neste land!</b><br>Velg et reisemål – eller tjen penger først.'; }
   }
@@ -400,6 +401,22 @@ function tegnLandquiz(el) {
   };
 }
 
+function diktatHtml(st, i, l) {
+  if (!i.diktatBelopPerElev) return '';
+  const levert = ['levert', 'godkjent', 'duell', 'laast', 'tapt'].includes(st);
+  const belop = formaterKr(i.diktatBelopPerElev * (g.personer || 4));
+  const tittel = `<h3 style="margin-top:1.4rem">✍️ Parlør-diktat <span class="merke sol">${belop}</span></h3>`;
+  if (g.diktat?.[g.posisjon]) return `${tittel}<div class="infoboks gress">✅ Dere har klart diktaten for ${esc(l.navn)}!</div>`;
+  if (!levert) return `${tittel}<p class="liten dempet">Når reiseloggen er levert, kan dere ta diktaten: skriv parlørordene på landets språk. 5 av 5 riktige gir ${belop}.</p>`;
+  if (g.diktatForsok?.[idag()]?.[g.posisjon]) return `${tittel}<div class="infoboks">Dere har prøvd diktaten i dag. Øv på parløren og prøv igjen i morgen!</div>`;
+  if (dk.land !== g.posisjon) dk = { land: g.posisjon, svar: [] };
+  const sprak = sprakFor(g.posisjon).map((k) => SPRAK[k].navn);
+  return `${tittel}<p>Skriv ordene på landets språk – med våre bokstaver. Alle fem må være riktige for å få <b>${belop}</b>. Dere har ett forsøk per dag.</p>
+    <p class="liten dempet">Språk som godtas i ${esc(l.navn)}: ${sprak.map(esc).join(', ')}. Store/små bokstaver og aksenter spiller ingen rolle.</p>
+    ${PARLOR_ORD.map((o, n) => `<div class="oppgavekort" style="display:grid;grid-template-columns:8.5rem 1fr;gap:.6rem;align-items:center;padding:.7rem 1rem"><b>${esc(o.norsk)}</b><input data-dk="${n}" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(dk.svar[n] ?? '')}" placeholder="På landets språk"></div>`).join('')}
+    <button class="knapp sol" id="leverdk" ${venterPa.diktat ? 'disabled' : ''}>${venterPa.diktat ? '<span class="venter">Sender</span>' : 'Lever diktaten'}</button>`;
+}
+
 function tegnLogg() {
   const el = $('#innhold'); const i = innst(spill); const l = landEtterId[g.posisjon];
   if (lq) return tegnLandquiz(el);
@@ -411,11 +428,18 @@ function tegnLogg() {
   el.innerHTML = `
     <div class="malkort"><span class="f">${l.flagg}</span><div class="vokser"><h3>Reiselogg: ${esc(l.navn)}</h3><div class="liten">${st ? tekster[st] : harHotell() ? 'Ikke levert ennå' : 'Book hotell først'}</div></div></div>
     ${kanLevere ? `<p>Når dere har fylt ut den fysiske reiseloggen for ${esc(l.navn)}, trykker dere her og gir den til læreren.</p><button class="knapp sol" id="lever" ${venterPa.reiselogg ? 'disabled' : ''}>📓 Vi har levert reiseloggen</button>` : ''}
+    ${diktatHtml(st, i, l)}
     <h3 style="margin-top:1.4rem">Våre land (${mineLand.length})</h3>
     <div class="rad" style="margin-bottom:.4rem">${KONTINENTER.map((k) => `<span class="merke ${kont.has(k) ? 'gress' : ''}">${kont.has(k) ? '✓' : '○'} ${k}</span>`).join('')}</div>
     ${mineLand.length ? mineLand.map(([id, e]) => { const x = landEtterId[id]; const ms = laasesOm(e, i); const provd = g.landquiz?.[idag()]?.[id]; const kanQuiz = !erLaast(e, i) && i.landquizKrav > 0; return `<div class="landrad"><span class="f">${x.flagg}</span><div class="vokser"><b>${esc(x.navn)}</b><br><span class="liten dempet">${x.kontinent}</span></div><span class="merke ${erLaast(e, i) ? 'gress' : 'sol'}">${erLaast(e, i) ? '🔒 Trygg' : ms != null ? `Kan utfordres i ${Math.ceil(ms / 86400000)} d` : 'Kan utfordres'}</span>${kanQuiz ? ` <button class="knapp mini" data-laas="${id}" ${provd ? 'disabled title="Prøv igjen i morgen"' : ''}>${provd ? 'Prøvd i dag' : '🔒 Lås med quiz'}</button>` : ''}</div>`; }).join('') : '<p class="tom">Ingen land ennå – fullfør en reiselogg!</p>'}
     <p class="liten dempet" style="margin-top:1rem">Dere får ${i.poengLand} poeng per land og ${i.poengKontinent} poeng per kontinent dere har et land på.</p>`;
   $('#lever')?.addEventListener('click', async () => { const res = await send('reiselogg', {}); if (res.ok) feir('📓'); });
+  $$('[data-dk]').forEach((inp) => inp.oninput = () => { dk.svar[Number(inp.dataset.dk)] = inp.value; });
+  $('#leverdk')?.addEventListener('click', async () => {
+    if (PARLOR_ORD.some((_, n) => !String(dk.svar[n] || '').trim())) { varsle('Fyll ut alle fem ordene først.', 'feil'); return; }
+    const res = await send('diktat', { land: dk.land, svar: PARLOR_ORD.map((_, n) => dk.svar[n] || '') });
+    if (res.ok && /5 av 5/.test(res.svar || '')) feir('✍️');
+  });
   $$('[data-laas]').forEach((b) => b.onclick = () => { lq = { land: b.dataset.laas, fro: nyId(10), svar: [] }; tegnLogg(); $('.panel').scrollTop = 0; });
 }
 
