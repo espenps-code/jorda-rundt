@@ -86,6 +86,7 @@ async function medGruppe(spillId, gid, endre) {
   return { ok: true, melding: utfall.melding, logg: utfall.logg };
 }
 
+const gyldigFro = (f) => typeof f === 'string' && /^[A-Za-z0-9_-]{4,40}$/.test(f);
 function harHotellHer(g) { return g.hotell && g.hotell.land === g.posisjon; }
 
 function fly(spillId, gid, d, i) {
@@ -131,7 +132,7 @@ function landing(spillId, gid, d) {
     g.reiser = (g.reiser || 0) + 1;
     return {
       melding: `🛬 Velkommen til ${til.by}, ${til.navn}! Husk å booke hotell.`,
-      logg: { type: 'fly', fra: f.fra, til: f.til, tekst: `landet i ${til.flagg} ${til.navn} (${svar.length - riktige} turbulens)` },
+      logg: { type: 'fly', fra: f.fra, til: f.til, turbulens: svar.length - riktige, stopp: f.stopp, tekst: `landet i ${til.flagg} ${til.navn} (${svar.length - riktige} turbulens)` },
     };
   });
 }
@@ -158,7 +159,7 @@ function hotell(spillId, gid, d, i) {
     }
     return {
       melding: `Velkommen til ${h.navn}! Tre netter er booket.${hendelseTekst}`,
-      logg: { type: 'hotell', belop: -pris + (g.hotell.hendelse?.kr || 0), land: g.posisjon, tekst: `sjekker inn på ${h.navn} i ${l.by}${hendelseTekst ? ' –' + hendelseTekst : ''}` },
+      logg: { type: 'hotell', belop: -pris + (g.hotell.hendelse?.kr || 0), pris, navn: h.navn, stjerner: h.stjerner, hendelse: g.hotell.hendelse || null, land: g.posisjon, tekst: `sjekker inn på ${h.navn} i ${l.by}${hendelseTekst ? ' –' + hendelseTekst : ''}` },
     };
   });
 }
@@ -170,7 +171,7 @@ function jobb(spillId, gid, d, i) {
     const antall = g.jobber?.[dag] || 0;
     const eff = hotellEffekt(g.hotell, i);
     if (antall >= eff.jobber) return { feil: `Dere har jobbet nok i dag (maks ${eff.jobber} ${eff.jobber === 1 ? 'jobb' : 'jobber'} per dag på dette hotellet).` };
-    if (!d.fro) return { feil: 'Mangler jobb.' };
+    if (!gyldigFro(d.fro)) return { feil: 'Ugyldig jobb. Last inn siden på nytt.' };
     if (g.brukteFro?.[d.fro]) return { feil: 'Denne jobben er allerede levert.' };
     const res = rettJobb(g.posisjon, d.fro, d.svar);
     g.jobber = { [dag]: antall + 1 };              // bare dagens teller trengs
@@ -189,7 +190,7 @@ function quiz(spillId, gid, d, i) {
     const dag = idag();
     const antall = g.quiz?.[dag] || 0;
     if (antall >= i.quizPerDag) return { feil: `Dere har tatt nok quizer i dag (maks ${i.quizPerDag}).` };
-    if (!d.fro) return { feil: 'Mangler quiz.' };
+    if (!gyldigFro(d.fro)) return { feil: 'Ugyldig quiz. Last inn siden på nytt.' };
     if (g.brukteFro?.[d.fro]) return { feil: 'Denne quizen er allerede levert.' };
     const res = rettQuiz(d.fro, d.svar);
     const belop = res.riktige * i.quizBelop;
@@ -291,6 +292,7 @@ async function landquiz(spillId, gid, d, i, spill) {
   let bestatt = false, res = null;
   const svar = await medGruppe(spillId, gid, (g) => {
     if (g.landquiz?.[dag]?.[d.land]) return { feil: `Dere har allerede prøvd landquizen for ${l.navn} i dag. Prøv igjen i morgen!` };
+    if (!gyldigFro(d.fro)) return { feil: 'Ugyldig quiz. Last inn siden på nytt.' };
     if (g.brukteFro?.[d.fro]) return { feil: 'Denne quizen er allerede levert.' };
     res = rettLandquiz(d.land, d.fro, d.svar);
     bestatt = res.riktige >= i.landquizKrav;

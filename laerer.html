@@ -56,29 +56,6 @@
     .loggkort h2 { font-size: 20pt; margin: 0 0 2mm; }
     .loggkort .k { font: 800 22pt var(--font-tittel); letter-spacing: .08em; }
   }
-
-  /* «Venter på deg» øverst */
-  .venter-panel { margin-bottom: 1.2rem; border: 3px solid var(--linje); }
-  .venter-panel.aktiv { border-color: var(--sol); background: linear-gradient(180deg, #FFF3D6, #FFFDF7 140px); box-shadow: 0 0 0 6px rgba(243,178,58,.2), 0 4px 0 #E2C47A, var(--skygge); }
-  .venter-topp { display: flex; align-items: baseline; justify-content: space-between; gap: .4rem 1rem; flex-wrap: wrap; margin-bottom: .6rem; }
-  .venter-topp h2 { margin: 0; display: flex; align-items: center; gap: .5rem; font-size: 1.7rem; }
-  .venter-teller { font: 500 1.1rem var(--font-mono); min-width: 2em; height: 2em; padding: 0 .5em; border-radius: 999px; display: inline-grid; place-items: center; background: linear-gradient(180deg, #E3E8EF, #CDD5E0); color: var(--blekk-2); box-shadow: 0 2px 0 #AEB8C6; }
-  .venter-panel.aktiv .venter-teller { background: linear-gradient(180deg, #D2463C, #B02F27); color: #fff; box-shadow: 0 3px 0 #6E1A15; animation: dunk 1.8s ease-in-out infinite; }
-  @keyframes dunk { 50% { transform: scale(1.12); } }
-  @media (prefers-reduced-motion: reduce) { .venter-panel.aktiv .venter-teller { animation: none; } }
-  .venter-rutenett { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: .7rem; }
-  .venter-rutenett:empty { display: none; }
-  .venter-rutenett .oppgave { background: #fff; border: 2px solid var(--linje); border-radius: 14px; padding: .7rem .8rem; box-shadow: 0 3px 0 #E2D6BC; }
-  .venter-rutenett .tom { grid-column: 1 / -1; }
-  #diktater.venter-rutenett { margin-bottom: .7rem; }
-  /* 3D-detaljer */
-  header.topp { background: linear-gradient(180deg, #17457A, var(--hav) 75%); }
-  nav.faner { gap: .4rem; padding: .6rem 1.2rem .7rem; border-bottom: 0; box-shadow: 0 6px 12px -8px rgba(12,35,64,.25); }
-  nav.faner button { border-radius: 12px; background: linear-gradient(180deg, #FFFFFF, #F1E9D8); color: var(--hav); box-shadow: inset 0 1px 0 #fff, 0 3px 0 #CBBC99; position: relative; top: 0; transition: top .08s, box-shadow .08s; min-height: 44px; }
-  nav.faner button:active { top: 2px; box-shadow: 0 1px 0 #CBBC99; }
-  nav.faner button[aria-selected=true] { background: linear-gradient(180deg, #1F5390, var(--hav)); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 #04101F, 0 6px 12px rgba(12,35,64,.25); }
-  .badge { background: linear-gradient(180deg, #D2463C, #B02F27); box-shadow: 0 2px 0 #6E1A15; }
-  .gruppekort { border-top-width: 8px; }
 </style>
 </head>
 <body>
@@ -88,6 +65,7 @@
   <div class="bankstatus skjult" id="bankstatus" title="Banken behandler kjøp fra elevene så lenge denne siden er åpen"><span class="lampe"></span> Banken er åpen</div>
   <span class="vokser"></span>
   <a href="index.html#veiledning" target="_blank" class="knapp lys mini">❓ Veiledning</a>
+  <a id="rapportlenke" class="knapp lys mini skjult" target="_blank" title="Reisedagbok for hver gruppe – til utskrift">📔 Rapporter</a>
   <a id="tavlelenke" class="knapp sol mini skjult" target="_blank">📺 Åpne tavla</a>
   <button id="loggut" class="knapp lys mini skjult">Logg ut</button>
 </header>
@@ -127,15 +105,6 @@
   <main>
     <!-- OVERSIKT -->
     <section data-panel="oversikt">
-      <div class="kort venter-panel" id="venterpanel">
-        <div class="venter-topp">
-          <h2>⏳ Venter på deg <span id="venterTeller" class="venter-teller">0</span></h2>
-          <span class="liten dempet">Gruppene kan ikke reise videre før reiseloggen er godkjent.</span>
-        </div>
-        <div id="diktater" class="venter-rutenett"></div>
-        <div id="dueller"></div>
-        <div id="reiselogger" class="venter-rutenett"></div>
-      </div>
       <div class="oversikt">
         <div>
           <div class="kort">
@@ -148,6 +117,12 @@
           </div>
         </div>
         <div>
+          <div class="kort">
+            <h2>Venter på deg</h2>
+            <div id="diktater"></div>
+            <div id="dueller"></div>
+            <div id="reiselogger"></div>
+          </div>
           <div class="kort">
             <h3>📣 Del med elevene</h3>
             <p class="liten dempet">Elevene åpner denne lenken og logger inn med gruppekoden og PIN-en fra innloggingskortet.</p>
@@ -171,7 +146,6 @@
         <div class="rad">
           <a href="reiselogg.html" target="_blank" class="knapp lys">📓 Reiselogg</a>
           <button id="skrivut" class="knapp lys">🖨️ Skriv ut innloggingskort</button>
-          <button id="autogruppeknapp" class="knapp sol">⚡ Lag mange grupper</button>
           <button id="nygruppeknapp" class="knapp">＋ Ny gruppe</button>
         </div>
       </div>
@@ -243,7 +217,7 @@
 import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { startBank, godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
-import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
 import { tilfeldigStart } from './data/motor.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -334,6 +308,8 @@ function velgSpill(id) {
   $('#qr').innerHTML = qrSvg(elevUrl, 3);
   $('#tavlelenke').href = `tavle.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`;
   $('#tavlelenke').classList.remove('skjult');
+  $('#rapportlenke').href = `rapport.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`;
+  $('#rapportlenke').classList.remove('skjult');
   stoppSpill = onValue(r(`spill/${id}`), (snap) => { spill = snap.val(); if (spill) tegnAlt(); });
   stoppPins = onValue(r(`pins/${id}`), (snap) => { pins = snap.val() || {}; if (spill) tegnGrupper(); });
   stoppBank = startBank(id, {
@@ -382,7 +358,7 @@ function tegnOversikt() {
     rader.map((g, n) => {
       const her = landEtterId[g.posisjon];
       const hotell = g.hotell && g.hotell.land === g.posisjon;
-      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td><td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td><td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? '<span class="merke gress">🏨</span>' : '<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>'}</td></tr>`;
+      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td><td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td><td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${g.iLufta ? `<span class="merke">✈️ i lufta → ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}</span>` : `${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? '<span class="merke gress">🏨</span>' : '<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>'}`}</td></tr>`;
     }).join('')}</tbody></table>` : '<p class="tom">Ingen grupper ennå. Gå til «Grupper» og lag dem.</p>';
 
   // nedtelling
@@ -427,15 +403,13 @@ function tegnOversikt() {
   $('#reiselogger').innerHTML = levert.length ? levert.map((x) => {
     const l = landEtterId[x.land]; const e = spill.eierskap?.[x.land];
     const merknad = !e ? '<span class="merke gress">ledig land</span>' : e.gruppe === x.gid ? '<span class="merke">eier allerede</span>' : erLaast(e, i) ? '<span class="merke">låst – gir ikke landet</span>' : `<span class="merke korall">⚔️ gir duell mot ${esc(gnavn(e.gruppe))}</span>`;
-    return `<div class="oppgave"><span class="flagg">${l.flagg}</span><div class="vokser"><b>${esc(l.navn)}</b><br><span class="liten">${prikk(x.gid)} ${esc(gnavn(x.gid))} · levert for ${Math.max(0, Math.round((Date.now() - x.tid) / 60000))} min siden</span> ${merknad}</div>
+    return `<div class="oppgave"><span class="flagg">${l.flagg}</span><div class="vokser"><b>${esc(l.navn)}</b><br><span class="liten">${prikk(x.gid)} ${esc(gnavn(x.gid))} · reiselogg levert</span> ${merknad}</div>
       <button class="knapp gress mini" data-godkjenn="${x.gid}|${x.land}">Godkjenn</button><button class="knapp lys mini" data-avvis="${x.gid}|${x.land}">Ikke godkjent</button></div>`;
   }).join('') : (dueller.length || diktater.length ? '' : '<p class="tom">Ingen reiselogger venter. 👍</p>');
   $$('[data-godkjenn]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.godkjenn.split('|'); const t = await godkjennReiselogg(spillId, g, l); varsle(`${gnavn(g)} ${t}`, 'ok'); });
   $$('[data-avvis]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.avvis.split('|'); await avvisReiselogg(spillId, g, l); varsle('Reiseloggen ble sendt tilbake.'); });
   const antall = levert.length + dueller.length + diktater.filter(([, k]) => !k.aapnet).length;
   $('#badgeOppgaver').textContent = antall; $('#badgeOppgaver').classList.toggle('skjult', !antall);
-  $('#venterTeller').textContent = antall; $('#venterpanel').classList.toggle('aktiv', !!antall);
-  document.title = (antall ? `(${antall}) ` : '') + 'Jorda rundt – lærer';
 
   // strøm
   const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 40);
@@ -484,7 +458,7 @@ function tegnGrupper() {
     const gid = b.dataset.flytt;
     const d = await skjemaModal(`Flytt ${gnavn(gid)}`, `<div class="felt"><label>Nytt land</label><select name="land">${LAND.map((l) => `<option value="${l.id}" ${l.id === spill.grupper[gid].posisjon ? 'selected' : ''}>${l.flagg} ${esc(l.navn)}</option>`).join('')}</select></div><p class="liten dempet">Gruppa må booke nytt hotell der.</p>`, 'Flytt');
     if (!d) return;
-    await update(r(`spill/${spillId}/grupper/${gid}`), { posisjon: d.land, hotell: null });
+    await update(r(`spill/${spillId}/grupper/${gid}`), { posisjon: d.land, hotell: null, iLufta: null });
     varsle('Gruppa er flyttet.', 'ok');
   });
   $$('[data-diktat]').forEach((b) => b.onclick = async () => {
@@ -543,38 +517,6 @@ $('#nygruppeknapp').onclick = async () => {
     [`spill/${spillId}/logg/${nyId(12)}`]: { tid: Date.now(), gruppe: gid, type: 'start', tekst: `starter reisen i ${start.flagg} ${start.navn}` },
   });
   varsle(`${d.navn} starter i ${start.flagg} ${start.navn}!`, 'ok');
-};
-
-$('#autogruppeknapp').onclick = async () => {
-  const MAKS = 25;
-  const finnes = Object.values(spill.grupper || {});
-  const ledig = MAKS - finnes.length;
-  if (ledig <= 0) { varsle(`Spillet har allerede ${MAKS} grupper.`, 'feil'); return; }
-  const d = await skjemaModal('Lag mange grupper', `
-    <div class="felt"><label>Hvor mange grupper?</label><input name="antall" type="number" min="1" max="${ledig}" value="${Math.min(ledig, 6)}" required><div class="hjelp">Du kan lage opptil ${ledig} til (maks ${MAKS} per spill).</div></div>
-    <div class="felt"><label>Antall elever per gruppe</label><input name="personer" type="number" min="1" max="8" value="4" required><div class="hjelp">Bestemmer startbudsjettet. Du kan endre enkeltgrupper etterpå.</div></div>
-    <p class="liten dempet">Gruppene får reisenavn (Globetrotterne, Pilotene …), hver sin farge, gruppekode, PIN og en tilfeldig startposisjon. Navn og farge kan endres på gruppekortet.</p>`, 'Lag grupper');
-  if (!d) return;
-  const antall = Math.max(1, Math.min(ledig, Number(d.antall) || 1));
-  const personer = Math.max(1, Math.min(8, Number(d.personer) || 4));
-  const i = innst(spill);
-  const bruktNavn = finnes.map((g) => g.navn), bruktFarge = finnes.map((g) => g.farge);
-  const opptatt = finnes.map((g) => g.start);
-  const nyeKoder = new Set();
-  const oppdatering = {}, startsteder = [];
-  for (let n = 0; n < antall; n++) {
-    const navn = GRUPPENAVN.find((x) => !bruktNavn.includes(x)) || `Gruppe ${finnes.length + n + 1}`; bruktNavn.push(navn);
-    const farge = (GRUPPEFARGER.find((f) => !bruktFarge.includes(f.hex)) || GRUPPEFARGER[(finnes.length + n) % GRUPPEFARGER.length]).hex; bruktFarge.push(farge);
-    let kode; do { kode = await lagKode(); } while (nyeKoder.has(kode)); nyeKoder.add(kode);
-    const start = tilfeldigStart(opptatt, i.stengte || {}); opptatt.push(start.id); startsteder.push(start);
-    const gid = nyId(8), tid = Date.now() + n;
-    oppdatering[`spill/${spillId}/grupper/${gid}`] = { navn, farge, personer, saldo: startbelopFor(i, personer), posisjon: start.id, start: start.id, kode, opprettet: tid, reiser: 0 };
-    oppdatering[`pins/${spillId}/${gid}`] = lagPin();
-    oppdatering[`gruppekoder/${kode}`] = { spill: spillId, gruppe: gid };
-    oppdatering[`spill/${spillId}/logg/${nyId(12)}`] = { tid, gruppe: gid, type: 'start', tekst: `starter reisen i ${start.flagg} ${start.navn}` };
-  }
-  try { await update(r('/'), oppdatering); varsle(`${antall} grupper er laget! Husk å skrive ut innloggingskortene.`, 'ok'); }
-  catch (e) { varsle('Kunne ikke lage gruppene: ' + e.message, 'feil'); }
 };
 
 $('#skrivut').onclick = () => {
@@ -650,7 +592,7 @@ $('#nullstill').onclick = async () => {
   const i = innst(spill); const u = {}; const brukt = [];
   for (const [gid, gr] of Object.entries(spill.grupper || {})) {
     const s = tilfeldigStart(brukt, i.stengte || {}); brukt.push(s.id);
-    Object.assign(u, { [`spill/${spillId}/grupper/${gid}/saldo`]: startbelopFor(i, gr.personer), [`spill/${spillId}/grupper/${gid}/posisjon`]: s.id, [`spill/${spillId}/grupper/${gid}/start`]: s.id, [`spill/${spillId}/grupper/${gid}/hotell`]: null, [`spill/${spillId}/grupper/${gid}/reiser`]: 0, [`spill/${spillId}/grupper/${gid}/besokt`]: null, [`spill/${spillId}/grupper/${gid}/jobber`]: null, [`spill/${spillId}/grupper/${gid}/quiz`]: null, [`spill/${spillId}/grupper/${gid}/brukteFro`]: null });
+    Object.assign(u, { [`spill/${spillId}/grupper/${gid}/saldo`]: startbelopFor(i, gr.personer), [`spill/${spillId}/grupper/${gid}/posisjon`]: s.id, [`spill/${spillId}/grupper/${gid}/start`]: s.id, [`spill/${spillId}/grupper/${gid}/hotell`]: null, [`spill/${spillId}/grupper/${gid}/reiser`]: 0, [`spill/${spillId}/grupper/${gid}/besokt`]: null, [`spill/${spillId}/grupper/${gid}/jobber`]: null, [`spill/${spillId}/grupper/${gid}/quiz`]: null, [`spill/${spillId}/grupper/${gid}/brukteFro`]: null, [`spill/${spillId}/grupper/${gid}/iLufta`]: null });
   }
   for (const k of ['eierskap', 'reiselogger', 'dueller', 'logg', 'foresporsler']) u[`spill/${spillId}/${k}`] = null;
   await update(r('/'), u); varsle('Spillet er nullstilt.', 'ok');

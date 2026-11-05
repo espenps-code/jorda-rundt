@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reisedagbøker – Jorda rundt</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📔</text></svg>">
+<link rel="stylesheet" href="css/felles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<style>
+  @page { size: A4 portrait; margin: 11mm 12mm; }
+  body { background: #e9e4d8; }
+  .styring { max-width: 900px; margin: 1rem auto; }
+  .styring select { width: auto; min-width: 240px; }
+  #status { text-align: center; padding: 3rem 1rem; color: var(--blekk-2); }
+
+  .bok { width: 210mm; margin: 1rem auto; }
+  .side { background: #fffdf8; width: 210mm; min-height: 297mm; padding: 11mm 12mm; box-shadow: 0 4px 20px rgba(0,0,0,.15); margin-bottom: 1rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 5mm; color: var(--blekk); }
+  .hand { font-family: 'Caveat', cursive; font-weight: 600; }
+  .smaa { font: 700 7.5pt var(--font); letter-spacing: .14em; text-transform: uppercase; color: #6b7785; }
+
+  /* forside */
+  .omslag { border-radius: 6mm; padding: 8mm 9mm 7mm; color: #fff; position: relative; overflow: hidden; background: var(--f); }
+  .omslag::after { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 85% 20%, rgba(255,255,255,.28), transparent 45%), linear-gradient(160deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.25)); pointer-events: none; }
+  .omslag .smaa { color: rgba(255,255,255,.85); }
+  .omslag h1 { color: #fff; font-size: 34pt; line-height: .95; margin: 2mm 0 1mm; }
+  .omslag .under { font-size: 12pt; opacity: .95; }
+  .omslag .plass { position: absolute; right: 9mm; top: 8mm; text-align: center; z-index: 1; background: rgba(255,255,255,.18); border: 1.5px solid rgba(255,255,255,.5); border-radius: 4mm; padding: 2.5mm 4mm; }
+  .omslag .plass b { display: block; font: 800 26pt/1 var(--font-tittel); }
+  .omslag .plass span { font-size: 8.5pt; }
+  .omslag > * { position: relative; z-index: 1; }
+
+  .tall { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2.5mm; }
+  .tall div { background: #fff; border: 1px solid #e6dfd0; border-radius: 3mm; padding: 2.5mm 2mm; text-align: center; }
+  .tall b { display: block; font: 800 17pt/1.05 var(--font-tittel); color: var(--hav); }
+  .tall span { font-size: 7.5pt; color: #5b6774; }
+
+  .kart { background: #eaf3f8; border-radius: 4mm; border: 1px solid #d5e5ee; overflow: hidden; position: relative; }
+  .kart svg { display: block; width: 100%; height: auto; }
+  .kart .tegnf { position: absolute; left: 3mm; bottom: 2.5mm; font-size: 7.5pt; color: #3d4955; background: rgba(255,255,255,.85); padding: 1mm 2.5mm; border-radius: 2mm; display: flex; gap: 3mm; }
+  .kart .tegnf i { display: inline-block; width: 3mm; height: 3mm; border-radius: 1mm; vertical-align: -.4mm; margin-right: 1mm; }
+
+  h2.del { font-size: 16pt; margin: 0 0 2mm; display: flex; align-items: center; gap: 2mm; }
+  h2.del .strek { flex: 1; border-top: 1.5px dashed #d8cfbd; }
+
+  .hoydepunkter { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; }
+  .hp { background: #fff; border-radius: 3.5mm; padding: 3mm 3.5mm; border-left: 2.2mm solid var(--f); box-shadow: 0 1px 0 #e6dfd0; display: grid; grid-template-columns: 9mm 1fr; gap: 2mm; align-items: start; }
+  .hp .ik { font-size: 17pt; line-height: 1; }
+  .hp b { display: block; font: 800 10.5pt/1.2 var(--font-tittel); color: var(--hav); }
+  .hp span { font-size: 9pt; color: #3d4955; }
+
+  /* side 2 */
+  .tidslinje { position: relative; padding-left: 9mm; display: grid; gap: 2.4mm; }
+  .tidslinje::before { content: ''; position: absolute; left: 3.6mm; top: 2mm; bottom: 2mm; border-left: 1.6px dashed #b9c1c9; }
+  .stopp { position: relative; background: #fff; border-radius: 3mm; padding: 2.4mm 3.2mm; border: 1px solid #ece4d3; break-inside: avoid; }
+  .stopp::before { content: attr(data-nr); position: absolute; left: -9mm; top: 2mm; width: 7mm; height: 7mm; border-radius: 50%; background: var(--f); color: #fff; font: 800 9pt/7mm var(--font-tittel); text-align: center; box-shadow: 0 0 0 1.2mm #fffdf8; }
+  .stopp .topp { display: flex; justify-content: space-between; gap: 3mm; align-items: baseline; }
+  .stopp .land { font: 800 11.5pt var(--font-tittel); }
+  .stopp .dato { font-size: 8pt; color: #6b7785; white-space: nowrap; }
+  .stopp .linjer { font-size: 8.8pt; color: #3d4955; margin-top: .6mm; display: grid; gap: .4mm; }
+  .stopp .fly { font-size: 8pt; color: #6b7785; margin-top: .8mm; }
+
+  .okonomi { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .okonomi .boks { background: #fff; border-radius: 3.5mm; padding: 3mm 3.5mm; border: 1px solid #ece4d3; }
+  .okonomi h3 { font-size: 11pt; margin: 0 0 2mm; }
+  .bar { display: grid; grid-template-columns: 24mm 1fr 20mm; gap: 2mm; align-items: center; font-size: 8.6pt; margin-bottom: 1.4mm; }
+  .bar .spor { height: 3.6mm; background: #f1ece2; border-radius: 2mm; overflow: hidden; }
+  .bar .spor i { display: block; height: 100%; border-radius: 2mm; }
+  .bar .kr { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
+  .regnskap { display: flex; justify-content: space-between; align-items: center; background: var(--hav); color: #fff; border-radius: 3.5mm; padding: 3mm 4mm; font-size: 10pt; }
+  .regnskap b { font: 800 14pt var(--font-tittel); }
+
+  .flagg { display: flex; flex-wrap: wrap; gap: 2.5mm; }
+  .stempel { width: 21mm; height: 21mm; border-radius: 50%; border: 1.6px dashed var(--f); display: grid; place-items: center; text-align: center; transform: rotate(var(--r)); background: #fff; }
+  .stempel .fl { font-size: 16pt; line-height: 1; }
+  .stempel .nv { font: 700 6.5pt/1.1 var(--font); margin-top: .5mm; max-width: 18mm; }
+
+  .signatur { margin-top: auto; display: flex; justify-content: space-between; align-items: flex-end; gap: 8mm; padding-top: 4mm; margin-bottom: 7mm; }
+  .signatur .linje { border-top: 1.2px solid #9aa4ae; width: 70mm; padding-top: 1mm; font-size: 8pt; color: #6b7785; }
+  .signatur .hilsen { font-family: 'Caveat', cursive; font-weight: 700; font-size: 18pt; color: var(--hav); }
+  .bunntekst { position: absolute; bottom: 5mm; left: 12mm; right: 12mm; display: flex; justify-content: space-between; font-size: 7pt; color: #9aa4ae; }
+
+  @media print {
+    body { background: #fff; }
+    .styring { display: none; }
+    .bok { width: auto; margin: 0; }
+    .side { box-shadow: none; margin: 0; width: auto; min-height: 0; height: 274mm; padding: 0; break-after: page; }
+    .bunntekst { bottom: 0; left: 0; right: 0; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="styring kort">
+  <h2>📔 Reisedagbøker</h2>
+  <p class="dempet" style="margin-top:0">En oppsummering av reisen for hver gruppe – fin å vise frem for foreldre. To sider per gruppe.</p>
+  <div class="rad">
+    <select id="velg"><option value="alle">Alle grupper</option></select>
+    <button class="knapp sol" onclick="window.print()">🖨️ Skriv ut / lagre som PDF</button>
+    <button class="knapp lys hand-knapp skjult" id="loggInn">Logg inn med Google</button>
+  </div>
+  <p class="liten dempet">Tips: I utskriftsvinduet velger du «Lagre som PDF» for å sende rapporten digitalt. Slå på «Bakgrunnsgrafikk» for farger.</p>
+</div>
+<div id="status">Laster …</div>
+<div class="bok" id="bok"></div>
+
+<script type="module">
+import { r, get, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator } from './js/fb.js';
+import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER, LAND } from './js/felles.js';
+import { avstandKm } from './data/motor.js';
+
+const $ = (s) => document.querySelector(s);
+const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const spillId = new URLSearchParams(location.search).get('spill');
+let spill = null, verden = null;
+
+vedInnlogging(async (u) => {
+  if (!u || u.isAnonymous) {
+    $('#status').textContent = 'Logg inn som lærer for å se rapportene.';
+    $('#loggInn').classList.remove('skjult');
+    $('#loggInn').onclick = () => (brukerEmulator ? testLoggInnLaerer() : loggInnLaerer());
+    return;
+  }
+  $('#loggInn').classList.add('skjult');
+  if (!spillId) { $('#status').textContent = 'Mangler spill. Åpne rapportene fra lærersiden.'; return; }
+  try {
+    spill = (await get(r(`spill/${spillId}`))).val();
+    if (!spill) throw new Error('fant ikke');
+  } catch { $('#status').textContent = 'Fant ikke spillet, eller du har ikke tilgang.'; return; }
+  try {
+    const kart = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json')).json();
+    verden = window.topojson.feature(kart, kart.objects.countries).features;
+  } catch { verden = []; }
+  $('#velg').innerHTML = '<option value="alle">Alle grupper</option>' + poengtavle(spill).map((g) => `<option value="${g.gid}">${esc(g.navn)}</option>`).join('');
+  $('#velg').onchange = tegn;
+  $('#status').remove();
+  tegn();
+});
+
+// ---------- kart (enkel ekvirektangulær projeksjon, uten Antarktis-stripa) ----------
+const W = 1000, H = 470, TOPP = 84, BUNN = -58;
+const px = (lng) => ((lng + 180) / 360) * W;
+const py = (lat) => ((TOPP - Math.max(BUNN, Math.min(TOPP, lat))) / (TOPP - BUNN)) * H;
+const NUM = Object.fromEntries(LAND.map((l) => [l.numerisk, l.id]));
+function ringSti(ring) {
+  let d = '', forrige = null;
+  for (const [lng, lat] of ring) {
+    const hopp = forrige !== null && Math.abs(lng - forrige) > 180;
+    d += `${d && !hopp ? 'L' : 'M'}${px(lng).toFixed(1)},${py(lat).toFixed(1)}`;
+    forrige = lng;
+  }
+  return d + 'Z';
+}
+function featureSti(f) {
+  const g = f.geometry; if (!g) return '';
+  const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
+  return polys.map((p) => p.map(ringSti).join('')).join('');
+}
+function kartSvg(gid, farge, rute, eide, besokt) {
+  const land = verden.map((f) => {
+    const id = NUM[f.id] || (f.properties?.name === 'Kosovo' ? 'XK' : null);
+    const fyll = eide.has(id) ? farge : besokt.has(id) ? farge + '55' : '#fbf7ee';
+    return `<path d="${featureSti(f)}" fill="${fyll}" stroke="#b8c7d1" stroke-width=".5"/>`;
+  }).join('');
+  const smaa = [...eide].filter((id) => !verden.some((f) => NUM[f.id] === id)).map((id) => { const l = landEtterId[id]; return `<circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="4" fill="${farge}" stroke="#fff" stroke-width="1.2"/>`; }).join('');
+  let linjer = '';
+  for (let n = 1; n < rute.length; n++) {
+    const a = landEtterId[rute[n - 1]], b = landEtterId[rute[n]]; if (!a || !b) continue;
+    const x1 = px(a.lng), y1 = py(a.lat), x2 = px(b.lng), y2 = py(b.lat);
+    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - Math.min(80, Math.hypot(x2 - x1, y2 - y1) * 0.25);
+    linjer += `<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="#0B3A53" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" opacity=".85"/>`;
+  }
+  const punkter = rute.map((id, n) => { const l = landEtterId[id]; if (!l) return ''; return `<g><circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="8.5" fill="${n === 0 ? '#F59E0B' : '#0B3A53'}" stroke="#fff" stroke-width="2"/><text x="${px(l.lng)}" y="${py(l.lat) + 3.4}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff" font-family="Baloo 2, sans-serif">${n === 0 ? 'S' : n}</text></g>`; }).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Kart over reiseruta">${land}${smaa}${linjer}${punkter}</svg>`;
+}
+
+// ---------- data for én gruppe ----------
+function analyser(gid) {
+  const g = spill.grupper[gid];
+  const logg = Object.values(spill.logg || {}).filter((h) => h.gruppe === gid).sort((a, b) => a.tid - b.tid);
+  const eide = new Set(Object.entries(spill.eierskap || {}).filter(([, e]) => e.gruppe === gid).map(([id]) => id));
+  const laaste = new Set([...eide].filter((id) => spill.eierskap[id].laast));
+  const rute = [g.start || logg.find((h) => h.type === 'fly')?.fra || g.posisjon];
+  const stopp = [{ land: rute[0], tid: logg[0]?.tid || spill.info?.opprettet, hendelser: [], start: true }];
+  let km = 0, lengst = null, turbulens = 0;
+  const sum = { jobb: 0, quiz: 0, diktat: 0, duell: 0, laererPluss: 0, overraskelsePluss: 0, fly: 0, hotell: 0, laererMinus: 0, overraskelseMinus: 0 };
+  let dyrestHotell = null, billigstHotell = null, jobber = 0, quizer = 0, hotellnetter = 0;
+  const overraskelser = [], diktater = [], erobringer = [], laasinger = [];
+  for (const h of logg) {
+    const naa = stopp[stopp.length - 1];
+    if (h.type === 'fly' && h.til) {
+      const a = landEtterId[h.fra], b = landEtterId[h.til];
+      const d = a && b ? avstandKm(a, b) : 0; km += d; turbulens += h.turbulens || 0;
+      if (!lengst || d > lengst.km) lengst = { km: d, fra: h.fra, til: h.til };
+      rute.push(h.til); stopp.push({ land: h.til, tid: h.tid, km: d, stoppPaaVei: h.stopp, turbulens: h.turbulens, hendelser: [] });
+    } else if (h.type === 'billett') sum.fly += -(h.belop || 0);
+    else if (h.type === 'hotell') {
+      const pris = h.pris ?? -(h.belop || 0); sum.hotell += pris; hotellnetter += 3;
+      const hk = h.hendelse?.kr || 0; if (hk > 0) sum.overraskelsePluss += hk; if (hk < 0) sum.overraskelseMinus += -hk;
+      const navn = h.navn || (h.tekst.match(/sjekker inn på (.+?) i /) || [])[1] || 'hotell';
+      naa.hotell = { navn, stjerner: h.stjerner, pris };
+      if (h.stjerner && (!dyrestHotell || pris > dyrestHotell.pris)) dyrestHotell = { navn, stjerner: h.stjerner, pris, land: h.land };
+      if (h.stjerner && (!billigstHotell || pris < billigstHotell.pris)) billigstHotell = { navn, stjerner: h.stjerner, pris, land: h.land };
+      if (h.hendelse) { overraskelser.push({ ...h.hendelse, land: h.land }); naa.hendelser.push(h.hendelse.tekst); }
+    } else if (h.type === 'jobb') { sum.jobb += h.belop || 0; jobber++; }
+    else if (h.type === 'quiz') { sum.quiz += h.belop || 0; quizer++; }
+    else if (h.type === 'diktat') { if (h.belop) { sum.diktat += h.belop; diktater.push(h.land); naa.hendelser.push('✍️ Klarte parlør-diktaten (5 av 5)'); } }
+    else if (h.type === 'duell') { sum.duell += h.belop || 0; naa.hendelser.push(`🏆 ${h.tekst.replace(/^vant/, 'Vant')}`); }
+    else if (h.type === 'erobring') { if (/erobret/.test(h.tekst)) { erobringer.push({ land: h.land, tid: h.tid }); naa.hendelser.push(`🏳️ Erobret ${landEtterId[h.land]?.navn}!`); } else if (/utfordrer/.test(h.tekst)) naa.hendelser.push(`⚔️ Utfordret til duell om ${landEtterId[h.land]?.navn}`); }
+    else if (h.type === 'laas') { laasinger.push(h.land); naa.hendelser.push(`🔒 Låste ${landEtterId[h.land]?.navn} med landquiz`); }
+    else if (h.type === 'lærer') { if ((h.belop || 0) > 0) sum.laererPluss += h.belop; else sum.laererMinus += -(h.belop || 0); }
+  }
+  const dueller = Object.values(spill.dueller || {}).filter((d) => d.status === 'ferdig' && (d.utfordrer === gid || d.forsvarer === gid));
+  const vunnet = dueller.filter((d) => d.vinner === gid), tapt = dueller.filter((d) => d.vinner !== gid);
+  for (const d of tapt) {
+    const s = [...stopp].reverse().find((x) => x.land === d.land) || stopp[stopp.length - 1];
+    s.hendelser.push(`⚔️ Tapte duellen om ${landEtterId[d.land]?.navn} mot ${spill.grupper[d.vinner === d.utfordrer ? d.utfordrer : d.forsvarer]?.navn || 'en annen gruppe'}`);
+  }
+  const tavle = poengtavle(spill); const plass = tavle.findIndex((x) => x.gid === gid) + 1; const rad = tavle.find((x) => x.gid === gid);
+  const inntekt = sum.jobb + sum.quiz + sum.diktat + sum.duell + sum.laererPluss + sum.overraskelsePluss;
+  const utgift = sum.fly + sum.hotell + sum.laererMinus + sum.overraskelseMinus;
+  return { g, logg, eide, laaste, rute, stopp, km, lengst, turbulens, sum, inntekt, utgift, dyrestHotell, billigstHotell, jobber, quizer, hotellnetter, overraskelser, diktater, erobringer, laasinger, vunnet, tapt, plass, antall: tavle.length, rad };
+}
+
+function hoydepunkter(a) {
+  const ut = []; const L = (id) => landEtterId[id];
+  if (a.erobringer[0]) ut.push(['🏳️', 'Første erobring', `${L(a.erobringer[0].land).flagg} ${esc(L(a.erobringer[0].land).navn)} ble gruppas første land ${new Date(a.erobringer[0].tid).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}.`]);
+  if (a.vunnet.length) ut.push(['🏆', `${a.vunnet.length} ${a.vunnet.length === 1 ? 'duell' : 'dueller'} vunnet`, `Vant kampen om ${a.vunnet.map((d) => `${L(d.land).flagg} ${esc(L(d.land).navn)}`).join(', ')}.`]);
+  if (a.lengst && a.lengst.km) ut.push(['✈️', 'Lengste flytur', `${esc(L(a.lengst.fra).by)} → ${esc(L(a.lengst.til).by)}: ${a.lengst.km.toLocaleString('nb-NO')} km.`]);
+  if (a.rad?.kontinenter.length) ut.push(['🌍', `${a.rad.kontinenter.length} ${a.rad.kontinenter.length === 1 ? 'kontinent' : 'kontinenter'}`, `${a.rad.kontinenter.join(', ')}.`]);
+  if (a.dyrestHotell && a.dyrestHotell.stjerner >= 4) ut.push(['🌟', 'Luksusopphold', `${esc(a.dyrestHotell.navn)} ${'★'.repeat(a.dyrestHotell.stjerner)} i ${esc(L(a.dyrestHotell.land).by)} for ${formaterKr(a.dyrestHotell.pris)}.`]);
+  if (a.overraskelser[0]) ut.push(['🎲', 'Hostell-overraskelse', `${esc(a.overraskelser[0].tekst.replace(/^\S+\s/, ''))}`]);
+  if (a.diktater.length) ut.push(['✍️', 'Språkmester', `Klarte parlør-diktaten i ${a.diktater.map((id) => esc(L(id).navn)).join(', ')}.`]);
+  if (a.laasinger.length) ut.push(['🔒', 'Landquiz-eksperter', `Låste ${a.laasinger.map((id) => esc(L(id).navn)).join(', ')} med landquiz.`]);
+  if (a.rute.includes('AQ')) ut.push(['🐧', 'Helt til Antarktis!', 'En av de få som klarte reisen til verdens kaldeste kontinent.']);
+  if (a.jobber >= 3) ut.push(['💼', 'Hardt arbeidende', `Tok ${a.jobber} jobber og tjente ${formaterKr(a.sum.jobb)}.`]);
+  if (a.turbulens === 0 && a.stopp.length > 2) ut.push(['🧠', 'Null turbulens', 'Svarte riktig på alle spørsmål om bord på flyene!']);
+  if (a.tapt.length) ut.push(['⚔️', 'Kjempet tappert', `Tapte ${a.tapt.length} ${a.tapt.length === 1 ? 'duell' : 'dueller'} – men ga aldri opp.`]);
+  if (!ut.length) ut.push(['🧳', 'Reisen har så vidt begynt', 'Flere eventyr venter!']);
+  return ut.slice(0, 6);
+}
+
+function bar(navn, kr, maks, farge) { return `<div class="bar"><span>${navn}</span><span class="spor"><i style="width:${maks ? Math.max(2, (kr / maks) * 100) : 0}%;background:${farge}"></i></span><span class="kr">${formaterKr(kr)}</span></div>`; }
+
+function rapport(gid) {
+  const a = analyser(gid); const g = a.g; const i = innst(spill); const f = g.farge || '#0B3A53';
+  const L = (id) => landEtterId[id];
+  const besokt = new Set(a.rute);
+  const periode = [i.startdato, i.sluttdato].filter(Boolean).map((d) => new Date(d + 'T12:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'long', year: 'numeric' })).join(' – ');
+  const maksInn = Math.max(1, a.sum.jobb, a.sum.quiz, a.sum.diktat, a.sum.duell, a.sum.laererPluss, a.sum.overraskelsePluss);
+  const maksUt = Math.max(1, a.sum.fly, a.sum.hotell, a.sum.overraskelseMinus, a.sum.laererMinus);
+  const startkr = (i.startbelopPerElev || 0) * (g.personer || 4);
+  const bunn = `<div class="bunntekst"><span>🌍 Jorda rundt · ${esc(spill.info?.navn || '')}</span><span>${esc(g.navn)}</span></div>`;
+  const rotasjon = (n) => `${((n * 37) % 13) - 6}deg`;
+
+  const side1 = `<section class="side" style="--f:${esc(f)}">
+    <div class="omslag"><div class="smaa">Reisedagbok · Jorda rundt${periode ? ' · ' + esc(periode) : ''}</div>
+      <h1>${esc(g.navn)}</h1><div class="under">${g.personer || 4} reisende · startet i ${L(a.rute[0])?.flagg || ''} ${esc(L(a.rute[0])?.by || '')}, ${esc(L(a.rute[0])?.navn || '')}</div>
+      <div class="plass"><b>${a.plass}.</b><span>plass av ${a.antall}<br>${a.rad?.poeng || 0} poeng</span></div></div>
+    <div class="tall">
+      <div><b>${a.eide.size}</b><span>land erobret</span></div>
+      <div><b>${a.rad?.kontinenter.length || 0}</b><span>kontinenter</span></div>
+      <div><b>${a.stopp.length - 1}</b><span>flyreiser</span></div>
+      <div><b>${a.km.toLocaleString('nb-NO')}</b><span>km fløyet</span></div>
+      <div><b>${a.hotellnetter}</b><span>hotellnetter</span></div>
+      <div><b>${a.jobber}</b><span>jobber</span></div>
+    </div>
+    <div class="kart">${verden.length ? kartSvg(gid, f, a.rute, a.eide, besokt) : '<p style="padding:1rem">Kartet kunne ikke lastes.</p>'}
+      <div class="tegnf"><span><i style="background:${esc(f)}"></i>eide land</span><span><i style="background:${esc(f)}55"></i>besøkt</span><span>S = start · tallene viser reiserekkefølgen</span></div></div>
+    <div><h2 class="del">✨ Reisens høydepunkter <span class="strek"></span></h2>
+      <div class="hoydepunkter">${hoydepunkter(a).map(([ik, t, tx]) => `<div class="hp"><span class="ik">${ik}</span><div><b>${t}</b><span>${tx}</span></div></div>`).join('')}</div></div>
+    ${bunn}
+  </section>`;
+
+  const stoppHtml = a.stopp.map((s, n) => {
+    const l = L(s.land); if (!l) return '';
+    const linjer = [];
+    if (s.hotell) linjer.push(`🏨 ${esc(s.hotell.navn)} ${s.hotell.stjerner ? '★'.repeat(s.hotell.stjerner) : ''} – ${formaterKr(s.hotell.pris)} for tre netter`);
+    linjer.push(...s.hendelser.map(esc));
+    return `<div class="stopp" data-nr="${n === 0 ? 'S' : n}"><div class="topp"><span class="land">${l.flagg} ${esc(l.by)}, ${esc(l.navn)}</span><span class="dato">${s.tid ? new Date(s.tid).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }) : ''}</span></div>
+      ${!s.start && s.km ? `<div class="fly">✈️ ${s.km.toLocaleString('nb-NO')} km${s.stoppPaaVei != null ? ` · ${s.stoppPaaVei ? s.stoppPaaVei + ' mellomlanding' + (s.stoppPaaVei > 1 ? 'er' : '') : 'direktefly'}` : ''}${s.turbulens ? ` · ${s.turbulens} turbulens` : ''}</div>` : s.start ? '<div class="fly">🎒 Startsted</div>' : ''}
+      ${linjer.length ? `<div class="linjer">${linjer.map((x) => `<div>${x}</div>`).join('')}</div>` : ''}</div>`;
+  }).join('');
+
+  const side2 = `<section class="side" style="--f:${esc(f)}">
+    <div><h2 class="del">🗺️ Reiseruta <span class="strek"></span></h2><div class="tidslinje">${stoppHtml}</div></div>
+    <div><h2 class="del">💰 Reisekassa <span class="strek"></span></h2>
+      <div class="okonomi">
+        <div class="boks"><h3>Tjent: ${formaterKr(a.inntekt)}</h3>
+          ${bar('💼 Jobb', a.sum.jobb, maksInn, '#30A46C')}${bar('🧭 Quiz', a.sum.quiz, maksInn, '#30A46C')}${bar('✍️ Diktat', a.sum.diktat, maksInn, '#30A46C')}${bar('🏆 Premier', a.sum.duell, maksInn, '#30A46C')}${a.sum.laererPluss ? bar('⭐ Bonus', a.sum.laererPluss, maksInn, '#30A46C') : ''}${a.sum.overraskelsePluss ? bar('🍀 Flaks', a.sum.overraskelsePluss, maksInn, '#30A46C') : ''}</div>
+        <div class="boks"><h3>Brukt: ${formaterKr(a.utgift)}</h3>
+          ${bar('✈️ Fly', a.sum.fly, maksUt, '#E5484D')}${bar('🏨 Hotell', a.sum.hotell, maksUt, '#E5484D')}${a.sum.overraskelseMinus ? bar('🐜 Uflaks', a.sum.overraskelseMinus, maksUt, '#E5484D') : ''}${a.sum.laererMinus ? bar('➖ Trekk', a.sum.laererMinus, maksUt, '#E5484D') : ''}</div>
+      </div>
+      <div class="regnskap" style="margin-top:3mm"><span>Startet med <b>${formaterKr(startkr || 0)}</b></span><span>→</span><span>Igjen i reisekassa <b>${formaterKr(g.saldo)}</b></span></div></div>
+    <div><h2 class="del">🛂 Landsamlingen <span class="strek"></span></h2>
+      <div class="flagg">${[...a.eide].map((id, n) => `<div class="stempel" style="--r:${rotasjon(n)}"><div><div class="fl">${L(id).flagg}</div><div class="nv">${esc(L(id).navn)}${a.laaste.has(id) ? ' 🔒' : ''}</div></div></div>`).join('') || '<p class="dempet">Ingen land ennå – men for en reise!</p>'}</div></div>
+    <div class="signatur"><div class="hilsen">Gratulerer med en fantastisk reise! 🌍</div><div class="linje">Lærer</div></div>
+    ${bunn}
+  </section>`;
+  return side1 + side2;
+}
+
+function tegn() {
+  const valg = $('#velg').value;
+  const grupper = poengtavle(spill).map((x) => x.gid).filter((gid) => valg === 'alle' || gid === valg);
+  $('#bok').innerHTML = grupper.map(rapport).join('');
+}
+</script>
+</body>
+</html>
