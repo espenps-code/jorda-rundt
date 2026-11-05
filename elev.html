@@ -251,6 +251,7 @@ function tegnTopp() {
 }
 const harHotell = () => g.hotell && g.hotell.land === g.posisjon;
 const reiseloggStatus = (land = g.posisjon) => spill.reiselogger?.[gid]?.[land]?.status || null;
+const kanReise = () => ['godkjent', 'duell', 'laast', 'tapt'].includes(reiseloggStatus());
 
 function tegnNeste() {
   const i = innst(spill); const l = landEtterId[g.posisjon];
@@ -259,8 +260,8 @@ function tegnNeste() {
   else if (!harHotell()) { ikon = '🏨'; tekst = `<b>Book hotell i ${esc(l.by)}</b><br>Dere trenger tre netter før dere kan gjøre reiseloggen.`; }
   else {
     const st = reiseloggStatus();
-    if (!st || st === 'avvist') { ikon = '📓'; tekst = `<b>Gjør reiseloggen for ${esc(l.navn)}</b><br>Fyll ut den fysiske reiseloggen og trykk «Levert» under Reiselogg.`; }
-    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere ta parlør-diktaten under Reiselogg, jobbe eller ta en quiz.'; }
+    if (!st || st === 'avvist') { ikon = '📓'; tekst = `<b>Gjør reiseloggen for ${esc(l.navn)}</b><br>Fyll ut den fysiske reiseloggen og trykk «Levert» under Reiselogg. Dere kan reise videre når læreren har godkjent den.`; }
+    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere ta parlør-diktaten under Reiselogg, jobbe eller ta en quiz. Dere kan reise videre når loggen er godkjent.'; }
     else if (st === 'duell') { ikon = '⚔️'; tekst = '<b>Duell!</b><br>Læreren setter opp en duell om landet.'; }
     else { ikon = '✈️'; tekst = '<b>Klar for neste land!</b><br>Velg et reisemål – eller tjen penger først.'; }
   }
@@ -346,6 +347,7 @@ function tegnTilbud(el) {
     <button class="knapp lys mini" id="tilbake">← Andre reisemål</button>
     <div class="malkort" style="margin-top:.8rem"><span class="f">${mal.flagg}</span><div class="vokser"><h3>${esc(mal.navn)}</h3><div>${esc(mal.by)} · ${mal.kontinent}</div><div class="liten" style="opacity:.8">${avstandKm(her, mal).toLocaleString('nb-NO')} km fra ${esc(her.by)}${mal.kurs && mal.valuta !== 'NOK' ? ` · Valuta: ${esc(mal.valutaNavn)}` : ''}</div></div><span class="merke ${s.klasse}">${s.tekst}</span></div>
     ${advarsel}
+    ${harHotell() && !kanReise() ? `<div class="infoboks sol">🔒 Dere kan se på flyreisene, men ikke kjøpe før læreren har godkjent reiseloggen for ${esc(her.navn)}.</div>` : ''}
     ${tilbud.length ? `<h3>Flyreiser i dag for ${g.personer || 4} personer</h3>` : ''}
     ${tilbud.map((t, n) => {
       const via = t.via.length ? `${t.stopp} stopp via ${t.via.map((v) => esc(v.by)).join(' og ')}` : 'Direktefly';
@@ -354,7 +356,7 @@ function tegnTilbud(el) {
         <div class="rute"><span>${esc(her.by)}</span><span class="linje"></span><span>${esc(mal.by)}</span></div>
         <div class="liten dempet">Avgang ${t.avgang} · ${formaterVarighet(t.varighetMin)} · ${via}</div></div>
         <div class="hoyre"><div class="liten dempet">${formaterKr(t.prisPerPerson)} × ${t.personer}</div><div class="pris">${formaterKr(t.totalt)}</div>
-        <button class="knapp mini ${rad ? 'sol' : ''}" data-kjop="${n}" ${!rad || !harHotell() || venterPa.fly ? 'disabled' : ''}>${venterPa.fly ? '<span class="venter">Sender</span>' : rad ? 'Kjøp billetter' : 'Ikke råd'}</button></div></div>`;
+        <button class="knapp mini ${rad ? 'sol' : ''}" data-kjop="${n}" ${!rad || !harHotell() || !kanReise() || venterPa.fly ? 'disabled' : ''}>${venterPa.fly ? '<span class="venter">Sender</span>' : !kanReise() ? 'Venter på godkjenning' : rad ? 'Kjøp billetter' : 'Ikke råd'}</button></div></div>`;
     }).join('')}
     ${tilbud.length && !harHotell() ? '<p class="liten dempet">Book hotell der dere er først – da kan dere kjøpe billetter.</p>' : ''}
     ${tilbud.length ? `<p class="liten dempet">Prisene gjelder i dag (${idag().split('-').reverse().join('.')}). Hotell i ${esc(mal.by)}: fra ${formaterKr(Math.min(...hoteller(reiseMal).map((h) => h.prisNatt)))} per natt${lokalt ? '' : ''}.</p>` : ''}`;
