@@ -5,8 +5,10 @@ import { r, get, update, push, remove, onValue, runTransaction } from './fb.js';
 import { flyTilbud, hoteller } from '../data/motor.js';
 import { DUELLER } from '../data/dueller.js';
 import { rettDiktat, ORD } from '../data/parlor.js';
+import { rettFlyquiz, kravFor, MAKS_SPORSMAL } from '../data/flyquiz.js';
 import {
-  innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, rettLandquiz, landEtterId, formaterKr,
+  innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, rettLandquiz, landEtterId, formaterKr, nyId,
+  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE,
 } from './felles.js';
 
 const iArbeid = new Set();
@@ -42,7 +44,9 @@ async function behandle(spillId, gid, fid, f) {
   try {
     if (i.pause) resultat = { ok: false, melding: 'Spillet er satt på pause av læreren.' };
     else if (!spill.grupper?.[gid]) resultat = { ok: false, melding: 'Gruppa finnes ikke.' };
-    else if (f.type === 'fly') resultat = await fly(spillId, gid, f.data || {}, i, spill);
+    else if (f.type === 'landing') resultat = await landing(spillId, gid, f.data || {});
+    else if (spill.grupper[gid].iLufta) resultat = { ok: false, melding: 'Dere er i lufta! Svar på spørsmålene for å lande først. ✈️' };
+    else if (f.type === 'fly') resultat = await fly(spillId, gid, f.data || {}, i);
     else if (f.type === 'hotell') resultat = await hotell(spillId, gid, f.data || {}, i);
     else if (f.type === 'jobb') resultat = await jobb(spillId, gid, f.data || {}, i);
     else if (f.type === 'quiz') resultat = await quiz(spillId, gid, f.data || {}, i);
@@ -84,34 +88,50 @@ async function medGruppe(spillId, gid, endre) {
 
 function harHotellHer(g) { return g.hotell && g.hotell.land === g.posisjon; }
 
-// Statuser som betyr at læreren har godkjent reiseloggen (duell/låst/tapt oppstår etter godkjenning)
-export const LOGG_GODKJENT = ['godkjent', 'duell', 'laast', 'tapt'];
-
-function fly(spillId, gid, d, i, spill) {
+function fly(spillId, gid, d, i) {
   return medGruppe(spillId, gid, (g) => {
     if (!harHotellHer(g)) return { feil: 'Dere må booke hotell (3 netter) der dere er før dere kan reise videre.' };
-    const loggStatus = spill?.reiselogger?.[gid]?.[g.posisjon]?.status;
-    if (!LOGG_GODKJENT.includes(loggStatus)) {
-      const her = landEtterId[g.posisjon]?.navn || 'landet';
-      return { feil: loggStatus === 'levert' ? `Læreren må godkjenne reiseloggen for ${her} før dere kan reise videre.` : `Dere må levere reiseloggen for ${her} og få den godkjent før dere kan reise videre.` };
-    }
     if (!landEtterId[d.til]) return { feil: 'Ukjent reisemål.' };
     if (d.til === g.posisjon) return { feil: 'Dere er allerede her!' };
     if (erStengt(d.til, i)) return { feil: `${landEtterId[d.til].navn} er stengt for reiser i spillet.` };
     if (d.dato !== idag() && d.dato !== igaar()) return { feil: 'Prisen er utgått. Søk på nytt.' };
     const tilbud = flyTilbud(g.posisjon, d.til, d.dato, g.personer || 4)[d.valg];
     if (!tilbud) return { feil: 'Fant ikke flyreisen. Søk på nytt.' };
-    if (d.pris !== tilbud.totalt) return { feil: 'Prisen har endret seg. Søk på nytt.' };
-    if ((g.saldo || 0) < tilbud.totalt) return { feil: `Dere har ikke råd. Billettene koster ${formaterKr(tilbud.totalt)}.` };
+    const pris = flyPrisMedRabatt(tilbud.totalt, g.hotell, g.posisjon);
+    if (d.pris !== pris) return { feil: 'Prisen har endret seg. Søk på nytt.' };
+    if ((g.saldo || 0) < pris) return { feil: `Dere har ikke råd. Billettene koster ${formaterKr(pris)}.` };
     const fra = g.posisjon;
-    g.saldo -= tilbud.totalt;
-    g.posisjon = d.til;
+    const krav = kravFor(tilbud.stopp);
+    const livliner = hotellEffekt(g.hotell, i).livliner;
+    g.saldo -= pris;
     g.hotell = null;
-    g.reiser = (g.reiser || 0) + 1;
+    g.iLufta = {
+      fra, til: d.til, krav, fro: nyId(12), startet: Date.now(), livliner,
+      selskap: tilbud.selskap, stopp: tilbud.stopp, via: tilbud.via.map((v) => v.by),
+      flight: `${tilbud.selskap.split(' ').map((o) => o[0]).join('').slice(0, 2).toUpperCase()}${100 + (parseInt(tilbud.id.replace(/\D/g, '').slice(-3) || '0', 10) % 900)}`,
+    };
     const til = landEtterId[d.til];
     return {
-      melding: `God tur! Dere flyr med ${tilbud.selskap} til ${til.by}, ${til.navn}.`,
-      logg: { type: 'fly', belop: -tilbud.totalt, fra, til: d.til, tekst: `flyr til ${til.flagg} ${til.navn}` },
+      melding: `God tur! Svar riktig på ${krav} spørsmål underveis for å lande i ${til.by}.`,
+      logg: { type: 'billett', belop: -pris, fra, til: d.til, tekst: `tok av mot ${til.flagg} ${til.navn} ✈️` },
+    };
+  });
+}
+
+function landing(spillId, gid, d) {
+  return medGruppe(spillId, gid, (g) => {
+    const f = g.iLufta;
+    if (!f) return { feil: 'Dere er ikke i lufta.' };
+    const svar = Array.isArray(d.svar) ? d.svar.slice(0, MAKS_SPORSMAL) : [];
+    const riktige = rettFlyquiz(f.fro, svar);
+    if (riktige < f.krav) return { feil: `Dere har ${riktige} av ${f.krav} riktige. Fortsett å svare!` };
+    const til = landEtterId[f.til];
+    g.posisjon = f.til;
+    g.iLufta = null;
+    g.reiser = (g.reiser || 0) + 1;
+    return {
+      melding: `🛬 Velkommen til ${til.by}, ${til.navn}! Husk å booke hotell.`,
+      logg: { type: 'fly', fra: f.fra, til: f.til, tekst: `landet i ${til.flagg} ${til.navn} (${svar.length - riktige} turbulens)` },
     };
   });
 }
@@ -124,12 +144,21 @@ function hotell(spillId, gid, d, i) {
     const pris = h.prisNatt * 3;
     if ((g.saldo || 0) < pris) return { feil: `Dere har ikke råd. Tre netter koster ${formaterKr(pris)}.` };
     g.saldo -= pris;
-    g.hotell = { land: g.posisjon, navn: h.navn, stjerner: h.stjerner, pris };
+    g.hotell = { land: g.posisjon, navn: h.navn, stjerner: h.stjerner, pris, fasiliteter: h.fasiliteter };
     g.besokt = g.besokt || {}; g.besokt[g.posisjon] = true;
     const l = landEtterId[g.posisjon];
+    // overraskelse på billige hoteller (bestemmes én gang per innsjekk)
+    let hendelseTekst = '';
+    if (!g.hotell.hendelse && Math.random() < (HENDELSE_SJANSE[h.stjerner] || 0)) {
+      const e = HOTELLHENDELSER[Math.floor(Math.random() * HOTELLHENDELSER.length)];
+      const kr = e.kr ? Math.max(50, Math.round(Math.abs(e.kr) * Math.pow(l.prisniva, 0.8) / 10) * 10) * Math.sign(e.kr) : 0;
+      g.hotell.hendelse = { tekst: e.tekst, kr, jobb: e.jobb || 0 };
+      if (kr) g.saldo = Math.max(0, g.saldo + kr);
+      hendelseTekst = ` ${e.tekst}${kr ? ` (${kr > 0 ? '+' : '−'}${formaterKr(Math.abs(kr))})` : ''}`;
+    }
     return {
-      melding: `Velkommen til ${h.navn}! Tre netter er booket.`,
-      logg: { type: 'hotell', belop: -pris, land: g.posisjon, tekst: `sjekker inn på ${h.navn} i ${l.by}` },
+      melding: `Velkommen til ${h.navn}! Tre netter er booket.${hendelseTekst}`,
+      logg: { type: 'hotell', belop: -pris + (g.hotell.hendelse?.kr || 0), land: g.posisjon, tekst: `sjekker inn på ${h.navn} i ${l.by}${hendelseTekst ? ' –' + hendelseTekst : ''}` },
     };
   });
 }
@@ -139,16 +168,18 @@ function jobb(spillId, gid, d, i) {
     if (!harHotellHer(g)) return { feil: 'Dere må bo på hotell i landet for å kunne jobbe der.' };
     const dag = idag();
     const antall = g.jobber?.[dag] || 0;
-    if (antall >= i.jobberPerDag) return { feil: `Dere har jobbet nok i dag (maks ${i.jobberPerDag} jobber per dag).` };
+    const eff = hotellEffekt(g.hotell, i);
+    if (antall >= eff.jobber) return { feil: `Dere har jobbet nok i dag (maks ${eff.jobber} ${eff.jobber === 1 ? 'jobb' : 'jobber'} per dag på dette hotellet).` };
     if (!d.fro) return { feil: 'Mangler jobb.' };
     if (g.brukteFro?.[d.fro]) return { feil: 'Denne jobben er allerede levert.' };
     const res = rettJobb(g.posisjon, d.fro, d.svar);
     g.jobber = { [dag]: antall + 1 };              // bare dagens teller trengs
     g.brukteFro = { ...(g.brukteFro || {}), [d.fro]: true };
-    g.saldo = (g.saldo || 0) + res.utbetaling;
+    const lonn = Math.round(res.utbetaling * eff.lonn / 10) * 10;
+    g.saldo = (g.saldo || 0) + lonn;
     return {
-      melding: `${res.riktige} av ${res.antall} riktige. Dere tjente ${formaterKr(res.utbetaling)}.`,
-      logg: { type: 'jobb', belop: res.utbetaling, land: g.posisjon, tekst: `jobbet i ${landEtterId[g.posisjon].navn} (${res.riktige}/${res.antall})` },
+      melding: `${res.riktige} av ${res.antall} riktige. Dere tjente ${formaterKr(lonn)}${eff.lonn !== 1 ? ` (${eff.lonn > 1 ? '+' : '−'}${Math.round(Math.abs(eff.lonn - 1) * 100)} % fra hotellet)` : ''}.`,
+      logg: { type: 'jobb', belop: lonn, land: g.posisjon, tekst: `jobbet i ${landEtterId[g.posisjon].navn} (${res.riktige}/${res.antall})` },
     };
   });
 }

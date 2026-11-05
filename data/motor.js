@@ -155,7 +155,8 @@ const SPESIAL = { JP: ['Ryokan Sakura', 'Capsule Hotel {by}'], MA: ['Riad Jasmin
 const LAV = /Backpackers|Budget|Hostal|Pension|Rooms|Guesthouse|Capsule|telt|Motel|Gasthaus|Hytta|Kasbah Inn|Hostal|Comfort Stay|City Inn|Inka Trail|Savanna Inn|Snøstorm|Forskningsstasjonens/;
 const HOY = /Grand|Royal|Palace|Resort|Villas|Suites|Metropol|Sultan|Maharaja|Hacienda|Ryokan|Riad Dar|Residence|Overwater|Polar Dome|Pingvin Base|Keiserpingvin|Isbreen Lodge|Fjordhotellet|Opera|Jade|Golden Dragon|Lagoon|Bellevue|Panorama/;
 function nivaa(navn) { return LAV.test(navn) ? 'lav' : HOY.test(navn) ? 'hoy' : 'mid'; }
-const FASILITETER = ['Frokost inkludert', 'Basseng', 'Gratis wifi', 'Gangavstand til sentrum', 'Takterrasse', 'Treningsrom', 'Familierom', 'Flyplassbuss', 'Spillrom', 'Utsikt'];
+// De tre første gir fordeler i spillet (se hotellEffekt i js/felles.js). Resten er bare kos.
+const FASILITETER = ['Frokost inkludert', 'Flyplassbuss', 'Gratis wifi', 'Basseng', 'Gangavstand til sentrum', 'Takterrasse', 'Treningsrom', 'Familierom', 'Spillrom', 'Utsikt'];
 const STJERNE_PRIS = [550, 850, 1250, 1850, 3100];   // kr per natt for et familierom i Norge
 const STJERNER = [1, 2, 2, 3, 3, 3, 4, 4, 5, 5];
 

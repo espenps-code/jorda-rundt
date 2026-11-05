@@ -25,17 +25,7 @@ export const GRUPPEFARGER = [
   { navn: 'Oransje', hex: '#F76B15' }, { navn: 'Lilla', hex: '#8E4EC6' }, { navn: 'Turkis', hex: '#12A594' },
   { navn: 'Rosa', hex: '#D6409F' }, { navn: 'Gul', hex: '#E2A336' }, { navn: 'Brun', hex: '#A07553' },
   { navn: 'Marine', hex: '#1E3A8A' },
-  { navn: 'Himmelblå', hex: '#0090FF' }, { navn: 'Lime', hex: '#7CB518' }, { navn: 'Mørkerød', hex: '#9B1C1C' },
-  { navn: 'Skogsgrønn', hex: '#166534' }, { navn: 'Fersken', hex: '#F4A261' }, { navn: 'Indigo', hex: '#4338CA' },
-  { navn: 'Magenta', hex: '#A21CAF' }, { navn: 'Oliven', hex: '#6B7A1F' }, { navn: 'Petrol', hex: '#0E7490' },
-  { navn: 'Korall', hex: '#FF7F6E' }, { navn: 'Lavendel', hex: '#A78BFA' }, { navn: 'Sennep', hex: '#B8860B' },
-  { navn: 'Kirsebær', hex: '#BE185D' }, { navn: 'Skifer', hex: '#475569' }, { navn: 'Mint', hex: '#34D399' },
 ];
-
-/** Reisenavn til automatisk opprettelse av grupper (25 stk.) */
-export const GRUPPENAVN = ['Globetrotterne', 'Backpackerne', 'Oppdagerne', 'Pilotene', 'Kapteinene', 'Kartleserne', 'Navigatørene', 'Eventyrerne', 'Seilerne', 'Polfarerne',
-  'Jordomseilerne', 'Interrailerne', 'Nomadene', 'Ballongfarerne', 'Vandrerne', 'Fjellklatrerne', 'Dykkerne', 'Kompassene', 'Koffertene', 'Passtemplene',
-  'Boardingkortene', 'Karavanen', 'Safarigjengen', 'Ekspedisjonen', 'Jetsetterne'];
 
 /** Startbudsjett for en gruppe = beløp per elev × antall elever */
 export function startbelopFor(innstillinger, personer) { return Math.round((innstillinger.startbelopPerElev || 0) * Math.max(1, personer || 1)); }
@@ -204,6 +194,50 @@ export function rettLandquiz(landId, fro, svar = []) {
   const q = lagLandquiz(landId, fro);
   return { riktige: q.filter((s, i) => svar[i] === s.svar).length, antall: q.length };
 }
+
+// ---------- hotelleffekter ----------
+// Stjerner: søvn og energi. Fasiliteter: små fordeler. 1–2★: overraskelser ved innsjekk.
+export const STJERNE_EFFEKT = {
+  1: { jobb: -1, lonn: 0.9, tekst: 'Dere sover dårlig: én jobb mindre per dag og 10 % lavere lønn' },
+  2: { jobb: -1, lonn: 1.0, tekst: 'Litt trangt: én jobb mindre per dag' },
+  3: { jobb: 0, lonn: 1.0, tekst: 'Vanlig søvn' },
+  4: { jobb: 0, lonn: 1.1, tekst: 'Uthvilte: 10 % høyere lønn' },
+  5: { jobb: 1, lonn: 1.2, tekst: 'Superuthvilte: én ekstra jobb per dag og 20 % høyere lønn' },
+};
+export const FASILITET_EFFEKT = {
+  'Frokost inkludert': { ikon: '🍳', tekst: '+1 jobb per dag' },
+  'Flyplassbuss': { ikon: '🚌', tekst: '−10 % på neste flybillett' },
+  'Gratis wifi': { ikon: '📶', tekst: '50/50-livline på neste flytur' },
+};
+/** Samlet effekt av hotellet gruppa bor på (null = ingen hotell). */
+export function hotellEffekt(hotell, innstillinger) {
+  const base = (innstillinger?.jobberPerDag ?? STANDARD_INNSTILLINGER.jobberPerDag);
+  if (!hotell) return { jobber: base, lonn: 1, rabatt: 0, livliner: 0 };
+  const st = STJERNE_EFFEKT[hotell.stjerner] || STJERNE_EFFEKT[3];
+  const fas = hotell.fasiliteter || [];
+  return {
+    jobber: Math.max(base > 0 ? 1 : 0, base + st.jobb + (fas.includes('Frokost inkludert') ? 1 : 0) + (hotell.hendelse?.jobb || 0)),
+    lonn: st.lonn,
+    rabatt: fas.includes('Flyplassbuss') ? 0.1 : 0,
+    livliner: fas.includes('Gratis wifi') ? 1 : 0,
+  };
+}
+/** Flyprisen etter eventuell flyplassbuss-rabatt (lik i elevsiden og banken). */
+export function flyPrisMedRabatt(totalt, hotell, posisjon) {
+  const ok = hotell && hotell.land === posisjon && (hotell.fasiliteter || []).includes('Flyplassbuss');
+  return ok ? Math.round(totalt * 0.9 / 10) * 10 : totalt;
+}
+// Overraskelser på billige hoteller. kr ganges med landets prisnivå.
+export const HOTELLHENDELSER = [
+  { tekst: '🐜 Maur i senga! Dere måtte kjøpe insektspray.', kr: -300 },
+  { tekst: '🔊 Bråkete naboer hele natta – dere orker én jobb mindre per dag.', jobb: -1 },
+  { tekst: '🧳 Bagasjen kom ikke fram med en gang – dere måtte kjøpe tannbørster og ekstra klær.', kr: -600 },
+  { tekst: '🚿 Ikke noe varmtvann – dere kjøpte frokost og dusj på et bad i nærheten.', kr: -250 },
+  { tekst: '🎒 Hyggelige romkamerater tipset dere om en jobb – én ekstra jobb per dag!', jobb: 1 },
+  { tekst: '🪙 Dere fant en lommebok og leverte den i resepsjonen – og fikk finnerlønn!', kr: 500 },
+  { tekst: '🍲 Fellesmiddag på hostellet – gratis mat i kveld!', kr: 300 },
+];
+export const HENDELSE_SJANSE = { 1: 0.5, 2: 0.3 };
 
 export function formaterKr(n) { return Math.round(n || 0).toLocaleString('nb-NO').replace(/,/g, ' ') + ' kr'; }
 export function nyId(lengde = 8) { const t = 'abcdefghijkmnpqrstuvwxyz23456789'; let s = ''; const a = crypto.getRandomValues(new Uint8Array(lengde)); for (const x of a) s += t[x % t.length]; return s; }

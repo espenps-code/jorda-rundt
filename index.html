@@ -15,26 +15,25 @@
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 16px; }
 
   /* ---------- hero ---------- */
-  .hero { background: radial-gradient(circle at 75% 45%, #17457A 0%, #0C2340 48%, #081A30 100%); color: #fff; position: relative; overflow: hidden; }
+  .hero { background: radial-gradient(circle at 75% 45%, #1b6a90 0%, #0B3A53 45%, #06202e 100%); color: #fff; position: relative; overflow: hidden; }
   .hero-inner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1rem; align-items: center; min-height: min(88vh, 760px); padding: 2rem 16px; }
-  .eyebrow { display: inline-flex; gap: .5em; align-items: center; border: 2px solid rgba(243,178,58,.5); padding: .35em 1em; border-radius: 999px; font: 500 .85rem var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--sol); }
-  .hero h1 { color: #fff; font-size: clamp(3.2rem, 7.5vw, 6.4rem); line-height: .92; margin: .35em 0 .25em; letter-spacing: -.02em; }
+  .eyebrow { display: inline-flex; gap: .5em; align-items: center; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18); padding: .3em .9em; border-radius: 999px; font-size: .9rem; font-weight: 700; color: #cfe7f3; }
+  .hero h1 { color: #fff; font-size: clamp(3rem, 7vw, 5.6rem); line-height: .95; margin: .35em 0 .25em; letter-spacing: -.01em; }
   .hero h1 span { color: var(--sol); }
-  .hero .ingress { font-size: clamp(1.1rem, 1.6vw, 1.35rem); color: #DCE8F3; max-width: 33rem; line-height: 1.5; }
+  .hero .ingress { font-size: clamp(1.1rem, 1.6vw, 1.35rem); color: #e2f1f8; max-width: 33rem; line-height: 1.5; }
   .cta { display: flex; gap: .8rem; flex-wrap: wrap; margin: 1.8rem 0 1.2rem; }
-  .cta .knapp { font-size: 1.15rem; padding: .85em 1.5em; min-height: 56px; }
+  .cta .knapp { font-size: 1.15rem; padding: .85em 1.5em; }
   .cta .omriss { color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.7); }
-  .fordeler { display: flex; gap: .5rem; flex-wrap: wrap; color: var(--lys-tekst); font: 500 .8rem var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
-  .fordeler span { background: rgba(255,255,255,.08); border-radius: 8px; padding: .4em .7em; }
+  .fordeler { display: flex; gap: .4rem 1.2rem; flex-wrap: wrap; color: #9fd3ef; font-size: .95rem; }
   #klode { height: min(78vh, 640px); position: relative; }
-  .hero-nal { position: absolute; background: #fff; color: var(--blekk); border-radius: 14px; padding: .6em .9em; box-shadow: 0 14px 34px rgba(0,0,0,.35); font-size: .85rem; line-height: 1.25; pointer-events: none; animation: svev 5s ease-in-out infinite; border-left: 6px solid var(--korall); }
+  .hero-nal { position: absolute; background: #fff; color: var(--blekk); border-radius: 14px; padding: .55em .85em; box-shadow: 0 10px 30px rgba(0,0,0,.3); font-size: .85rem; line-height: 1.25; pointer-events: none; animation: svev 5s ease-in-out infinite; }
   .hero-nal b { font-family: var(--font-tittel); color: var(--hav); }
   @keyframes svev { 50% { transform: translateY(-8px); } }
 
   /* ---------- teaser ---------- */
   .teaser { padding: 4rem 0 1rem; }
   .teaser-kort { max-width: 760px; margin: 0 auto; background: var(--kort); border-radius: 22px; box-shadow: var(--skygge); padding: 2rem 2.2rem; position: relative; }
-  .teaser-kort::before { content: '✈'; position: absolute; top: -1.3rem; left: 2rem; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--sol); color: var(--hav); display: grid; place-items: center; font-size: 1.3rem; box-shadow: var(--skygge); }
+  .teaser-kort::before { content: '✈'; position: absolute; top: -1.3rem; left: 2rem; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--sol); color: var(--blekk); display: grid; place-items: center; font-size: 1.3rem; box-shadow: var(--skygge); }
   .teaser-kort p { font-size: clamp(1.1rem, 1.7vw, 1.3rem); line-height: 1.65; margin: 0; }
   .teaser-kort p + p { margin-top: 1rem; }
   .teaser-kort .slutt { font: 700 clamp(1.15rem, 1.8vw, 1.4rem)/1.4 var(--font-tittel); color: var(--hav); }
@@ -42,19 +41,18 @@
   /* ---------- seksjoner ---------- */
   section.del { padding: 4.5rem 0; }
   .seksjonstittel { text-align: center; max-width: 640px; margin: 0 auto 2.4rem; }
-  .seksjonstittel h2 { font-size: clamp(2rem, 3.6vw, 3.2rem); }
+  .seksjonstittel h2 { font-size: clamp(1.8rem, 3.2vw, 2.6rem); }
   .seksjonstittel p { color: var(--blekk-2); font-size: 1.1rem; }
-  .steg-rutenett { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
-  .steg { background: var(--kort); border-radius: 6px; padding: 1.4rem 1.4rem 1.3rem; position: relative; margin: 8px; box-shadow: 0 0 0 2px var(--s, var(--korall)), 0 0 0 8px #fff, 0 0 0 9px var(--linje), 0 14px 30px rgba(12,35,64,.10); transform: rotate(var(--r, -1deg)); }
-  .steg:nth-child(2) { --s: var(--hav-3); --r: 1deg; } .steg:nth-child(3) { --s: var(--gress); --r: -.5deg; } .steg:nth-child(4) { --s: #B36B00; --r: 1.2deg; } .steg:nth-child(5) { --s: #6E3FA3; --r: -1deg; } .steg:nth-child(6) { --s: var(--hav); --r: .8deg; }
-  .steg .nr { position: absolute; top: 1rem; right: 1.1rem; font: 500 1.6rem/1 var(--font-mono); color: var(--s, var(--korall)); }
+  .steg-rutenett { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .steg { background: var(--kort); border-radius: 18px; padding: 1.3rem 1.3rem 1.2rem; box-shadow: var(--skygge); position: relative; }
+  .steg .nr { position: absolute; top: 1rem; right: 1.1rem; font: 800 2.4rem/1 var(--font-tittel); color: var(--papir-2); }
   .steg .ikon { font-size: 2.2rem; }
   .steg h3 { margin: .4rem 0 .3rem; }
   .steg p { margin: 0; color: var(--blekk-2); }
 
-  .poengstripe { background: var(--hav); color: #fff; border-radius: 24px; padding: 1.8rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center; margin-top: 2.8rem; }
-  .poengstripe b { display: block; font: 500 3rem/1 var(--font-mono); color: var(--sol); margin-bottom: .2em; }
-  .poengstripe span { color: #DCE8F3; font-size: .95rem; }
+  .poengstripe { background: var(--hav); color: #fff; border-radius: 22px; padding: 1.6rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center; margin-top: 2.4rem; }
+  .poengstripe b { display: block; font: 800 2.4rem/1 var(--font-tittel); color: var(--sol); }
+  .poengstripe span { color: #cfe7f3; font-size: .95rem; }
 
   .veiledning { background: #fff; }
   .fase { display: grid; grid-template-columns: 220px 1fr; gap: 1.5rem; padding: 1.6rem 0; border-top: 2px dashed var(--linje); }
@@ -63,7 +61,7 @@
   .fase .fasenavn small { display: block; font: 700 .85rem var(--font); color: var(--blekk-2); margin-top: .3rem; }
   .punkter { display: grid; gap: .9rem; counter-reset: p; margin: 0; padding: 0; list-style: none; }
   .punkter li { display: grid; grid-template-columns: 2.2rem 1fr; gap: .7rem; align-items: start; }
-  .punkter li::before { counter-increment: p; content: counter(p); width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--sol-lys); color: #7A4A00; border: 2px dashed #B36B00; display: grid; place-items: center; font: 500 1rem var(--font-mono); }
+  .punkter li::before { counter-increment: p; content: counter(p); width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--sol-lys); color: #8a5a00; display: grid; place-items: center; font: 800 1rem var(--font-tittel); }
   .punkter b { color: var(--hav); }
   .punkter p { margin: .15rem 0 0; color: var(--blekk-2); }
   .tips { background: var(--sol-lys); border-radius: 14px; padding: .9rem 1.1rem; margin-top: .4rem; }
@@ -76,7 +74,7 @@
   .faq details > div { padding: 0 1.2rem 1.1rem; color: var(--blekk-2); }
 
   .avslutning { text-align: center; background: linear-gradient(180deg, var(--papir), var(--papir-2)); }
-  footer { background: var(--hav); color: var(--lys-tekst); padding: 1.6rem 0; font-size: .9rem; }
+  footer { background: var(--hav); color: #9fd3ef; padding: 1.6rem 0; font-size: .9rem; }
   footer .wrap { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
   footer a { color: #fff; }
 
@@ -111,7 +109,6 @@
       <div class="hero-nal" style="bottom:16%;right:2%;animation-delay:-2.5s">🏆 <b>Ørnene</b> erobret<br>🇧🇷 Brasil!</div>
     </div>
   </div>
-  <div class="luftpost" aria-hidden="true" style="height:10px"></div>
 </header>
 
 <main>
@@ -132,9 +129,9 @@
       </div>
       <div class="steg-rutenett">
         <div class="steg"><span class="nr">1</span><div class="ikon">🎲</div><h3>Tilfeldig start</h3><p>Hver gruppe får et startbudsjett og havner et tilfeldig sted på jordkloden.</p></div>
-        <div class="steg"><span class="nr">2</span><div class="ikon">🏨</div><h3>Book hotell</h3><p>Velg blant ti hoteller – fra hostell til luksus. Prisene følger landets prisnivå.</p></div>
+        <div class="steg"><span class="nr">2</span><div class="ikon">🏨</div><h3>Book hotell</h3><p>Hostell eller luksus? Et bedre hotell gir bedre søvn og mer energi til å jobbe – og frokost, flyplassbuss og wifi gir ekstra fordeler.</p></div>
         <div class="steg"><span class="nr">3</span><div class="ikon">📓</div><h3>Fullfør reiseloggen</h3><p>Fakta, kultur og et bildecollage om landet. Læreren godkjenner – og landet blir deres.</p></div>
-        <div class="steg"><span class="nr">4</span><div class="ikon">✈️</div><h3>Fly videre</h3><p>Realistiske flypriser og ruter med mellomlanding. Klarer dere budsjettet?</p></div>
+        <div class="steg"><span class="nr">4</span><div class="ikon">✈️</div><h3>Fly videre</h3><p>Direktefly er dyrt, men raskt. Billigfly har mellomlandinger – og flere quizspørsmål om bord før dere får lande.</p></div>
         <div class="steg"><span class="nr">5</span><div class="ikon">💼</div><h3>Tjen penger</h3><p>Jobb i landet (regnestykker i lokal valuta), ta geografiquiz og parlør-diktat.</p></div>
         <div class="steg"><span class="nr">6</span><div class="ikon">⚔️</div><h3>Utfordre og lås</h3><p>Reis til en annen gruppes land og utfordre dem til duell – eller lås egne land med en landquiz.</p></div>
       </div>
@@ -171,7 +168,7 @@
         <ol class="punkter">
           <li><div><b>Åpne tavla på storskjermen.</b><p>Knappen «📺 Åpne tavla» på lærersiden. Tavla viser jordkloden, poengtavla, siste nytt og dueller. <b>Tavla (eller lærersiden) må være åpen mens elevene spiller</b> – det er den som er «banken» og gjennomfører kjøpene.</p></div></li>
           <li><div><b>Del lenken med elevene.</b><p>Under <i>Oversikt</i> → «Del med elevene» finner du elevlenken og en QR-kode. Elevene går ikke via forsiden – de bruker lenken og logger inn med gruppekode og PIN.</p></div></li>
-          <li><div><b>Elevene reiser.</b><p>Book hotell → gjør reiseloggen → trykk «levert» → jobb, quiz eller fly videre. «Neste steg»-boksen øverst forteller dem alltid hva de skal gjøre.</p></div></li>
+          <li><div><b>Elevene reiser.</b><p>Book hotell → gjør reiseloggen → trykk «levert» → jobb, quiz eller fly videre. Under flyturen spinner de et lykkehjul og svarer på allmennkunnskap: 2 riktige for direktefly, 4 med ett stopp og 6 med to stopp. «Neste steg»-boksen øverst forteller dem alltid hva de skal gjøre.</p></div></li>
           <li><div><b>Godkjenn reiselogger.</b><p>Under <i>Oversikt</i> → «Venter på deg». Er landet ledig, blir det gruppas. Eier en annen gruppe det, blir det duell.</p></div></li>
           <li><div><b>Kjør dueller.</b><p>Trykk «🎲 Trekk oppgave» – oppgaven snurrer fram på tavla. Start nedtellingen, og trykk på vinneren etterpå.</p></div></li>
           <li><div><b>Åpne diktater.</b><p>Når en gruppe trykker «Vi er klare for diktat», får du beskjed. Gå bort til gruppa, se at notatene er lagt bort, og trykk «Åpne diktat».</p></div></li>
@@ -217,7 +214,6 @@
   </section>
 </main>
 
-<div class="luftpost" aria-hidden="true"></div>
 <footer>
   <div class="wrap"><span>🌍 Jorda rundt – et klasseromsspill i geografi og økonomi</span><span><a href="#veiledning">Lærerveiledning</a> · <a href="laerer.html">Logg inn som lærer</a></span></div>
 </footer>
