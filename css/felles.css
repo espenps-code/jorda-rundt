@@ -1,6 +1,15 @@
 /* Jorda rundt – felles utseende */
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=DM+Mono:wght@500&display=swap');
 
+/* Flagg-emojier på Windows: Windows har ingen flagg i emoji-skriften og viser bare bokstaver (f.eks. «MT»).
+   Denne skriften inneholder kun landflagg og ligger lokalt i prosjektet. */
+@font-face {
+  font-family: 'Twemoji Country Flags';
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+  src: url('../fonts/TwemojiCountryFlags.woff2') format('woff2');
+  font-display: swap;
+}
+
 :root {
   /* «Flypost»-palett */
   --hav: #0C2340;
@@ -21,9 +30,9 @@
   --lys-tekst: #A9C4DD;
   --skygge: 0 1px 2px rgba(12,35,64,.08), 0 6px 18px rgba(12,35,64,.08);
   --radius: 16px;
-  --font-tittel: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font: 'Atkinson Hyperlegible', system-ui, sans-serif;
-  --font-mono: 'DM Mono', ui-monospace, monospace;
+  --font-tittel: 'Twemoji Country Flags', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font: 'Twemoji Country Flags', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-mono: 'Twemoji Country Flags', 'DM Mono', ui-monospace, monospace;
   --luftpost: repeating-linear-gradient(135deg, #C8382F 0 14px, #F5EFE1 14px 22px, #1D5B8F 22px 36px, #F5EFE1 36px 44px);
 }
 
