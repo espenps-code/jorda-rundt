@@ -25,7 +25,17 @@ export const GRUPPEFARGER = [
   { navn: 'Oransje', hex: '#F76B15' }, { navn: 'Lilla', hex: '#8E4EC6' }, { navn: 'Turkis', hex: '#12A594' },
   { navn: 'Rosa', hex: '#D6409F' }, { navn: 'Gul', hex: '#E2A336' }, { navn: 'Brun', hex: '#A07553' },
   { navn: 'Marine', hex: '#1E3A8A' },
+  { navn: 'Himmelblå', hex: '#0090FF' }, { navn: 'Lime', hex: '#7CB518' }, { navn: 'Mørkerød', hex: '#9B1C1C' },
+  { navn: 'Skogsgrønn', hex: '#166534' }, { navn: 'Fersken', hex: '#F4A261' }, { navn: 'Indigo', hex: '#4338CA' },
+  { navn: 'Magenta', hex: '#A21CAF' }, { navn: 'Oliven', hex: '#6B7A1F' }, { navn: 'Petrol', hex: '#0E7490' },
+  { navn: 'Korall', hex: '#FF7F6E' }, { navn: 'Lavendel', hex: '#A78BFA' }, { navn: 'Sennep', hex: '#B8860B' },
+  { navn: 'Kirsebær', hex: '#BE185D' }, { navn: 'Skifer', hex: '#475569' }, { navn: 'Mint', hex: '#34D399' },
 ];
+
+/** Reisenavn til automatisk opprettelse av grupper (25 stk.) */
+export const GRUPPENAVN = ['Globetrotterne', 'Backpackerne', 'Oppdagerne', 'Pilotene', 'Kapteinene', 'Kartleserne', 'Navigatørene', 'Eventyrerne', 'Seilerne', 'Polfarerne',
+  'Jordomseilerne', 'Interrailerne', 'Nomadene', 'Ballongfarerne', 'Vandrerne', 'Fjellklatrerne', 'Dykkerne', 'Kompassene', 'Koffertene', 'Passtemplene',
+  'Boardingkortene', 'Karavanen', 'Safarigjengen', 'Ekspedisjonen', 'Jetsetterne'];
 
 /** Startbudsjett for en gruppe = beløp per elev × antall elever */
 export function startbelopFor(innstillinger, personer) { return Math.round((innstillinger.startbelopPerElev || 0) * Math.max(1, personer || 1)); }

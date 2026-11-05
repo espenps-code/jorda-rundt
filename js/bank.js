@@ -46,7 +46,7 @@ async function behandle(spillId, gid, fid, f) {
     else if (!spill.grupper?.[gid]) resultat = { ok: false, melding: 'Gruppa finnes ikke.' };
     else if (f.type === 'landing') resultat = await landing(spillId, gid, f.data || {});
     else if (spill.grupper[gid].iLufta) resultat = { ok: false, melding: 'Dere er i lufta! Svar på spørsmålene for å lande først. ✈️' };
-    else if (f.type === 'fly') resultat = await fly(spillId, gid, f.data || {}, i);
+    else if (f.type === 'fly') resultat = await fly(spillId, gid, f.data || {}, i, spill);
     else if (f.type === 'hotell') resultat = await hotell(spillId, gid, f.data || {}, i);
     else if (f.type === 'jobb') resultat = await jobb(spillId, gid, f.data || {}, i);
     else if (f.type === 'quiz') resultat = await quiz(spillId, gid, f.data || {}, i);
@@ -89,9 +89,17 @@ async function medGruppe(spillId, gid, endre) {
 const gyldigFro = (f) => typeof f === 'string' && /^[A-Za-z0-9_-]{4,40}$/.test(f);
 function harHotellHer(g) { return g.hotell && g.hotell.land === g.posisjon; }
 
-function fly(spillId, gid, d, i) {
+// Statuser som betyr at læreren har godkjent reiseloggen (duell/låst/tapt oppstår etter godkjenning)
+export const LOGG_GODKJENT = ['godkjent', 'duell', 'laast', 'tapt'];
+
+function fly(spillId, gid, d, i, spill) {
   return medGruppe(spillId, gid, (g) => {
     if (!harHotellHer(g)) return { feil: 'Dere må booke hotell (3 netter) der dere er før dere kan reise videre.' };
+    const loggStatus = spill?.reiselogger?.[gid]?.[g.posisjon]?.status;
+    if (!LOGG_GODKJENT.includes(loggStatus)) {
+      const her = landEtterId[g.posisjon]?.navn || 'landet';
+      return { feil: loggStatus === 'levert' ? `Læreren må godkjenne reiseloggen for ${her} før dere kan reise videre.` : `Dere må levere reiseloggen for ${her} og få den godkjent før dere kan reise videre.` };
+    }
     if (!landEtterId[d.til]) return { feil: 'Ukjent reisemål.' };
     if (d.til === g.posisjon) return { feil: 'Dere er allerede her!' };
     if (erStengt(d.til, i)) return { feil: `${landEtterId[d.til].navn} er stengt for reiser i spillet.` };

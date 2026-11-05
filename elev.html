@@ -11,29 +11,31 @@
 <style>
   body { overflow-x: hidden; }
   /* ---------- innlogging ---------- */
-  #innlogging { min-height: 100vh; display: grid; place-items: center; padding: 16px; background:
-      radial-gradient(circle at 20% 20%, rgba(245,158,11,.18), transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(31,127,168,.25), transparent 45%), var(--hav); }
-  .pass { background: var(--papir); border-radius: 22px; padding: 1.6rem 1.5rem; width: min(100%, 400px); box-shadow: 0 30px 80px rgba(0,0,0,.35); position: relative; overflow: hidden; }
-  .pass::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 8px; background: repeating-linear-gradient(90deg, var(--korall) 0 24px, #fff 24px 32px, var(--hav-3) 32px 56px, #fff 56px 64px); }
-  .pass .klode { font-size: 3.6rem; text-align: center; line-height: 1; margin: .3rem 0; }
+  #innlogging { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: radial-gradient(circle at 80% 15%, rgba(243,178,58,.14), transparent 40%), radial-gradient(circle at 15% 85%, rgba(29,91,143,.45), transparent 45%), var(--hav); }
+  .pass { background: var(--papir); border-radius: 22px; padding: 0 1.5rem 1.4rem; width: min(100%, 420px); box-shadow: 0 30px 80px rgba(0,0,0,.4); position: relative; overflow: hidden; }
+  .pass::before { content: none; }
+  .pass-omslag { background: #8E2A24; color: #F3D9A0; margin: 0 -1.5rem 1.2rem; padding: 1.5rem 1.5rem 1.3rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: .45rem; }
+  .pass-omslag .etikett-mono { color: #F3D9A0; }
+  .pass-omslag h1 { color: #FFF4DC !important; margin: 0 !important; font-size: 2.5rem !important; }
   .pass h1 { text-align: center; font-size: 2.2rem; margin-bottom: .1em; }
   .pass p { text-align: center; }
-  .pass input { font: 800 1.4rem var(--font-tittel); letter-spacing: .08em; text-align: center; text-transform: uppercase; }
-  .pass .knapp { width: 100%; justify-content: center; font-size: 1.15rem; padding: .8em; }
+  .pass input { font: 500 1.5rem var(--font-mono); letter-spacing: .14em; text-align: center; text-transform: uppercase; min-height: 56px; }
+  .pass label { font: 500 .75rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
+  .pass .knapp { width: 100%; justify-content: center; font: 800 1.25rem var(--font-tittel); padding: .8em; min-height: 56px; }
 
   /* ---------- hovedvisning ---------- */
-  .topp { background: var(--hav); color: #fff; display: flex; align-items: center; gap: .8rem 1.2rem; padding: .6rem 1rem; flex-wrap: wrap; }
-  .topp .gruppe { display: flex; align-items: center; gap: .5rem; font: 800 1.3rem var(--font-tittel); }
+  .topp { background: var(--hav); color: #fff; display: flex; align-items: center; gap: .8rem 1.4rem; padding: .7rem 1.2rem calc(.7rem + 8px); flex-wrap: wrap; position: relative; }
+  .topp::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--luftpost); }
+  .topp .gruppe { display: flex; align-items: center; gap: .55rem; font: 800 1.4rem var(--font-tittel); }
   .topp .gruppe .prikk { width: 1em; height: 1em; box-shadow: 0 0 0 2px #fff; }
   .tall-boks { display: flex; flex-direction: column; line-height: 1.05; }
-  .tall-boks small { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
-  .tall-boks b { font: 800 1.3rem var(--font-tittel); }
-  .her { background: rgba(255,255,255,.12); padding: .3em .8em; border-radius: 999px; display: flex; align-items: center; gap: .4em; }
+  .tall-boks small { font: 500 .68rem var(--font-mono); text-transform: uppercase; letter-spacing: .14em; color: var(--lys-tekst); }
+  .tall-boks b { font: 800 1.4rem var(--font-tittel); font-variant-numeric: tabular-nums; }
+  .her { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); padding: .3em .9em; border-radius: 999px; display: flex; align-items: center; gap: .45em; font-weight: 700; }
   .oppsett > * { min-width: 0; }
   #klode canvas { display: block; }
-  .oppsett { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr); height: calc(100vh - 62px); }
-  #klode { position: relative; background: radial-gradient(circle at 50% 45%, #1b6a90 0%, #0B3A53 55%, #071f2d 100%); overflow: hidden; min-height: 300px; }
+  .oppsett { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr); height: calc(100vh - 70px); }
+  #klode { position: relative; background: radial-gradient(circle at 50% 46%, #17457A 0%, #0C2340 58%, #081A30 100%); overflow: hidden; min-height: 300px; }
   #klode .klode-laster { position: absolute; inset: 0; display: grid; place-items: center; color: #cfe7f3; }
   .panel { background: var(--papir); overflow-y: auto; display: flex; flex-direction: column; }
   @media (max-width: 900px) {
@@ -46,17 +48,18 @@
   .klode-nal.min span { font-size: 15px; padding: 3px 10px; animation: hopp 1.6s ease-in-out infinite; }
   @keyframes hopp { 50% { transform: translate(-50%, -140%); } }
   .klode-etikett { background: rgba(11,58,83,.92); color: #fff; padding: .5em .7em; border-radius: 10px; font-family: var(--font); font-size: 14px; line-height: 1.3; }
-  .tegnforklaring { position: absolute; left: 10px; bottom: 10px; background: rgba(11,58,83,.75); color: #fff; padding: .45em .7em; border-radius: 10px; font-size: .75rem; display: flex; gap: .8em; flex-wrap: wrap; max-width: calc(100% - 20px); }
+  .tegnforklaring { position: absolute; left: 10px; bottom: 10px; background: rgba(8,26,48,.78); border: 1px solid rgba(255,255,255,.12); color: #fff; padding: .45em .7em; border-radius: 10px; font-size: .75rem; display: flex; gap: .8em; flex-wrap: wrap; max-width: calc(100% - 20px); }
   .tegnforklaring span { display: inline-flex; align-items: center; gap: .3em; }
 
-  .neste { margin: 1rem 1rem 0; padding: .9rem 1rem; border-radius: 14px; background: linear-gradient(135deg, #FEF3C7, #FFF9EB); border: 2px solid var(--sol); display: flex; gap: .8rem; align-items: center; }
+  .neste { flex-shrink: 0; margin: 1.1rem 1.1rem 0; padding: 1rem 1.1rem 1rem 2.8rem; border-radius: 10px 18px 18px 10px; background: var(--sol); color: var(--hav); display: flex; gap: .8rem; align-items: center; position: relative; }
+  .neste::before { content: ''; position: absolute; left: .9rem; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--papir); box-shadow: inset 0 0 0 3px #C98A12; }
   .neste .ikon { font-size: 2rem; }
-  .neste b { font-family: var(--font-tittel); font-size: 1.1rem; color: var(--hav); }
-  .faner { display: flex; gap: .3rem; padding: .8rem 1rem 0; overflow-x: auto; position: sticky; top: 0; background: var(--papir); z-index: 5; }
-  .faner button { flex: 1 0 auto; font: 700 .95rem var(--font-tittel); border: 0; background: var(--papir-2); color: var(--hav); border-radius: 12px; padding: .5em .8em; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .1em; min-width: 64px; }
+  .neste b { font: 800 1.2rem var(--font-tittel); color: var(--hav); }
+  .faner { flex-shrink: 0; display: flex; gap: .3rem; margin: .9rem 1.1rem 0; padding: .35rem; overflow-x: auto; box-shadow: 0 6px 12px -8px rgba(12,35,64,.25); position: sticky; top: 0; background: var(--papir-2); border-radius: 16px; z-index: 5; }
+  .faner button { flex: 1 0 auto; font: 700 .9rem var(--font-tittel); border: 0; background: transparent; color: var(--hav); border-radius: 12px; padding: .5em .7em; min-height: 56px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .1em; min-width: 64px; }
   .faner button .i { font-size: 1.3rem; }
-  .faner button[aria-selected=true] { background: var(--hav); color: #fff; }
-  .faneinnhold { padding: 1rem; }
+  .faner button[aria-selected=true] { background: var(--hav); color: #fff; box-shadow: var(--skygge); }
+  .faneinnhold { padding: 1.1rem; }
 
   .sok { position: relative; }
   .landliste { max-height: 260px; overflow-y: auto; border-radius: 12px; background: #fff; box-shadow: var(--skygge); margin-top: .5rem; }
@@ -65,20 +68,22 @@
   .landliste .f { font-size: 1.4rem; }
   .landliste small { color: var(--blekk-2); }
 
-  .billett { background: #fff; border-radius: 16px; box-shadow: var(--skygge); display: grid; grid-template-columns: 1fr auto; overflow: hidden; margin-bottom: .8rem; }
+  .billett { background: #fff; border-radius: 16px; box-shadow: var(--skygge); display: grid; grid-template-columns: 1fr auto; overflow: hidden; margin-bottom: .8rem; position: relative; }
   .billett .venstre { padding: .9rem 1rem; }
-  .billett .hoyre { padding: .9rem 1rem; border-left: 2px dashed var(--linje); display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: .4rem; background: var(--papir); min-width: 150px; }
+  .billett .hoyre { padding: .9rem 1rem; border-left: 2px dashed var(--linje); display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: .4rem; background: #FBF8F0; min-width: 150px; }
+  .billett::before, .billett::after { content: ''; position: absolute; right: 141px; width: 18px; height: 18px; border-radius: 50%; background: var(--papir); }
+  .billett::before { top: -9px; } .billett::after { bottom: -9px; }
   .billett .selskap { font: 800 1rem var(--font-tittel); color: var(--hav); }
-  .billett .rute { display: flex; align-items: center; gap: .5rem; margin: .3rem 0; font-weight: 700; }
-  .billett .linje { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--hav-3) 0 6px, transparent 6px 10px); position: relative; min-width: 40px; }
+  .billett .rute { display: flex; align-items: center; gap: .5rem; margin: .3rem 0; font: 500 1.2rem var(--font-mono); letter-spacing: .04em; }
+  .billett .linje { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--hav-3) 0 6px, transparent 6px 11px); position: relative; min-width: 40px; }
   .billett .linje::after { content: '✈'; position: absolute; left: 50%; top: -.75em; transform: translateX(-50%); color: var(--hav-3); }
-  .billett .pris { font: 800 1.4rem var(--font-tittel); color: var(--hav); }
+  .billett .pris { font: 800 1.4rem var(--font-tittel); color: var(--hav); font-variant-numeric: tabular-nums; }
   .billett.dyr .pris { color: var(--korall); }
-  .malkort { background: var(--hav); color: #fff; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; display: flex; gap: .8rem; align-items: center; }
+  .malkort { background: var(--hav); color: #fff; border-radius: 18px; padding: 1rem 1.1rem; margin-bottom: 1rem; display: flex; gap: .9rem; align-items: center; }
   .malkort .f { font-size: 2.6rem; }
   .malkort h3 { color: #fff; margin: 0; }
 
-  .hotell { background: #fff; border-radius: 16px; box-shadow: var(--skygge); padding: .9rem 1rem; margin-bottom: .7rem; display: grid; grid-template-columns: 1fr auto; gap: .4rem 1rem; align-items: center; }
+  .hotell { background: #fff; border-radius: 16px; box-shadow: var(--skygge); padding: .9rem 1rem; margin-bottom: .7rem; display: grid; grid-template-columns: 1fr auto; gap: .4rem 1rem; align-items: center; border-top: 4px solid var(--hav-3); }
   .hotell h4 { margin: 0; font-size: 1.1rem; }
   .stjerner { color: var(--sol); letter-spacing: 1px; }
   .vurdering { background: var(--hav); color: #fff; font-weight: 700; border-radius: 8px 8px 8px 2px; padding: .1em .4em; font-size: .85rem; }
@@ -88,9 +93,9 @@
   .oppgavekort { background: #fff; border-radius: 16px; box-shadow: var(--skygge); padding: 1rem; margin-bottom: .8rem; }
   .oppgavekort .spm { font-weight: 700; margin-bottom: .6rem; }
   .svarvalg { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-  .svarvalg button { font: 700 1rem var(--font); padding: .7em; border-radius: 12px; border: 2px solid var(--linje); background: var(--papir); cursor: pointer; color: var(--blekk); }
+  .svarvalg button { font: 700 1rem var(--font); padding: .7em; min-height: 48px; border-radius: 12px; border: 2px solid var(--linje); background: #fff; cursor: pointer; color: var(--blekk); }
   .svarvalg button[aria-pressed=true] { border-color: var(--hav); background: var(--hav); color: #fff; }
-  .svarvalg button.riktig { border-color: var(--gress); background: var(--gress-lys); color: #1d6b41; }
+  .svarvalg button.riktig { border-color: var(--gress); background: var(--gress-lys); color: #1F5537; }
   .svarvalg button.feil { border-color: var(--korall); background: var(--korall-lys); }
   .stortflagg { font-size: 4rem; text-align: center; line-height: 1.1; }
 
@@ -98,7 +103,7 @@
   .infoboks.sol { background: var(--sol-lys); }
   .infoboks.korall { background: var(--korall-lys); }
   .infoboks.gress { background: var(--gress-lys); }
-  .infoboks.hav { background: #E3F0F7; }
+  .infoboks.hav { background: #DDEAF5; }
   .venter { display: inline-flex; align-items: center; gap: .5em; }
   .venter::before { content: ''; width: 1em; height: 1em; border: 3px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: snurr .8s linear infinite; }
   @keyframes snurr { to { transform: rotate(360deg); } }
@@ -130,8 +135,42 @@
   .ife-tilbakemelding.ok { background: var(--gress-lys); color: #1d6b41; }
   .ife-tilbakemelding.feil { background: var(--korall-lys); color: #8d2226; animation: rist .5s; }
   @keyframes rist { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  /* ---------- veiviser ---------- */
+  .veiviser { background: var(--papir); border-radius: 24px; width: min(100%, 560px); max-height: 92vh; overflow: auto; box-shadow: 0 30px 80px rgba(0,0,0,.35); position: relative; }
+  .vv-topp { background: radial-gradient(circle at 70% 30%, #1b6a90, #0B3A53 70%); color: #fff; padding: 1.6rem 1.4rem 1.2rem; text-align: center; border-radius: 24px 24px 0 0; }
+  .vv-ikon { font-size: 3.4rem; line-height: 1; display: inline-grid; place-items: center; width: 5.2rem; height: 5.2rem; border-radius: 50%; background: rgba(255,255,255,.12); animation: sprett-inn .45s cubic-bezier(.2,1.5,.4,1); }
+  @keyframes sprett-inn { from { transform: scale(.5); opacity: 0; } }
+  .vv-topp h2 { color: #fff; margin: .6rem 0 0; font-size: 1.7rem; }
+  .vv-tekst { padding: 1.2rem 1.4rem .4rem; font-size: 1.05rem; line-height: 1.55; min-height: 17rem; }
+  .vv-tekst p { margin: 0 0 .8rem; }
+  .vv-tekst .liste { display: grid; gap: .45rem; margin: .2rem 0 .9rem; }
+  .vv-tekst .liste div { display: grid; grid-template-columns: 2rem 1fr; gap: .4rem; align-items: start; background: #fff; border-radius: 12px; padding: .5rem .7rem; box-shadow: var(--skygge); font-size: .97rem; }
+  .vv-tekst .liste div > span:first-child { font-size: 1.3rem; line-height: 1.2; }
+  .vv-bunn { display: flex; align-items: center; gap: .6rem; padding: .8rem 1.4rem 1.3rem; }
+  .vv-prikker { display: flex; gap: .35rem; flex: 1; justify-content: center; }
+  .vv-prikker i { width: .6rem; height: .6rem; border-radius: 50%; background: var(--linje); }
+  .vv-prikker i.aktiv { background: var(--sol); width: 1.4rem; border-radius: 999px; }
+  .vv-hopp { position: absolute; top: .8rem; right: 1rem; background: rgba(255,255,255,.15); color: #fff; border: 0; border-radius: 999px; padding: .3em .8em; font: 700 .85rem var(--font); cursor: pointer; }
   .feiring { position: fixed; inset: 0; pointer-events: none; z-index: 999; display: grid; place-items: center; font-size: 6rem; animation: feir 1.6s ease-out forwards; }
   @keyframes feir { from { transform: scale(.3); opacity: 0; } 30% { transform: scale(1.1); opacity: 1; } to { transform: scale(1.4) translateY(-60px); opacity: 0; } }
+
+  /* 3D-detaljer */
+  .topp { background: linear-gradient(180deg, #17457A, var(--hav) 70%); }
+  .neste { background: linear-gradient(180deg, #FFD875, var(--sol)); box-shadow: 0 4px 0 #B07510, 0 10px 20px rgba(176,117,16,.25); margin-bottom: 4px; }
+  .faner { background: var(--papir-2); box-shadow: inset 0 2px 4px rgba(12,35,64,.12), 0 6px 12px -8px rgba(12,35,64,.25); gap: .4rem; padding: .45rem .45rem .7rem; }
+  .faner button { background: linear-gradient(180deg, #FFFFFF, #F1E9D8); box-shadow: inset 0 1px 0 #fff, 0 3px 0 #CBBC99; position: relative; top: 0; transition: top .08s, box-shadow .08s; }
+  .faner button:hover { background: linear-gradient(180deg, #FFFFFF, #F7EFDD); }
+  .faner button:active { top: 2px; box-shadow: 0 1px 0 #CBBC99; }
+  .faner button[aria-selected=true] { background: linear-gradient(180deg, #1F5390, var(--hav)); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 #04101F, 0 6px 12px rgba(12,35,64,.25); }
+  .svarvalg button { background: linear-gradient(180deg, #FFFFFF, #F6F0E3); box-shadow: 0 4px 0 var(--linje); margin-bottom: 4px; position: relative; top: 0; transition: top .08s, box-shadow .08s; }
+  .svarvalg button:active:not(:disabled) { top: 3px; box-shadow: 0 1px 0 var(--linje); }
+  .svarvalg button[aria-pressed=true] { background: linear-gradient(180deg, #1F5390, var(--hav)); border-color: var(--hav); box-shadow: 0 4px 0 #04101F; }
+  .svarvalg button.riktig { background: linear-gradient(180deg, #EEF9F2, var(--gress-lys)); box-shadow: 0 4px 0 #9DCFB1; }
+  .svarvalg button.feil { background: linear-gradient(180deg, #FFF1EF, var(--korall-lys)); box-shadow: 0 4px 0 #E6A49E; }
+  .malkort { background: linear-gradient(135deg, #1F5390, var(--hav) 70%); box-shadow: 0 4px 0 #04101F, var(--skygge); }
+  .billett { box-shadow: 0 3px 0 #E2D6BC, var(--skygge); }
+  .hotell, .oppgavekort { box-shadow: 0 3px 0 #E2D6BC, var(--skygge); }
+  .landliste button:hover, .landliste button:focus-visible { background: linear-gradient(90deg, var(--sol-lys), #fff); }
 </style>
 </head>
 <body>
@@ -139,11 +178,10 @@
 <!-- ============ INNLOGGING ============ -->
 <section id="innlogging" class="skjult">
   <form class="pass" id="innskjema" autocomplete="off">
-    <div class="klode">🌍</div>
-    <h1>Jorda rundt</h1>
+    <div class="pass-omslag"><svg width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="32" cy="32" r="26"/><ellipse cx="32" cy="32" rx="11" ry="26"/><line x1="6" y1="32" x2="58" y2="32"/><path d="M10 19h44M10 45h44"/></svg><span class="etikett-mono">Reisepass · klasserom</span><h1>Jorda rundt</h1></div>
     <p class="dempet">Skriv inn koden og PIN-en fra gruppekortet deres.</p>
-    <div class="felt"><label for="kode">Gruppekode</label><input id="kode" required placeholder="TIGER42" maxlength="16" autocapitalize="characters"></div>
-    <div class="felt"><label for="pin">PIN</label><input id="pin" required inputmode="numeric" placeholder="••••••" maxlength="6" type="password"></div>
+    <div class="felt"><label for="kode">Gruppekode</label><input id="kode" name="gruppekode" required placeholder="TIGER42" maxlength="16" autocapitalize="characters" autocomplete="off" spellcheck="false" data-lpignore="true"></div>
+    <div class="felt"><label for="pin">PIN</label><input id="pin" name="gruppepin" required inputmode="numeric" placeholder="••••••" maxlength="6" type="text" autocomplete="one-time-code" spellcheck="false" data-lpignore="true" style="-webkit-text-security: disc; text-security: disc"></div>
     <button class="knapp sol" id="innknapp">Start reisen ✈️</button>
     <p id="innfeil" class="liten" style="color:var(--korall);min-height:1.4em;margin-bottom:0"></p>
 
@@ -159,6 +197,7 @@
     <div class="tall-boks"><small>Penger</small><b id="saldo" class="tall"></b></div>
     <div class="tall-boks"><small>Poeng</small><b id="poeng" class="tall"></b></div>
     <div class="tall-boks"><small>Plass</small><b id="plass" class="tall"></b></div>
+    <button class="knapp lys mini" id="hjelp" title="Se veiledningen igjen">❓ Hjelp</button>
     <button class="knapp lys mini" id="loggut" title="Logg ut">Logg ut</button>
   </header>
   <div class="oppsett">
@@ -242,7 +281,7 @@ async function startSpill(sid, gruppe) {
     spill = snap.val(); g = spill?.grupper?.[gid];
     if (!g) { varsle('Gruppa finnes ikke lenger.', 'feil'); return; }
     sjekkEndringer(forrige, g); sjekkNyeLand();
-    tegnTopp(); tegnNeste(); tegnFane(); klode?.oppdater(spill, gid);
+    tegnTopp(); tegnNeste(); tegnFane(); klode?.oppdater(spill, gid); kanskjeVisVeiviser();
   }, () => { lagre('jr-elev-spill', null); location.reload(); });
   try {
     klode = await lagKlode($('#klode'), { vedKlikk: (id) => { reiseMal = id; velgFane('reis'); } });
@@ -262,6 +301,53 @@ function sjekkNyeLand() {
   antallLand = n;
 }
 
+// ================= VEIVISER =================
+const vvNokkel = () => `jr-veiviser-${spillId}-${gid}`;
+function veiviserSider() {
+  const i = innst(spill); const l = landEtterId[g.start || g.posisjon] || landEtterId[g.posisjon];
+  const slutt = i.sluttdato ? ` Spillet varer til <b>${new Date(i.sluttdato + 'T12:00').toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}</b>.` : '';
+  const li = (ikon, tekst) => `<div><span>${ikon}</span><span>${tekst}</span></div>`;
+  return [
+    { ikon: '👋', tittel: `Velkommen, ${esc(g.navn)}!`, tekst: `<p>Dere er en reisegruppe på <b>${g.personer || 4}</b> med <b>${formaterKr(startbelop())}</b> i reisekassa.</p><p>Reisen starter i <b>${l.flagg} ${esc(l.by)}, ${esc(l.navn)}</b>. Målet er å erobre flest mulig land – før de andre gruppene gjør det!${slutt}</p><p class="dempet">Bla deg gjennom denne korte guiden. Den tar to minutter.</p>` },
+    { ikon: '🏆', tittel: 'Slik får dere poeng', tekst: `<div class="liste">${li('🏳️', `<b>${i.poengLand} poeng</b> for hvert land dere eier`)}${li('🌍', `<b>${i.poengKontinent} poeng</b> for hvert kontinent dere har minst ett land på`)}${li('🐧', 'Det finnes 7 kontinenter – også Antarktis! Dit går det bare fly fra Chile.')}</div><p>Det lønner seg altså å spre seg utover verden.</p>` },
+    { ikon: '🏨', tittel: 'Først: book hotell', tekst: `<p>I hvert nytt land må dere først booke hotell for <b>tre netter</b>. Uten hotell kan dere ikke gjøre noe der.</p><div class="liste">${li('⭐', '<b>Billig hostell</b> = dårlig søvn: færre jobber per dag og lavere lønn.')}${li('🌟', '<b>Luksushotell</b> = uthvilte: flere jobber og høyere lønn.')}${li('🍳', 'Fasiliteter gir fordeler: frokost (+1 jobb), flyplassbuss (−10 % fly), wifi (50/50-livline).')}${li('🎲', 'På de billigste hotellene kan det skje overraskelser – gode og dårlige!')}</div>` },
+    { ikon: '📓', tittel: 'Reiseloggen gir dere landet', tekst: `<div class="liste">${li('1️⃣', 'Fyll ut den fysiske reiseloggen: fakta, kultur og et bildecollage.')}${li('2️⃣', 'Trykk <b>«Vi har levert reiseloggen»</b> under fanen Reiselogg.')}${li('3️⃣', 'Læreren godkjenner – og landet blir deres! 🎉')}</div><p>Eier en annen gruppe landet allerede? Da blir det <b>⚔️ duell</b> om det!</p>` },
+    { ikon: '✈️', tittel: 'Reis videre', tekst: `<p>Trykk på et land på jordkloden, eller søk under <b>Reis</b>. Prisen gjelder for hele gruppa.</p><div class="liste">${li('💸', '<b>Direktefly</b> er dyrt, men raskt.')}${li('🪙', '<b>Billigfly</b> har mellomlandinger – og mer å gjøre om bord.')}${li('🎰', 'Under flyturen spinner dere et hjul og svarer på spørsmål. Dere må ha <b>2 riktige</b> (direkte), <b>4</b> (1 stopp) eller <b>6</b> (2 stopp) før dere lander.')}${li('🌪️', 'Feil svar gir turbulens – og et nytt spørsmål.')}</div>` },
+    { ikon: '💰', tittel: 'Tjen penger', tekst: `<div class="liste">${li('💼', '<b>Jobb</b> – løs regnestykker i landets valuta. Lønna følger prisnivået i landet.')}${li('🧭', `<b>Geografiquiz</b> – ${formaterKr(i.quizBelop)} per riktig svar, ${i.quizPerDag} quizer per dag.`)}${i.diktatBelopPerElev ? li('✍️', `<b>Parlør-diktat</b> – skriv parlørordene på landets språk. 5 av 5 riktige gir ${formaterKr(i.diktatBelopPerElev * (g.personer || 4))}. Be læreren åpne den når dere er klare.`) : ''}</div><p>Tips: Billige land er billige å bo i – men lønna er også lav. Dyre land betaler mer!</p>` },
+    { ikon: '🔒', tittel: 'Forsvar landene deres', tekst: `<div class="liste">${i.laasDager ? li('⏳', `Et land kan utfordres av andre i <b>${i.laasDager} dager</b> – så blir det låst og trygt.`) : ''}${i.landquizKrav ? li('🧠', `Lås et land med en gang: ta <b>landquizen</b> og få ${i.landquizKrav} av 5 riktige.`) : ''}${li('⚔️', `Duellene er morsomme oppgaver i klasserommet. Vinneren får landet${i.duellPremie ? ` og ${formaterKr(i.duellPremie)}` : ''}.`)}</div>` },
+    { ikon: '🌍', tittel: 'Klar for avreise!', tekst: `<p>Boksen <b>«Neste steg»</b> øverst forteller dere alltid hva dere skal gjøre nå.</p><p>Trykk <b>❓ Hjelp</b> oppe til høyre hvis dere vil se denne guiden igjen.</p><p style="font:800 1.3rem var(--font-tittel);color:var(--hav);text-align:center;margin-top:1.2rem">God tur! ✈️</p>` },
+  ];
+}
+function startbelop() { const i = innst(spill); return (i.startbelopPerElev || 0) * (g.personer || 4) || g.saldo; }
+function visVeiviser(start = 0) {
+  document.querySelector('.vv-bakgrunn')?.remove();
+  const sider = veiviserSider(); let n = start;
+  const bg = document.createElement('div'); bg.className = 'modal-bakgrunn vv-bakgrunn';
+  const lukk = () => { bg.remove(); try { localStorage.setItem(vvNokkel(), '1'); } catch {} document.removeEventListener('keydown', tast); };
+  const tast = (e) => { if (e.key === 'ArrowRight' && n < sider.length - 1) { n++; tegn(); } else if (e.key === 'ArrowLeft' && n > 0) { n--; tegn(); } else if (e.key === 'Escape') lukk(); };
+  function tegn() {
+    const sd = sider[n];
+    bg.innerHTML = `<div class="veiviser" role="dialog" aria-modal="true" aria-label="Veiledning">
+      <div class="vv-topp"><button class="vv-hopp">${n === sider.length - 1 ? 'Lukk' : 'Hopp over'}</button><div class="vv-ikon">${sd.ikon}</div><h2>${sd.tittel}</h2></div>
+      <div class="vv-tekst">${sd.tekst}</div>
+      <div class="vv-bunn"><button class="knapp lys" data-vv="-1" ${n === 0 ? 'style="visibility:hidden"' : ''}>← Tilbake</button>
+        <div class="vv-prikker">${sider.map((_, k) => `<i class="${k === n ? 'aktiv' : ''}"></i>`).join('')}</div>
+        <button class="knapp sol" data-vv="1">${n === sider.length - 1 ? 'Start reisen! 🚀' : 'Neste →'}</button></div></div>`;
+    bg.querySelector('.vv-hopp').onclick = lukk;
+    bg.querySelectorAll('[data-vv]').forEach((b) => b.onclick = () => { const d = Number(b.dataset.vv); if (n + d >= sider.length) return lukk(); n = Math.max(0, n + d); tegn(); });
+    bg.querySelector('[data-vv="1"]').focus();
+  }
+  document.addEventListener('keydown', tast);
+  document.body.append(bg); tegn();
+}
+$('#hjelp').onclick = () => visVeiviser(0);
+let veiviserSjekket = false;
+function kanskjeVisVeiviser() {
+  if (veiviserSjekket) return; veiviserSjekket = true;
+  let sett = null; try { sett = localStorage.getItem(vvNokkel()); } catch {}
+  if (!sett) setTimeout(() => visVeiviser(0), 600);
+}
+
 // ================= TOPP + NESTE STEG =================
 function tegnTopp() {
   const l = landEtterId[g.posisjon];
@@ -274,6 +360,7 @@ function tegnTopp() {
 }
 const harHotell = () => g.hotell && g.hotell.land === g.posisjon;
 const reiseloggStatus = (land = g.posisjon) => spill.reiselogger?.[gid]?.[land]?.status || null;
+const kanReise = () => ['godkjent', 'duell', 'laast', 'tapt'].includes(reiseloggStatus());
 
 function tegnNeste() {
   const i = innst(spill); const l = landEtterId[g.posisjon];
@@ -282,8 +369,8 @@ function tegnNeste() {
   else if (!harHotell()) { ikon = '🏨'; tekst = `<b>Book hotell i ${esc(l.by)}</b><br>Dere trenger tre netter før dere kan gjøre reiseloggen.`; }
   else {
     const st = reiseloggStatus();
-    if (!st || st === 'avvist') { ikon = '📓'; tekst = `<b>Gjør reiseloggen for ${esc(l.navn)}</b><br>Fyll ut den fysiske reiseloggen og trykk «Levert» under Reiselogg.`; }
-    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere ta parlør-diktaten under Reiselogg, jobbe eller ta en quiz.'; }
+    if (!st || st === 'avvist') { ikon = '📓'; tekst = `<b>Gjør reiseloggen for ${esc(l.navn)}</b><br>Fyll ut den fysiske reiseloggen og trykk «Levert» under Reiselogg. Dere kan reise videre når læreren har godkjent den.`; }
+    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere ta parlør-diktaten under Reiselogg, jobbe eller ta en quiz. Dere kan reise videre når loggen er godkjent.'; }
     else if (st === 'duell') { ikon = '⚔️'; tekst = '<b>Duell!</b><br>Læreren setter opp en duell om landet.'; }
     else { ikon = '✈️'; tekst = '<b>Klar for neste land!</b><br>Velg et reisemål – eller tjen penger først.'; }
   }
@@ -426,6 +513,7 @@ function tegnTilbud(el) {
     <button class="knapp lys mini" id="tilbake">← Andre reisemål</button>
     <div class="malkort" style="margin-top:.8rem"><span class="f">${mal.flagg}</span><div class="vokser"><h3>${esc(mal.navn)}</h3><div>${esc(mal.by)} · ${mal.kontinent}</div><div class="liten" style="opacity:.8">${avstandKm(her, mal).toLocaleString('nb-NO')} km fra ${esc(her.by)}${mal.kurs && mal.valuta !== 'NOK' ? ` · Valuta: ${esc(mal.valutaNavn)}` : ''}</div></div><span class="merke ${s.klasse}">${s.tekst}</span></div>
     ${advarsel}
+    ${harHotell() && !kanReise() ? `<div class="infoboks sol">🔒 Dere kan se på flyreisene, men ikke kjøpe før læreren har godkjent reiseloggen for ${esc(her.navn)}.</div>` : ''}
     ${tilbud.length ? `<h3>Flyreiser i dag for ${g.personer || 4} personer</h3>` : ''}
     ${tilbud.map((t, n) => {
       const via = t.via.length ? `${t.stopp} stopp via ${t.via.map((v) => esc(v.by)).join(' og ')}` : 'Direktefly';
@@ -435,7 +523,7 @@ function tegnTilbud(el) {
         <div class="rute"><span>${esc(her.by)}</span><span class="linje"></span><span>${esc(mal.by)}</span></div>
         <div class="liten dempet">Avgang ${t.avgang} · ${formaterVarighet(t.varighetMin)} · ${via}</div></div>
         <div class="hoyre"><div class="liten dempet">${formaterKr(t.prisPerPerson)} × ${t.personer}</div>${rabatt ? `<div class="liten" style="text-decoration:line-through;opacity:.6">${formaterKr(t.totalt)}</div>` : ''}<div class="pris">${formaterKr(pris)}</div>${rabatt ? '<div class="liten">🚌 −10 % med flyplassbussen</div>' : ''}
-        <button class="knapp mini ${rad ? 'sol' : ''}" data-kjop="${n}" ${!rad || !harHotell() || venterPa.fly ? 'disabled' : ''}>${venterPa.fly ? '<span class="venter">Sender</span>' : rad ? 'Kjøp billetter' : 'Ikke råd'}</button></div></div>`;
+        <button class="knapp mini ${rad ? 'sol' : ''}" data-kjop="${n}" ${!rad || !harHotell() || !kanReise() || venterPa.fly ? 'disabled' : ''}>${venterPa.fly ? '<span class="venter">Sender</span>' : !kanReise() ? 'Venter på godkjenning' : rad ? 'Kjøp billetter' : 'Ikke råd'}</button></div></div>`;
     }).join('')}
     ${tilbud.length && !harHotell() ? '<p class="liten dempet">Book hotell der dere er først – da kan dere kjøpe billetter.</p>' : ''}
     ${tilbud.length ? `<p class="liten dempet">Prisene gjelder i dag (${idag().split('-').reverse().join('.')}). Hotell i ${esc(mal.by)}: fra ${formaterKr(Math.min(...hoteller(reiseMal).map((h) => h.prisNatt)))} per natt${lokalt ? '' : ''}.</p>` : ''}`;
