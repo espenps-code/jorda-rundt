@@ -11,29 +11,31 @@
 <style>
   body { overflow-x: hidden; }
   /* ---------- innlogging ---------- */
-  #innlogging { min-height: 100vh; display: grid; place-items: center; padding: 16px; background:
-      radial-gradient(circle at 20% 20%, rgba(245,158,11,.18), transparent 40%),
-      radial-gradient(circle at 80% 70%, rgba(31,127,168,.25), transparent 45%), var(--hav); }
-  .pass { background: var(--papir); border-radius: 22px; padding: 1.6rem 1.5rem; width: min(100%, 400px); box-shadow: 0 30px 80px rgba(0,0,0,.35); position: relative; overflow: hidden; }
-  .pass::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 8px; background: repeating-linear-gradient(90deg, var(--korall) 0 24px, #fff 24px 32px, var(--hav-3) 32px 56px, #fff 56px 64px); }
-  .pass .klode { font-size: 3.6rem; text-align: center; line-height: 1; margin: .3rem 0; }
+  #innlogging { min-height: 100vh; display: grid; place-items: center; padding: 16px; background: radial-gradient(circle at 80% 15%, rgba(243,178,58,.14), transparent 40%), radial-gradient(circle at 15% 85%, rgba(29,91,143,.45), transparent 45%), var(--hav); }
+  .pass { background: var(--papir); border-radius: 22px; padding: 0 1.5rem 1.4rem; width: min(100%, 420px); box-shadow: 0 30px 80px rgba(0,0,0,.4); position: relative; overflow: hidden; }
+  .pass::before { content: none; }
+  .pass-omslag { background: #8E2A24; color: #F3D9A0; margin: 0 -1.5rem 1.2rem; padding: 1.5rem 1.5rem 1.3rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: .45rem; }
+  .pass-omslag .etikett-mono { color: #F3D9A0; }
+  .pass-omslag h1 { color: #FFF4DC !important; margin: 0 !important; font-size: 2.5rem !important; }
   .pass h1 { text-align: center; font-size: 2.2rem; margin-bottom: .1em; }
   .pass p { text-align: center; }
-  .pass input { font: 800 1.4rem var(--font-tittel); letter-spacing: .08em; text-align: center; text-transform: uppercase; }
-  .pass .knapp { width: 100%; justify-content: center; font-size: 1.15rem; padding: .8em; }
+  .pass input { font: 500 1.5rem var(--font-mono); letter-spacing: .14em; text-align: center; text-transform: uppercase; min-height: 56px; }
+  .pass label { font: 500 .75rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
+  .pass .knapp { width: 100%; justify-content: center; font: 800 1.25rem var(--font-tittel); padding: .8em; min-height: 56px; }
 
   /* ---------- hovedvisning ---------- */
-  .topp { background: var(--hav); color: #fff; display: flex; align-items: center; gap: .8rem 1.2rem; padding: .6rem 1rem; flex-wrap: wrap; }
-  .topp .gruppe { display: flex; align-items: center; gap: .5rem; font: 800 1.3rem var(--font-tittel); }
+  .topp { background: var(--hav); color: #fff; display: flex; align-items: center; gap: .8rem 1.4rem; padding: .7rem 1.2rem calc(.7rem + 8px); flex-wrap: wrap; position: relative; }
+  .topp::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--luftpost); }
+  .topp .gruppe { display: flex; align-items: center; gap: .55rem; font: 800 1.4rem var(--font-tittel); }
   .topp .gruppe .prikk { width: 1em; height: 1em; box-shadow: 0 0 0 2px #fff; }
   .tall-boks { display: flex; flex-direction: column; line-height: 1.05; }
-  .tall-boks small { font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; opacity: .7; }
-  .tall-boks b { font: 800 1.3rem var(--font-tittel); }
-  .her { background: rgba(255,255,255,.12); padding: .3em .8em; border-radius: 999px; display: flex; align-items: center; gap: .4em; }
+  .tall-boks small { font: 500 .68rem var(--font-mono); text-transform: uppercase; letter-spacing: .14em; color: var(--lys-tekst); }
+  .tall-boks b { font: 800 1.4rem var(--font-tittel); font-variant-numeric: tabular-nums; }
+  .her { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); padding: .3em .9em; border-radius: 999px; display: flex; align-items: center; gap: .45em; font-weight: 700; }
   .oppsett > * { min-width: 0; }
   #klode canvas { display: block; }
-  .oppsett { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr); height: calc(100vh - 62px); }
-  #klode { position: relative; background: radial-gradient(circle at 50% 45%, #1b6a90 0%, #0B3A53 55%, #071f2d 100%); overflow: hidden; min-height: 300px; }
+  .oppsett { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(360px, 1fr); height: calc(100vh - 70px); }
+  #klode { position: relative; background: radial-gradient(circle at 50% 46%, #17457A 0%, #0C2340 58%, #081A30 100%); overflow: hidden; min-height: 300px; }
   #klode .klode-laster { position: absolute; inset: 0; display: grid; place-items: center; color: #cfe7f3; }
   .panel { background: var(--papir); overflow-y: auto; display: flex; flex-direction: column; }
   @media (max-width: 900px) {
@@ -46,17 +48,18 @@
   .klode-nal.min span { font-size: 15px; padding: 3px 10px; animation: hopp 1.6s ease-in-out infinite; }
   @keyframes hopp { 50% { transform: translate(-50%, -140%); } }
   .klode-etikett { background: rgba(11,58,83,.92); color: #fff; padding: .5em .7em; border-radius: 10px; font-family: var(--font); font-size: 14px; line-height: 1.3; }
-  .tegnforklaring { position: absolute; left: 10px; bottom: 10px; background: rgba(11,58,83,.75); color: #fff; padding: .45em .7em; border-radius: 10px; font-size: .75rem; display: flex; gap: .8em; flex-wrap: wrap; max-width: calc(100% - 20px); }
+  .tegnforklaring { position: absolute; left: 10px; bottom: 10px; background: rgba(8,26,48,.78); border: 1px solid rgba(255,255,255,.12); color: #fff; padding: .45em .7em; border-radius: 10px; font-size: .75rem; display: flex; gap: .8em; flex-wrap: wrap; max-width: calc(100% - 20px); }
   .tegnforklaring span { display: inline-flex; align-items: center; gap: .3em; }
 
-  .neste { margin: 1rem 1rem 0; padding: .9rem 1rem; border-radius: 14px; background: linear-gradient(135deg, #FEF3C7, #FFF9EB); border: 2px solid var(--sol); display: flex; gap: .8rem; align-items: center; }
+  .neste { margin: 1.1rem 1.1rem 0; padding: 1rem 1.1rem 1rem 2.8rem; border-radius: 10px 18px 18px 10px; background: var(--sol); color: var(--hav); display: flex; gap: .8rem; align-items: center; position: relative; }
+  .neste::before { content: ''; position: absolute; left: .9rem; top: 50%; width: 14px; height: 14px; margin-top: -7px; border-radius: 50%; background: var(--papir); box-shadow: inset 0 0 0 3px #C98A12; }
   .neste .ikon { font-size: 2rem; }
-  .neste b { font-family: var(--font-tittel); font-size: 1.1rem; color: var(--hav); }
-  .faner { display: flex; gap: .3rem; padding: .8rem 1rem 0; overflow-x: auto; position: sticky; top: 0; background: var(--papir); z-index: 5; }
-  .faner button { flex: 1 0 auto; font: 700 .95rem var(--font-tittel); border: 0; background: var(--papir-2); color: var(--hav); border-radius: 12px; padding: .5em .8em; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .1em; min-width: 64px; }
+  .neste b { font: 800 1.2rem var(--font-tittel); color: var(--hav); }
+  .faner { display: flex; gap: .3rem; margin: .9rem 1.1rem 0; padding: .35rem; overflow-x: auto; position: sticky; top: 0; background: var(--papir-2); border-radius: 16px; z-index: 5; }
+  .faner button { flex: 1 0 auto; font: 700 .9rem var(--font-tittel); border: 0; background: transparent; color: var(--hav); border-radius: 12px; padding: .5em .7em; min-height: 56px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: .1em; min-width: 64px; }
   .faner button .i { font-size: 1.3rem; }
-  .faner button[aria-selected=true] { background: var(--hav); color: #fff; }
-  .faneinnhold { padding: 1rem; }
+  .faner button[aria-selected=true] { background: var(--hav); color: #fff; box-shadow: var(--skygge); }
+  .faneinnhold { padding: 1.1rem; }
 
   .sok { position: relative; }
   .landliste { max-height: 260px; overflow-y: auto; border-radius: 12px; background: #fff; box-shadow: var(--skygge); margin-top: .5rem; }
@@ -65,20 +68,22 @@
   .landliste .f { font-size: 1.4rem; }
   .landliste small { color: var(--blekk-2); }
 
-  .billett { background: #fff; border-radius: 16px; box-shadow: var(--skygge); display: grid; grid-template-columns: 1fr auto; overflow: hidden; margin-bottom: .8rem; }
+  .billett { background: #fff; border-radius: 16px; box-shadow: var(--skygge); display: grid; grid-template-columns: 1fr auto; overflow: hidden; margin-bottom: .8rem; position: relative; }
   .billett .venstre { padding: .9rem 1rem; }
-  .billett .hoyre { padding: .9rem 1rem; border-left: 2px dashed var(--linje); display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: .4rem; background: var(--papir); min-width: 150px; }
+  .billett .hoyre { padding: .9rem 1rem; border-left: 2px dashed var(--linje); display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: .4rem; background: #FBF8F0; min-width: 150px; }
+  .billett::before, .billett::after { content: ''; position: absolute; right: 141px; width: 18px; height: 18px; border-radius: 50%; background: var(--papir); }
+  .billett::before { top: -9px; } .billett::after { bottom: -9px; }
   .billett .selskap { font: 800 1rem var(--font-tittel); color: var(--hav); }
-  .billett .rute { display: flex; align-items: center; gap: .5rem; margin: .3rem 0; font-weight: 700; }
-  .billett .linje { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--hav-3) 0 6px, transparent 6px 10px); position: relative; min-width: 40px; }
+  .billett .rute { display: flex; align-items: center; gap: .5rem; margin: .3rem 0; font: 500 1.2rem var(--font-mono); letter-spacing: .04em; }
+  .billett .linje { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, var(--hav-3) 0 6px, transparent 6px 11px); position: relative; min-width: 40px; }
   .billett .linje::after { content: '✈'; position: absolute; left: 50%; top: -.75em; transform: translateX(-50%); color: var(--hav-3); }
-  .billett .pris { font: 800 1.4rem var(--font-tittel); color: var(--hav); }
+  .billett .pris { font: 800 1.4rem var(--font-tittel); color: var(--hav); font-variant-numeric: tabular-nums; }
   .billett.dyr .pris { color: var(--korall); }
-  .malkort { background: var(--hav); color: #fff; border-radius: 16px; padding: 1rem; margin-bottom: 1rem; display: flex; gap: .8rem; align-items: center; }
+  .malkort { background: var(--hav); color: #fff; border-radius: 18px; padding: 1rem 1.1rem; margin-bottom: 1rem; display: flex; gap: .9rem; align-items: center; }
   .malkort .f { font-size: 2.6rem; }
   .malkort h3 { color: #fff; margin: 0; }
 
-  .hotell { background: #fff; border-radius: 16px; box-shadow: var(--skygge); padding: .9rem 1rem; margin-bottom: .7rem; display: grid; grid-template-columns: 1fr auto; gap: .4rem 1rem; align-items: center; }
+  .hotell { background: #fff; border-radius: 16px; box-shadow: var(--skygge); padding: .9rem 1rem; margin-bottom: .7rem; display: grid; grid-template-columns: 1fr auto; gap: .4rem 1rem; align-items: center; border-top: 4px solid var(--hav-3); }
   .hotell h4 { margin: 0; font-size: 1.1rem; }
   .stjerner { color: var(--sol); letter-spacing: 1px; }
   .vurdering { background: var(--hav); color: #fff; font-weight: 700; border-radius: 8px 8px 8px 2px; padding: .1em .4em; font-size: .85rem; }
@@ -88,9 +93,9 @@
   .oppgavekort { background: #fff; border-radius: 16px; box-shadow: var(--skygge); padding: 1rem; margin-bottom: .8rem; }
   .oppgavekort .spm { font-weight: 700; margin-bottom: .6rem; }
   .svarvalg { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-  .svarvalg button { font: 700 1rem var(--font); padding: .7em; border-radius: 12px; border: 2px solid var(--linje); background: var(--papir); cursor: pointer; color: var(--blekk); }
+  .svarvalg button { font: 700 1rem var(--font); padding: .7em; min-height: 48px; border-radius: 12px; border: 2px solid var(--linje); background: #fff; cursor: pointer; color: var(--blekk); }
   .svarvalg button[aria-pressed=true] { border-color: var(--hav); background: var(--hav); color: #fff; }
-  .svarvalg button.riktig { border-color: var(--gress); background: var(--gress-lys); color: #1d6b41; }
+  .svarvalg button.riktig { border-color: var(--gress); background: var(--gress-lys); color: #1F5537; }
   .svarvalg button.feil { border-color: var(--korall); background: var(--korall-lys); }
   .stortflagg { font-size: 4rem; text-align: center; line-height: 1.1; }
 
@@ -98,7 +103,7 @@
   .infoboks.sol { background: var(--sol-lys); }
   .infoboks.korall { background: var(--korall-lys); }
   .infoboks.gress { background: var(--gress-lys); }
-  .infoboks.hav { background: #E3F0F7; }
+  .infoboks.hav { background: #DDEAF5; }
   .venter { display: inline-flex; align-items: center; gap: .5em; }
   .venter::before { content: ''; width: 1em; height: 1em; border: 3px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: snurr .8s linear infinite; }
   @keyframes snurr { to { transform: rotate(360deg); } }
@@ -113,8 +118,7 @@
 <!-- ============ INNLOGGING ============ -->
 <section id="innlogging" class="skjult">
   <form class="pass" id="innskjema" autocomplete="off">
-    <div class="klode">🌍</div>
-    <h1>Jorda rundt</h1>
+    <div class="pass-omslag"><svg width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="32" cy="32" r="26"/><ellipse cx="32" cy="32" rx="11" ry="26"/><line x1="6" y1="32" x2="58" y2="32"/><path d="M10 19h44M10 45h44"/></svg><span class="etikett-mono">Reisepass · klasserom</span><h1>Jorda rundt</h1></div>
     <p class="dempet">Skriv inn koden og PIN-en fra gruppekortet deres.</p>
     <div class="felt"><label for="kode">Gruppekode</label><input id="kode" required placeholder="TIGER42" maxlength="16" autocapitalize="characters"></div>
     <div class="felt"><label for="pin">PIN</label><input id="pin" required inputmode="numeric" placeholder="••••••" maxlength="6" type="password"></div>

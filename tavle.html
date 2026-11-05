@@ -10,37 +10,39 @@
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <style>
   html, body { height: 100%; }
-  body { background: #06202e; color: #fff; overflow: hidden; }
+  body { background: #081A30; color: #fff; overflow: hidden; }
   #innlogging { height: 100%; display: grid; place-items: center; text-align: center; }
   #innlogging h1 { color: #fff; font-size: 3rem; }
   .scene { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(380px, 1fr); height: 100vh; }
-  #klode { position: relative; background: radial-gradient(circle at 50% 50%, #1b6a90 0%, #0B3A53 50%, #041824 100%); overflow: hidden; min-width: 0; }
-  .side { display: flex; flex-direction: column; padding: 2vh 2vw; gap: 1.6vh; min-width: 0; background: linear-gradient(180deg, #0B3A53, #072a3c); }
+  #klode { position: relative; background: radial-gradient(circle at 50% 50%, #17457A 0%, #0C2340 55%, #081A30 100%); overflow: hidden; min-width: 0; }
+  .side { display: flex; flex-direction: column; padding: 3vh 2.4vw; gap: 1.8vh; min-width: 0; background: #0A1E36; position: relative; }
+  .side::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 8px; background: repeating-linear-gradient(45deg, #C8382F 0 14px, #F5EFE1 14px 22px, #1D5B8F 22px 36px, #F5EFE1 36px 44px); }
   .tittel { display: flex; align-items: center; gap: .8rem; }
-  .tittel h1 { color: #fff; font-size: clamp(1.6rem, 3vw, 3rem); margin: 0; }
-  .tittel .spillnavn { color: #9fd3ef; font: 700 clamp(.9rem, 1.2vw, 1.2rem) var(--font); }
+  .tittel h1 { color: #fff; font-size: clamp(1.8rem, 3.6vw, 4rem); margin: 0; line-height: .95; }
+  .tittel h1::before { content: 'AVGANGER · VERDEN'; display: block; font: 500 clamp(.7rem, .9vw, 1rem) var(--font-mono); letter-spacing: .3em; color: var(--sol); margin-bottom: .5em; }
+  .tittel .spillnavn { color: var(--lys-tekst); font: 700 clamp(.9rem, 1.2vw, 1.3rem) var(--font); }
   .nedtelling { margin-left: auto; text-align: right; }
-  .nedtelling b { font: 800 clamp(1.8rem, 3vw, 3rem) var(--font-tittel); color: var(--sol); display: block; line-height: 1; }
-  .nedtelling small { color: #9fd3ef; text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; }
+  .nedtelling b { font: 500 clamp(1.8rem, 3.2vw, 3.6rem) var(--font-mono); color: var(--sol); display: block; line-height: 1; }
+  .nedtelling small { color: var(--lys-tekst); text-transform: uppercase; letter-spacing: .2em; font: 500 .8rem var(--font-mono); }
   .tavle { flex: 1; display: flex; flex-direction: column; gap: 1vh; min-height: 0; }
-  .rad-g { display: grid; grid-template-columns: 2.4em 1fr auto auto; gap: .9rem; align-items: center; background: rgba(255,255,255,.07); border-radius: 16px; padding: 1vh 1vw; border-left: 8px solid var(--f); transition: transform .5s, background .5s; }
-  .rad-g.forst { background: rgba(245,158,11,.18); }
-  .rad-g .nr { font: 800 clamp(1.4rem, 2.4vw, 2.4rem) var(--font-tittel); color: #9fd3ef; text-align: center; }
+  .rad-g { display: grid; grid-template-columns: 2.4em 1fr auto auto; gap: .9rem; align-items: center; background: rgba(255,255,255,.05); border-radius: 16px; padding: 1.2vh 1.2vw; border-left: 10px solid var(--f); transition: transform .5s, background .5s; }
+  .rad-g.forst { background: rgba(243,178,58,.16); box-shadow: inset 0 0 0 2px var(--sol); }
+  .rad-g .nr { font: 500 clamp(1.4rem, 2.4vw, 2.6rem) var(--font-mono); color: var(--lys-tekst); text-align: center; }
   .rad-g.forst .nr { color: var(--sol); }
   .rad-g .navn { font: 800 clamp(1.1rem, 1.9vw, 1.9rem) var(--font-tittel); line-height: 1.05; }
-  .rad-g .detaljer { font-size: clamp(.75rem, 1vw, 1rem); color: #cfe7f3; display: flex; gap: .6em; flex-wrap: wrap; margin-top: .2em; }
-  .rad-g .poeng { font: 800 clamp(1.5rem, 2.6vw, 2.8rem) var(--font-tittel); color: #fff; text-align: right; line-height: 1; }
-  .rad-g .poeng small { display: block; font: 700 .7rem var(--font); color: #9fd3ef; text-transform: uppercase; letter-spacing: .06em; }
-  .rad-g .penger { font: 700 clamp(.85rem, 1.2vw, 1.2rem) var(--font); color: #fde68a; text-align: right; white-space: nowrap; }
+  .rad-g .detaljer { font-size: clamp(.75rem, 1vw, 1rem); color: var(--lys-tekst); display: flex; gap: .6em; flex-wrap: wrap; margin-top: .2em; }
+  .rad-g .poeng { font: 500 clamp(1.5rem, 2.8vw, 3rem) var(--font-mono); color: var(--sol); text-align: right; line-height: 1; }
+  .rad-g .poeng small { display: block; font: 500 .7rem var(--font-mono); color: var(--lys-tekst); text-transform: uppercase; letter-spacing: .14em; }
+  .rad-g .penger { font: 500 clamp(.85rem, 1.2vw, 1.2rem) var(--font-mono); color: #FCE3A8; text-align: right; white-space: nowrap; }
   .kont { display: inline-flex; gap: 2px; }
-  .kont i { font-style: normal; width: 1.9em; height: 1.5em; border-radius: 6px; display: inline-grid; place-items: center; font-size: .7em; font-weight: 700; background: rgba(255,255,255,.1); color: rgba(255,255,255,.35); }
-  .kont i.har { background: var(--gress); color: #fff; }
-  .nytt { background: rgba(0,0,0,.25); border-radius: 16px; padding: 1.2vh 1vw; max-height: 26vh; overflow: hidden; }
-  .nytt h3 { color: #9fd3ef; font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: .5em; font-family: var(--font); }
+  .kont i { font-style: normal; width: 2em; height: 1.6em; border-radius: 6px; display: inline-grid; place-items: center; font: 500 .7em var(--font-mono); background: rgba(255,255,255,.08); color: #6E86A3; }
+  .kont i.har { background: #3C9A64; color: #fff; }
+  .nytt { background: rgba(0,0,0,.22); border-radius: 16px; padding: 1.2vh 1.2vw; max-height: 26vh; overflow: hidden; border-top: 4px solid var(--sol); }
+  .nytt h3 { color: var(--sol); font: 500 .85rem var(--font-mono); text-transform: uppercase; letter-spacing: .2em; margin-bottom: .5em; }
   .nytt div { padding: .35em 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: clamp(.8rem, 1.1vw, 1.1rem); animation: inn .5s ease-out; }
-  .nytt .tid { color: #9fd3ef; font-size: .85em; margin-right: .4em; }
+  .nytt .tid { color: var(--sol); font-family: var(--font-mono); font-size: .85em; margin-right: .5em; }
   .verktoy { position: absolute; top: 12px; left: 12px; display: flex; gap: 8px; z-index: 5; }
-  .verktoy button { background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 999px; padding: .4em .9em; font: 700 .85rem var(--font); cursor: pointer; }
+  .verktoy button { background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 999px; padding: .5em 1em; min-height: 40px; font: 700 .9rem var(--font); cursor: pointer; }
   .klode-nal span { display: inline-block; transform: translate(-50%, -120%); color: #fff; font: 800 15px var(--font-tittel); padding: 3px 10px; border-radius: 999px; white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.4); border: 2px solid #fff; pointer-events: none; }
   .klode-etikett { background: rgba(11,58,83,.92); color: #fff; padding: .5em .7em; border-radius: 10px; font-family: var(--font); }
   /* hendelse-banner */
@@ -52,12 +54,12 @@
   .duell-kort { background: linear-gradient(135deg, rgba(245,158,11,.25), rgba(229,72,77,.2)); border: 2px solid var(--sol); border-radius: 16px; padding: 1.2vh 1vw; animation: pulser 2s ease-in-out infinite; }
   .duell-kort b { font-family: var(--font-tittel); font-size: clamp(1rem, 1.5vw, 1.5rem); }
   @keyframes pulser { 50% { box-shadow: 0 0 0 6px rgba(245,158,11,.25); } }
-  #duellscene { position: fixed; inset: 0; z-index: 20; background: radial-gradient(circle at 50% 40%, rgba(245,158,11,.25), transparent 60%), rgba(4,20,30,.94); display: grid; place-items: center; padding: 4vh 4vw; text-align: center; }
-  #duellscene .overskrift { font: 800 clamp(1.4rem, 3vw, 3rem) var(--font-tittel); color: var(--sol); letter-spacing: .08em; }
+  #duellscene { position: fixed; inset: 0; z-index: 20; background: radial-gradient(circle at 50% 40%, rgba(245,158,11,.25), transparent 60%), rgba(8,26,48,.95); display: grid; place-items: center; padding: 4vh 4vw; text-align: center; }
+  #duellscene .overskrift { font: 500 clamp(1.2rem, 2.4vw, 2.4rem) var(--font-mono); color: var(--sol); letter-spacing: .3em; text-transform: uppercase; }
   #duellscene .landet { font: 800 clamp(1.6rem, 3.6vw, 3.8rem) var(--font-tittel); color: #fff; margin: .2em 0 .6em; }
   #duellscene .lag { display: flex; align-items: center; justify-content: center; gap: 3vw; margin-bottom: 3vh; }
   #duellscene .lagnavn { font: 800 clamp(1.6rem, 3.4vw, 3.6rem) var(--font-tittel); padding: .2em .8em; border-radius: 999px; color: #fff; border: 4px solid #fff; }
-  #duellscene .vs { font: 800 clamp(1.6rem, 3vw, 3rem) var(--font-tittel); color: #9fd3ef; }
+  #duellscene .vs { font: 500 clamp(1.6rem, 3vw, 3rem) var(--font-mono); color: var(--lys-tekst); }
   #duellscene .oppgave { background: var(--papir); color: var(--blekk); border-radius: 26px; padding: 3vh 3vw; max-width: 1100px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
   #duellscene .otittel { font: 800 clamp(2rem, 4.4vw, 4.6rem) var(--font-tittel); color: var(--hav); line-height: 1; margin-bottom: .3em; }
   #duellscene .otekst { font-size: clamp(1.2rem, 2.2vw, 2.3rem); line-height: 1.3; }

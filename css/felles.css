@@ -1,32 +1,36 @@
 /* Jorda rundt – felles utseende */
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=DM+Mono:wght@500&display=swap');
 
 :root {
-  --hav: #0B3A53;
-  --hav-2: #145C7A;
-  --hav-3: #1F7FA8;
-  --papir: #FBF6EC;
-  --papir-2: #F3EAD7;
+  /* «Flypost»-palett */
+  --hav: #0C2340;
+  --hav-2: #17457A;
+  --hav-3: #1D5B8F;
+  --papir: #F5EFE1;
+  --papir-2: #EAE1CC;
   --kort: #FFFFFF;
-  --blekk: #1B2430;
-  --blekk-2: #4A5565;
-  --linje: #E3D9C6;
-  --sol: #F59E0B;
-  --sol-lys: #FEF3C7;
-  --korall: #E5484D;
-  --korall-lys: #FDE8E8;
-  --gress: #2F9E62;
-  --gress-lys: #E3F5EA;
-  --skygge: 0 1px 2px rgba(11,58,83,.06), 0 4px 14px rgba(11,58,83,.08);
-  --radius: 14px;
-  --font-tittel: 'Baloo 2', system-ui, sans-serif;
+  --blekk: #13283F;
+  --blekk-2: #4F5B6B;
+  --linje: #D9CDB2;
+  --sol: #F3B23A;
+  --sol-lys: #FCEBC8;
+  --korall: #C8382F;
+  --korall-lys: #FBE3E0;
+  --gress: #2D6E4A;
+  --gress-lys: #DDF0E4;
+  --lys-tekst: #A9C4DD;
+  --skygge: 0 1px 2px rgba(12,35,64,.08), 0 6px 18px rgba(12,35,64,.08);
+  --radius: 16px;
+  --font-tittel: 'Bricolage Grotesque', system-ui, sans-serif;
   --font: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+  --luftpost: repeating-linear-gradient(135deg, #C8382F 0 14px, #F5EFE1 14px 22px, #1D5B8F 22px 36px, #F5EFE1 36px 44px);
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { font-family: var(--font); color: var(--blekk); background: var(--papir); font-size: 16px; line-height: 1.45; }
-h1, h2, h3, h4 { font-family: var(--font-tittel); line-height: 1.1; margin: 0 0 .4em; color: var(--hav); }
+h1, h2, h3, h4 { font-family: var(--font-tittel); font-weight: 800; letter-spacing: -.01em; line-height: 1.1; margin: 0 0 .4em; color: var(--hav); }
 h1 { font-size: 2rem; } h2 { font-size: 1.5rem; } h3 { font-size: 1.2rem; }
 a { color: var(--hav-3); }
 .skjult { display: none !important; }
@@ -35,7 +39,7 @@ a { color: var(--hav-3); }
 .tall { font-variant-numeric: tabular-nums; }
 
 /* knapper */
-.knapp { font: 700 1rem var(--font); border: 0; border-radius: 999px; padding: .6em 1.15em; cursor: pointer; background: var(--hav); color: #fff; display: inline-flex; align-items: center; gap: .45em; transition: transform .08s, filter .15s; text-decoration: none; }
+.knapp { min-height: 44px; font: 700 1rem var(--font); border: 0; border-radius: 999px; padding: .6em 1.15em; cursor: pointer; background: var(--hav); color: #fff; display: inline-flex; align-items: center; gap: .45em; transition: transform .08s, filter .15s; text-decoration: none; }
 .knapp:hover { filter: brightness(1.12); }
 .knapp:active { transform: translateY(1px); }
 .knapp:disabled { opacity: .45; cursor: not-allowed; }
@@ -44,11 +48,11 @@ a { color: var(--hav-3); }
 .knapp.korall { background: var(--korall); }
 .knapp.lys { background: var(--papir-2); color: var(--hav); }
 .knapp.omriss { background: transparent; color: var(--hav); box-shadow: inset 0 0 0 2px var(--hav); }
-.knapp.mini { font-size: .85rem; padding: .35em .8em; }
+.knapp.mini { font-size: .85rem; padding: .35em .8em; min-height: 36px; }
 .knapp:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--sol); outline-offset: 2px; }
 
 /* skjema */
-label { font-weight: 700; font-size: .9rem; display: block; margin-bottom: .25em; color: var(--blekk-2); }
+label { font-weight: 700; font-size: .9rem; min-height: 0; display: block; margin-bottom: .25em; color: var(--blekk-2); }
 input, select, textarea { font: 1rem var(--font); padding: .55em .7em; border: 2px solid var(--linje); border-radius: 10px; background: #fff; color: var(--blekk); width: 100%; }
 input[type=checkbox] { width: auto; }
 .felt { margin-bottom: .9rem; }
@@ -62,14 +66,14 @@ input[type=checkbox] { width: auto; }
 
 /* merkelapper */
 .merke { display: inline-flex; align-items: center; gap: .3em; font-size: .8rem; font-weight: 700; padding: .15em .6em; border-radius: 999px; background: var(--papir-2); color: var(--blekk-2); white-space: nowrap; }
-.merke.gress { background: var(--gress-lys); color: #1d6b41; }
+.merke.gress { background: var(--gress-lys); color: #1F5537; }
 .merke.korall { background: var(--korall-lys); color: #a12a2e; }
-.merke.sol { background: var(--sol-lys); color: #8a5a00; }
+.merke.sol { background: var(--sol-lys); color: #7A4A00; }
 .prikk { width: .8em; height: .8em; border-radius: 50%; display: inline-block; flex: none; box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0,0,0,.08); }
 
 /* tabeller */
 table { width: 100%; border-collapse: collapse; }
-th { text-align: left; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--blekk-2); padding: .5em .6em; border-bottom: 2px solid var(--linje); }
+th { text-align: left; font: 500 .75rem var(--font-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--blekk-2); padding: .5em .6em; border-bottom: 2px solid var(--linje); }
 td { padding: .6em; border-bottom: 1px solid var(--linje); vertical-align: middle; }
 tr:last-child td { border-bottom: 0; }
 
@@ -81,5 +85,11 @@ tr:last-child td { border-bottom: 0; }
 @keyframes inn { from { transform: translateY(10px); opacity: 0; } }
 
 /* modal */
-.modal-bakgrunn { position: fixed; inset: 0; background: rgba(11,58,83,.45); display: grid; place-items: center; z-index: 900; padding: 16px; }
+.modal-bakgrunn { position: fixed; inset: 0; background: rgba(8,26,48,.55); display: grid; place-items: center; z-index: 900; padding: 16px; }
 .modal { background: var(--papir); border-radius: 18px; padding: 1.4rem; width: min(100%, 480px); box-shadow: 0 20px 60px rgba(0,0,0,.25); max-height: 90vh; overflow: auto; }
+
+/* «Flypost»-detaljer */
+.mono, .kode { font-family: var(--font-mono); font-weight: 500; letter-spacing: .08em; }
+.etikett-mono { font: 500 .72rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
+.luftpost { height: 8px; background: var(--luftpost); }
+input:focus, select:focus, textarea:focus { border-color: var(--hav-3); outline: none; }
