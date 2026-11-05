@@ -16,6 +16,7 @@
 
   .ark { width: 210mm; height: 297mm; margin: 1rem auto; background: #fff; padding: 12mm 14mm; box-shadow: 0 4px 20px rgba(0,0,0,.15); position: relative; color: var(--blekk-r); font-family: var(--font); overflow: hidden; break-after: page; display: flex; flex-direction: column; gap: 5mm; }
   .ark:last-child { break-after: auto; }
+  .ark > * { flex-shrink: 0; }
   .hand { font-family: 'Caveat', cursive; color: #6b7785; font-size: 13pt; }
   .smaa { font: 700 7.5pt var(--font); letter-spacing: .12em; text-transform: uppercase; color: #5b6774; }
 
@@ -93,12 +94,18 @@
   .oppdrag .ikon { font-size: 26pt; }
   .oppdrag b { font: 800 14pt var(--font-tittel); color: var(--aksent); display: block; }
   .oppdrag p { margin: 1mm 0 0; font-size: 10.5pt; }
-  .polaroider { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm 3.5mm; padding: 0 1.5mm; }
-  .polaroid { border: 1.2px solid var(--blekk-r); padding: 2mm 2mm 0; background: #fff; box-shadow: .8mm .8mm 0 var(--tone); }
+  .polaroider { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm 4mm; padding: 0 1.5mm; }
+  .polaroid.midt { grid-column: 2 / 4; transform: none !important; border: 2.4px solid var(--aksent); padding: 2mm 2mm 0; box-shadow: 1.2mm 1.2mm 0 var(--tone-2); display: flex; flex-direction: column; }
+  .polaroid.midt .foto { flex: 1; display: grid; place-items: center; text-align: center; border-style: dashed; }
+  .polaroid.midt .foto b { font: 800 13pt/1.15 var(--font-tittel); color: var(--aksent); }
+  .polaroid.midt .tekst { height: 7mm; border: 0; display: flex; align-items: center; justify-content: center; }
+  .planhint { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -2mm; }
+  .polaroid { border: 1.2px solid var(--blekk-r); padding: 2mm 2mm 0; background: #fff; box-shadow: .8mm .8mm 0 var(--tone); display: flex; flex-direction: column; }
+  .polaroid .foto { flex: 1 0 auto; }
   .polaroid:nth-child(odd) { transform: rotate(-2deg); } .polaroid:nth-child(3n) { transform: rotate(1.6deg); }
-  .polaroid .foto { height: 24mm; border: 1px solid var(--strek); position: relative; }
+  .polaroid .foto { height: 19mm; border: 1px solid var(--strek); position: relative; }
   .polaroid .foto span { position: absolute; top: 1mm; left: 1.5mm; font: 800 9pt var(--font-tittel); color: #9aa4ae; }
-  .polaroid .tekst { height: 9mm; border-bottom: 1px dotted var(--strek); margin: 0 .5mm 2mm; }
+  .polaroid .tekst { height: 7.5mm; border-bottom: 1px dotted var(--strek); margin: 0 .5mm 2mm; }
   .billett { display: grid; grid-template-columns: 1fr 40mm; border: 1.6px solid var(--blekk-r); border-radius: 3mm; overflow: hidden; }
   .billett .hoved { padding: 3mm 4mm; background: #fff; }
   .billett .hoved b { font: 800 14pt var(--font-tittel); color: var(--aksent); }
@@ -238,18 +245,17 @@ function tegn() {
   const side3 = `<section class="ark">
     ${band(l, gruppe, 3, 'Bilder')}
     <div><h1 class="side">Bildecollage <small>– i BookCreator</small></h1>${guilloche()}</div>
-    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis ${l ? esc(l.navn) : 'landet'} i bilder!</b><p>Lag et bildecollage med ca. 10 bilder som beskriver landet. Planlegg først: skriv eller tegn hva hvert bilde skal vise – natur, mat, severdigheter, dyr, folk, sport …</p></div></div>
-    <div class="polaroider">${Array.from({ length: 10 }, (_, n) => `<div class="polaroid"><div class="foto"><span>${n + 1}</span></div><div class="tekst"></div></div>`).join('')}</div>
-    <div class="billett">
-      <div class="hoved"><div class="smaa">Adgangsbillett · Greenscreen-fotoboks</div><b>🎬 Gruppebilde foran en kjent severdighet</b>
-        <div style="margin-top:2.5mm">${felt('📍', 'Vi poserer foran')}</div>
-        <div style="margin-top:2mm">${felt('🤸', 'Positur / idé')}</div></div>
-      <div class="stubb"><div class="smaa">Gyldig for</div><b style="font:800 11pt var(--font-tittel)">HELE GRUPPA</b>${strekkode(l ? l.id + l.numerisk : "JORDARUNDT")}<div class="smaa">JORDA RUNDT</div></div>
-    </div>
+    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis ${l ? esc(l.navn) : 'landet'} i bilder!</b><p>Lag et bildecollage med ca. 10 bilder som beskriver landet. <b style="display:inline;font:inherit;font-weight:700;color:inherit">Gruppebildet skal stå i midten av siden, med de andre bildene rundt.</b> Planlegg først: skriv eller tegn hva hvert bilde skal vise – natur, mat, severdigheter, dyr, folk, sport …</p></div></div>
+    <div class="planhint"><div class="smaa">Plan for collage-siden</div><span class="hand" style="font-size:11pt">Tegn eller skriv hva som skal være på hvert bilde</span></div>
+    <div class="polaroider">${(() => {
+      const p = (n) => `<div class="polaroid"><div class="foto"><span>${n}</span></div><div class="tekst"></div></div>`;
+      const midt = `<div class="polaroid midt"><div class="foto"><div style="width:100%;padding:0 3mm"><b>🎬 GRUPPEBILDET i midten</b><div class="smaa" style="margin:1mm 0 2mm">Greenscreen · hele gruppa · foran en kjent severdighet</div>${felt('📍', 'Vi poserer foran')}</div></div><div class="tekst smaa">★ Midt på siden ★</div></div>`;
+      return [1, 2, 3, 4].map(p).join('') + p(5) + midt + p(6) + [7, 8, 9, 10].map(p).join('');
+    })()}</div>
     <div class="bunn3">
       <div><div class="smaa" style="margin-bottom:2mm">Sjekkliste før innsjekk</div>
         <div class="sjekk"><div><span></span>Del 1 – fakta er fylt ut</div><div><span></span>Del 2 – kultur er fylt ut</div>
-        <div><span></span>Ca. 10 bilder i BookCreator</div><div><span></span>Gruppebilde med greenscreen</div>
+        <div><span></span>Ca. 10 bilder i BookCreator</div><div><span></span>Gruppebildet står i midten</div>
         <div><span></span>Vi har øvd på parløren</div><div><span></span>Trykket «levert» i spillet</div></div></div>
       <div class="stort-stempel"><div><b>INNREISE<br>GODKJENT</b><div class="hand" style="font-size:10pt">lærerens stempel</div></div></div>
     </div>
