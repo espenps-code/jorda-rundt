@@ -120,8 +120,8 @@
   <form class="pass" id="innskjema" autocomplete="off">
     <div class="pass-omslag"><svg width="56" height="56" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="32" cy="32" r="26"/><ellipse cx="32" cy="32" rx="11" ry="26"/><line x1="6" y1="32" x2="58" y2="32"/><path d="M10 19h44M10 45h44"/></svg><span class="etikett-mono">Reisepass · klasserom</span><h1>Jorda rundt</h1></div>
     <p class="dempet">Skriv inn koden og PIN-en fra gruppekortet deres.</p>
-    <div class="felt"><label for="kode">Gruppekode</label><input id="kode" required placeholder="TIGER42" maxlength="16" autocapitalize="characters"></div>
-    <div class="felt"><label for="pin">PIN</label><input id="pin" required inputmode="numeric" placeholder="••••••" maxlength="6" type="password"></div>
+    <div class="felt"><label for="kode">Gruppekode</label><input id="kode" name="gruppekode" required placeholder="TIGER42" maxlength="16" autocapitalize="characters" autocomplete="off" spellcheck="false" data-lpignore="true"></div>
+    <div class="felt"><label for="pin">PIN</label><input id="pin" name="gruppepin" required inputmode="numeric" placeholder="••••••" maxlength="6" type="text" autocomplete="one-time-code" spellcheck="false" data-lpignore="true" style="-webkit-text-security: disc; text-security: disc"></div>
     <button class="knapp sol" id="innknapp">Start reisen ✈️</button>
     <p id="innfeil" class="liten" style="color:var(--korall);min-height:1.4em;margin-bottom:0"></p>
 
