@@ -6,6 +6,7 @@
 <title>Jorda rundt – Lærer</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
 <link rel="stylesheet" href="css/felles.css">
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
   header.topp { background: var(--hav); color: #fff; padding: .7rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; }
   header.topp h1 { color: #fff; font-size: 1.5rem; margin: 0; display: flex; align-items: center; gap: .4em; }
@@ -63,6 +64,7 @@
   <select id="spillvelger" class="skjult" aria-label="Velg spill"></select>
   <div class="bankstatus skjult" id="bankstatus" title="Banken behandler kjøp fra elevene så lenge denne siden er åpen"><span class="lampe"></span> Banken er åpen</div>
   <span class="vokser"></span>
+  <a href="index.html#veiledning" target="_blank" class="knapp lys mini">❓ Veiledning</a>
   <a id="tavlelenke" class="knapp sol mini skjult" target="_blank">📺 Åpne tavla</a>
   <button id="loggut" class="knapp lys mini skjult">Logg ut</button>
 </header>
@@ -121,9 +123,15 @@
             <div id="reiselogger"></div>
           </div>
           <div class="kort">
-            <h3>Elevside</h3>
-            <p class="liten dempet">Elevene går hit og logger inn med gruppekoden og PIN-en fra innloggingskortet:</p>
-            <p><a id="elevlenke" target="_blank"></a></p>
+            <h3>📣 Del med elevene</h3>
+            <p class="liten dempet">Elevene åpner denne lenken og logger inn med gruppekoden og PIN-en fra innloggingskortet.</p>
+            <div class="rad" style="align-items:flex-start;gap:1rem">
+              <div id="qr" style="background:#fff;padding:6px;border-radius:10px;line-height:0" aria-label="QR-kode til elevsiden"></div>
+              <div class="vokser" style="min-width:0">
+                <p style="margin:.2rem 0 .6rem;word-break:break-all"><a id="elevlenke" target="_blank"></a></p>
+                <div class="rad"><button class="knapp mini" id="kopierlenke">📋 Kopier lenke</button><button class="knapp mini lys" id="storqr">🔍 Vis stor QR</button></div>
+              </div>
+            </div>
             <p class="liten"><a href="reiselogg.html" target="_blank">📓 Skriv ut reiseloggen (til kopiering)</a></p>
           </div>
         </div>
@@ -294,7 +302,9 @@ function velgSpill(id) {
   spillId = id; localStorageSett('jr-spill', id);
   tegnSpillvelger();
   vis('spillvisning');
-  $('#elevlenke').href = $('#elevlenke').textContent = new URL('index.html' + qs, location.href).href;
+  const elevUrl = new URL('elev.html' + qs, location.href).href;
+  $('#elevlenke').href = $('#elevlenke').textContent = elevUrl;
+  $('#qr').innerHTML = qrSvg(elevUrl, 3);
   $('#tavlelenke').href = `tavle.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`;
   $('#tavlelenke').classList.remove('skjult');
   stoppSpill = onValue(r(`spill/${id}`), (snap) => { spill = snap.val(); if (spill) tegnAlt(); });
@@ -304,6 +314,23 @@ function velgSpill(id) {
   });
   $('#bankstatus').classList.remove('skjult');
 }
+
+// ---------- deling ----------
+function qrSvg(tekst, celle = 4) {
+  if (!window.qrcode) return '';
+  const q = window.qrcode(0, 'M'); q.addData(tekst); q.make();
+  return q.createSvgTag({ cellSize: celle, margin: 0, scalable: false });
+}
+$('#kopierlenke').onclick = async () => {
+  try { await navigator.clipboard.writeText($('#elevlenke').href); varsle('Lenken er kopiert!', 'ok'); }
+  catch { varsle('Kunne ikke kopiere – merk lenken og kopier den selv.', 'feil'); }
+};
+$('#storqr').onclick = () => {
+  const bg = document.createElement('div'); bg.className = 'modal-bakgrunn';
+  bg.innerHTML = `<div class="modal" style="text-align:center;width:min(100%,560px)"><h2>🌍 Jorda rundt</h2><p class="dempet">Skann koden – eller gå til</p><p style="word-break:break-all"><b>${esc($('#elevlenke').href)}</b></p><div style="background:#fff;padding:16px;border-radius:14px;display:inline-block;line-height:0">${qrSvg($('#elevlenke').href, 9)}</div><p><button class="knapp lys">Lukk</button></p></div>`;
+  bg.onclick = (e) => { if (e.target === bg || e.target.tagName === 'BUTTON') bg.remove(); };
+  document.body.append(bg);
+};
 
 // ---------- faner ----------
 $$('nav.faner button').forEach((b) => b.onclick = () => {
@@ -490,7 +517,7 @@ $('#nygruppeknapp').onclick = async () => {
 };
 
 $('#skrivut').onclick = () => {
-  const lenke = new URL('index.html', location.href).href;
+  const lenke = new URL('elev.html', location.href).href;
   $('#utskrift').innerHTML = Object.entries(spill.grupper || {}).map(([gid, g]) => `<div class="loggkort" style="border-color:${esc(g.farge)}">
     <h2>🌍 Jorda rundt</h2><p style="margin:0 0 4mm"><b>${esc(g.navn)}</b></p>
     <p style="margin:0">Gruppekode</p><div class="k">${esc(g.kode)}</div>
