@@ -4,6 +4,7 @@
 import { r, get, update, push, remove, onValue, runTransaction } from './fb.js';
 import { flyTilbud, hoteller } from '../data/motor.js';
 import { DUELLER } from '../data/dueller.js';
+import { rettDiktat, ORD } from '../data/parlor.js';
 import {
   innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, rettLandquiz, landEtterId, formaterKr,
 } from './felles.js';
@@ -46,6 +47,8 @@ async function behandle(spillId, gid, fid, f) {
     else if (f.type === 'jobb') resultat = await jobb(spillId, gid, f.data || {}, i);
     else if (f.type === 'quiz') resultat = await quiz(spillId, gid, f.data || {}, i);
     else if (f.type === 'reiselogg') resultat = await reiselogg(spillId, gid, spill);
+    else if (f.type === 'diktat') resultat = await diktat(spillId, gid, f.data || {}, i, spill);
+    else if (f.type === 'diktatbe') resultat = await diktatBe(spillId, gid, i, spill);
     else if (f.type === 'landquiz') resultat = await landquiz(spillId, gid, f.data || {}, i, spill);
   } catch (e) {
     console.error(e);
@@ -170,6 +173,73 @@ async function reiselogg(spillId, gid, spill) {
   await update(r(`spill/${spillId}/reiselogger/${gid}/${g.posisjon}`), { status: 'levert', tid: Date.now() });
   const l = landEtterId[g.posisjon];
   return { ok: true, melding: 'Reiseloggen er levert! Gi den fysiske reiseloggen til læreren.', logg: { type: 'reiselogg', land: g.posisjon, tekst: `leverte reiselogg for ${l.flagg} ${l.navn}` } };
+}
+
+const LEVERT = ['levert', 'godkjent', 'duell', 'laast', 'tapt'];
+function kanTaDiktat(spill, gid, landId, i) {
+  const g = spill.grupper[gid]; const l = landEtterId[landId];
+  if (!i.diktatBelopPerElev) return 'Diktat er slått av av læreren.';
+  if (!l) return 'Ukjent land.';
+  if (!LEVERT.includes(spill.reiselogger?.[gid]?.[landId]?.status)) return 'Dere må levere reiseloggen for landet før dere kan ta diktaten.';
+  if (g.diktat?.[landId]) return `Dere har allerede klart diktaten for ${l.navn}.`;
+  if (g.diktatForsok?.[idag()]?.[landId]) return `Dere har allerede prøvd diktaten for ${l.navn} i dag. Prøv igjen i morgen!`;
+  return null;
+}
+async function diktatBe(spillId, gid, i, spill) {
+  const land = spill.grupper[gid].posisjon;
+  const hindring = kanTaDiktat(spill, gid, land, i);
+  if (hindring) return { ok: false, melding: hindring };
+  if (spill.diktatKo?.[gid]) return { ok: false, melding: 'Læreren har allerede fått beskjed. Vent litt!' };
+  await update(r(`spill/${spillId}/diktatKo/${gid}`), { land, tid: Date.now() });
+  return { ok: true, melding: 'Læreren har fått beskjed. Legg bort notatene – diktaten åpnes snart!' };
+}
+async function diktat(spillId, gid, d, i, spill) {
+  const l = landEtterId[d.land];
+  const hindring = kanTaDiktat(spill, gid, d.land, i);
+  if (hindring) return { ok: false, melding: hindring };
+  const ko = spill.diktatKo?.[gid];
+  if (!ko?.aapnet || ko.land !== d.land) return { ok: false, melding: 'Diktaten er ikke åpnet av læreren.' };
+  if (i.diktatMinutter && Date.now() - ko.aapnet > i.diktatMinutter * 60000 + 30000) {
+    await update(r(`spill/${spillId}/diktatKo`), { [gid]: null });
+    return { ok: false, melding: 'Tiden gikk ut. Be læreren om en ny diktat.' };
+  }
+  await update(r(`spill/${spillId}/diktatKo`), { [gid]: null });
+  const dag = idag();
+  return medGruppe(spillId, gid, (g) => {
+    if (g.diktat?.[d.land]) return { feil: `Dere har allerede klart diktaten for ${l.navn}.` };
+    if (g.diktatForsok?.[dag]?.[d.land]) return { feil: `Dere har allerede prøvd diktaten for ${l.navn} i dag. Prøv igjen i morgen!` };
+    const res = rettDiktat(d.land, d.svar);
+    if (res.riktige === res.antall) {
+      const belop = i.diktatBelopPerElev * (g.personer || 4);
+      g.diktat = { ...(g.diktat || {}), [d.land]: true };
+      g.saldo = (g.saldo || 0) + belop;
+      return { melding: `5 av 5 riktige! Dere fikk ${formaterKr(belop)}. 🎉`, logg: { type: 'diktat', belop, land: d.land, tekst: `klarte parlør-diktaten for ${l.flagg} ${l.navn} (5/5) ✍️` } };
+    }
+    g.diktatForsok = { [dag]: { ...(g.diktatForsok?.[dag] || {}), [d.land]: true } };
+    const feil = ORD.filter((_, n) => !res.resultat[n]).map((o) => `«${o.norsk}»`).join(', ');
+    return { melding: `${res.riktige} av ${res.antall} riktige. Sjekk ${feil} og prøv igjen i morgen!`, logg: { type: 'diktat', land: d.land, tekst: `prøvde parlør-diktaten for ${l.flagg} ${l.navn} (${res.riktige}/${res.antall})` } };
+  });
+}
+
+/** Læreren åpner (eller avviser) en diktat gruppa har bedt om. */
+export async function aapneDiktat(spillId, gid) {
+  await update(r(`spill/${spillId}/diktatKo/${gid}`), { aapnet: Date.now() });
+}
+export async function lukkDiktat(spillId, gid) {
+  await update(r(`spill/${spillId}/diktatKo`), { [gid]: null });
+}
+
+/** Læreren godkjenner en diktat manuelt (f.eks. når elevene har funnet en riktig skrivemåte vi ikke har i fasiten). */
+export async function godkjennDiktatManuelt(spillId, gid, landId) {
+  const spill = (await get(r(`spill/${spillId}`))).val() || {};
+  const i = innst(spill); const g = spill.grupper?.[gid]; const l = landEtterId[landId];
+  if (!g || !l) return 'Fant ikke gruppa eller landet.';
+  if (g.diktat?.[landId]) return `${g.navn} har allerede fått diktat-pengene for ${l.navn}.`;
+  const belop = i.diktatBelopPerElev * (g.personer || 4);
+  await update(r(`spill/${spillId}/grupper/${gid}/diktat`), { [landId]: true });
+  await runTransaction(r(`spill/${spillId}/grupper/${gid}/saldo`), (s) => (s || 0) + belop);
+  await logg(spillId, { gruppe: gid, type: 'diktat', belop, land: landId, tekst: `fikk parlør-diktaten for ${l.flagg} ${l.navn} godkjent av læreren ✍️` });
+  return `${g.navn} fikk ${formaterKr(belop)} for diktaten i ${l.navn}.`;
 }
 
 async function landquiz(spillId, gid, d, i, spill) {

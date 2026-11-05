@@ -11,6 +11,8 @@ export const STANDARD_INNSTILLINGER = {
   quizPerDag: 3,          // hvor mange geografiquizer per dag
   quizBelop: 300,         // kr per riktig svar i geografiquiz
   duellPremie: 5000,      // kr til vinneren av en duell
+  diktatMinutter: 3,      // tid elevene har på diktaten etter at læreren har åpnet den. 0 = ingen grense
+  diktatBelopPerElev: 2000, // kr per gruppemedlem for 100 % på parlør-diktat (én gang per land). 0 = av
   landquizKrav: 4,        // riktige av 5 i landquiz for å låse eget land. 0 = av
   startdato: '',          // "2026-11-10"
   sluttdato: '',          // "2026-11-28" – vises som nedtelling
