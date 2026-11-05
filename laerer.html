@@ -145,6 +145,7 @@
         <div class="rad">
           <a href="reiselogg.html" target="_blank" class="knapp lys">📓 Reiselogg</a>
           <button id="skrivut" class="knapp lys">🖨️ Skriv ut innloggingskort</button>
+          <button id="autogruppeknapp" class="knapp sol">⚡ Lag mange grupper</button>
           <button id="nygruppeknapp" class="knapp">＋ Ny gruppe</button>
         </div>
       </div>
@@ -216,7 +217,7 @@
 import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { startBank, godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
-import { STANDARD_INNSTILLINGER, GRUPPEFARGER, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
 import { tilfeldigStart } from './data/motor.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -514,6 +515,38 @@ $('#nygruppeknapp').onclick = async () => {
     [`spill/${spillId}/logg/${nyId(12)}`]: { tid: Date.now(), gruppe: gid, type: 'start', tekst: `starter reisen i ${start.flagg} ${start.navn}` },
   });
   varsle(`${d.navn} starter i ${start.flagg} ${start.navn}!`, 'ok');
+};
+
+$('#autogruppeknapp').onclick = async () => {
+  const MAKS = 25;
+  const finnes = Object.values(spill.grupper || {});
+  const ledig = MAKS - finnes.length;
+  if (ledig <= 0) { varsle(`Spillet har allerede ${MAKS} grupper.`, 'feil'); return; }
+  const d = await skjemaModal('Lag mange grupper', `
+    <div class="felt"><label>Hvor mange grupper?</label><input name="antall" type="number" min="1" max="${ledig}" value="${Math.min(ledig, 6)}" required><div class="hjelp">Du kan lage opptil ${ledig} til (maks ${MAKS} per spill).</div></div>
+    <div class="felt"><label>Antall elever per gruppe</label><input name="personer" type="number" min="1" max="8" value="4" required><div class="hjelp">Bestemmer startbudsjettet. Du kan endre enkeltgrupper etterpå.</div></div>
+    <p class="liten dempet">Gruppene får reisenavn (Globetrotterne, Pilotene …), hver sin farge, gruppekode, PIN og en tilfeldig startposisjon. Navn og farge kan endres på gruppekortet.</p>`, 'Lag grupper');
+  if (!d) return;
+  const antall = Math.max(1, Math.min(ledig, Number(d.antall) || 1));
+  const personer = Math.max(1, Math.min(8, Number(d.personer) || 4));
+  const i = innst(spill);
+  const bruktNavn = finnes.map((g) => g.navn), bruktFarge = finnes.map((g) => g.farge);
+  const opptatt = finnes.map((g) => g.start);
+  const nyeKoder = new Set();
+  const oppdatering = {}, startsteder = [];
+  for (let n = 0; n < antall; n++) {
+    const navn = GRUPPENAVN.find((x) => !bruktNavn.includes(x)) || `Gruppe ${finnes.length + n + 1}`; bruktNavn.push(navn);
+    const farge = (GRUPPEFARGER.find((f) => !bruktFarge.includes(f.hex)) || GRUPPEFARGER[(finnes.length + n) % GRUPPEFARGER.length]).hex; bruktFarge.push(farge);
+    let kode; do { kode = await lagKode(); } while (nyeKoder.has(kode)); nyeKoder.add(kode);
+    const start = tilfeldigStart(opptatt, i.stengte || {}); opptatt.push(start.id); startsteder.push(start);
+    const gid = nyId(8), tid = Date.now() + n;
+    oppdatering[`spill/${spillId}/grupper/${gid}`] = { navn, farge, personer, saldo: startbelopFor(i, personer), posisjon: start.id, start: start.id, kode, opprettet: tid, reiser: 0 };
+    oppdatering[`pins/${spillId}/${gid}`] = lagPin();
+    oppdatering[`gruppekoder/${kode}`] = { spill: spillId, gruppe: gid };
+    oppdatering[`spill/${spillId}/logg/${nyId(12)}`] = { tid, gruppe: gid, type: 'start', tekst: `starter reisen i ${start.flagg} ${start.navn}` };
+  }
+  try { await update(r('/'), oppdatering); varsle(`${antall} grupper er laget! Husk å skrive ut innloggingskortene.`, 'ok'); }
+  catch (e) { varsle('Kunne ikke lage gruppene: ' + e.message, 'feil'); }
 };
 
 $('#skrivut').onclick = () => {

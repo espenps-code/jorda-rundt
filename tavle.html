@@ -69,6 +69,14 @@
   #duellscene .snurr { animation: snurr-inn .12s linear; }
   @keyframes snurr-inn { from { transform: translateY(-30%); opacity: .2; } }
   @media (max-width: 900px) { .scene { grid-template-columns: 1fr; grid-template-rows: 55vh auto; height: auto; } body { overflow: auto; } }
+  /* tett visning når det er mange grupper */
+  #tavle.tett { display: grid; grid-template-columns: 1fr 1fr; gap: .7vh .7vw; align-content: start; overflow: hidden; }
+  #tavle.tett .rad-g { grid-template-columns: 1.8em 1fr auto; gap: .5rem; padding: .55vh .7vw; border-left-width: 6px; border-radius: 12px; }
+  #tavle.tett .rad-g .nr { font-size: clamp(.9rem, 1.4vw, 1.5rem); }
+  #tavle.tett .rad-g .navn { font-size: clamp(.85rem, 1.15vw, 1.25rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #tavle.tett .rad-g .poeng { font-size: clamp(1rem, 1.7vw, 1.9rem); }
+  #tavle.tett .rad-g .detaljer, #tavle.tett .rad-g .penger, #tavle.tett .rad-g .poeng small { display: none; }
+  .side.mange .nytt { max-height: 15vh; }
 </style>
 </head>
 <body>
@@ -136,6 +144,8 @@ function tegn() {
   } else $('#nedtelling').classList.add('skjult');
 
   const rader = poengtavle(spill);
+  const mange = rader.length > 8;
+  $('#tavle').classList.toggle('tett', mange); $('#tavle').closest('.side')?.classList.toggle('mange', mange);
   $('#tavle').innerHTML = rader.map((g, n) => {
     const her = landEtterId[g.posisjon];
     return `<div class="rad-g ${n === 0 && g.poeng > 0 ? 'forst' : ''}" style="--f:${esc(g.farge)}">
