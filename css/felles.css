@@ -1,0 +1,85 @@
+/* Jorda rundt – felles utseende */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap');
+
+:root {
+  --hav: #0B3A53;
+  --hav-2: #145C7A;
+  --hav-3: #1F7FA8;
+  --papir: #FBF6EC;
+  --papir-2: #F3EAD7;
+  --kort: #FFFFFF;
+  --blekk: #1B2430;
+  --blekk-2: #4A5565;
+  --linje: #E3D9C6;
+  --sol: #F59E0B;
+  --sol-lys: #FEF3C7;
+  --korall: #E5484D;
+  --korall-lys: #FDE8E8;
+  --gress: #2F9E62;
+  --gress-lys: #E3F5EA;
+  --skygge: 0 1px 2px rgba(11,58,83,.06), 0 4px 14px rgba(11,58,83,.08);
+  --radius: 14px;
+  --font-tittel: 'Baloo 2', system-ui, sans-serif;
+  --font: 'Atkinson Hyperlegible', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--font); color: var(--blekk); background: var(--papir); font-size: 16px; line-height: 1.45; }
+h1, h2, h3, h4 { font-family: var(--font-tittel); line-height: 1.1; margin: 0 0 .4em; color: var(--hav); }
+h1 { font-size: 2rem; } h2 { font-size: 1.5rem; } h3 { font-size: 1.2rem; }
+a { color: var(--hav-3); }
+.skjult { display: none !important; }
+.dempet { color: var(--blekk-2); }
+.liten { font-size: .85rem; }
+.tall { font-variant-numeric: tabular-nums; }
+
+/* knapper */
+.knapp { font: 700 1rem var(--font); border: 0; border-radius: 999px; padding: .6em 1.15em; cursor: pointer; background: var(--hav); color: #fff; display: inline-flex; align-items: center; gap: .45em; transition: transform .08s, filter .15s; text-decoration: none; }
+.knapp:hover { filter: brightness(1.12); }
+.knapp:active { transform: translateY(1px); }
+.knapp:disabled { opacity: .45; cursor: not-allowed; }
+.knapp.sol { background: var(--sol); color: var(--blekk); }
+.knapp.gress { background: var(--gress); }
+.knapp.korall { background: var(--korall); }
+.knapp.lys { background: var(--papir-2); color: var(--hav); }
+.knapp.omriss { background: transparent; color: var(--hav); box-shadow: inset 0 0 0 2px var(--hav); }
+.knapp.mini { font-size: .85rem; padding: .35em .8em; }
+.knapp:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--sol); outline-offset: 2px; }
+
+/* skjema */
+label { font-weight: 700; font-size: .9rem; display: block; margin-bottom: .25em; color: var(--blekk-2); }
+input, select, textarea { font: 1rem var(--font); padding: .55em .7em; border: 2px solid var(--linje); border-radius: 10px; background: #fff; color: var(--blekk); width: 100%; }
+input[type=checkbox] { width: auto; }
+.felt { margin-bottom: .9rem; }
+.rad { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.rad > * { flex: 0 0 auto; }
+.vokser { flex: 1 1 auto !important; }
+
+/* kort */
+.kort { background: var(--kort); border-radius: var(--radius); box-shadow: var(--skygge); padding: 1.1rem 1.2rem; }
+.kort + .kort { margin-top: 1rem; }
+
+/* merkelapper */
+.merke { display: inline-flex; align-items: center; gap: .3em; font-size: .8rem; font-weight: 700; padding: .15em .6em; border-radius: 999px; background: var(--papir-2); color: var(--blekk-2); white-space: nowrap; }
+.merke.gress { background: var(--gress-lys); color: #1d6b41; }
+.merke.korall { background: var(--korall-lys); color: #a12a2e; }
+.merke.sol { background: var(--sol-lys); color: #8a5a00; }
+.prikk { width: .8em; height: .8em; border-radius: 50%; display: inline-block; flex: none; box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0,0,0,.08); }
+
+/* tabeller */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; color: var(--blekk-2); padding: .5em .6em; border-bottom: 2px solid var(--linje); }
+td { padding: .6em; border-bottom: 1px solid var(--linje); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+
+/* varsel (toast) */
+#varsler { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; width: min(92vw, 460px); }
+.varsel { background: var(--hav); color: #fff; padding: .75em 1em; border-radius: 12px; box-shadow: var(--skygge); animation: inn .25s ease-out; font-weight: 700; }
+.varsel.feil { background: var(--korall); }
+.varsel.ok { background: var(--gress); }
+@keyframes inn { from { transform: translateY(10px); opacity: 0; } }
+
+/* modal */
+.modal-bakgrunn { position: fixed; inset: 0; background: rgba(11,58,83,.45); display: grid; place-items: center; z-index: 900; padding: 16px; }
+.modal { background: var(--papir); border-radius: 18px; padding: 1.4rem; width: min(100%, 480px); box-shadow: 0 20px 60px rgba(0,0,0,.25); max-height: 90vh; overflow: auto; }

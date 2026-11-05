@@ -1,0 +1,66 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "mineSpill": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid && auth.token.firebase.sign_in_provider === 'google.com'"
+      }
+    },
+
+    "gruppekoder": {
+      "$kode": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.token.firebase.sign_in_provider === 'google.com' && (!data.exists() || root.child('spill').child(data.child('spill').val() + '').child('eier').val() === auth.uid) && (!newData.exists() || root.child('spill').child(newData.child('spill').val() + '').child('eier').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['spill', 'gruppe']) && newData.child('spill').isString() && newData.child('gruppe').isString()"
+      }
+    },
+
+    "pins": {
+      "$spill": {
+        ".read": "auth != null && root.child('spill').child($spill).child('eier').val() === auth.uid",
+        ".write": "auth != null && root.child('spill').child($spill).child('eier').val() === auth.uid"
+      }
+    },
+
+    "medlem": {
+      "$spill": {
+        ".read": "auth != null && root.child('spill').child($spill).child('eier').val() === auth.uid",
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && (auth.uid === $uid || root.child('spill').child($spill).child('eier').val() === auth.uid)",
+          ".validate": "root.child('spill').child($spill).child('eier').val() === auth.uid || (newData.child('gruppe').isString() && newData.child('pin').isString() && root.child('pins').child($spill).child(newData.child('gruppe').val()).val() === newData.child('pin').val())"
+        }
+      }
+    },
+
+    "spill": {
+      "$spill": {
+        ".read": "auth != null && (data.child('eier').val() === auth.uid || root.child('medlem').child($spill).child(auth.uid).exists())",
+        ".write": "auth != null && ((!data.exists() && newData.child('eier').val() === auth.uid && auth.token.firebase.sign_in_provider === 'google.com') || data.child('eier').val() === auth.uid)",
+
+        "eier": {
+          ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())"
+        },
+
+        "foresporsler": {
+          "$gid": {
+            "$fid": {
+              ".write": "auth != null && !data.exists() && root.child('medlem').child($spill).child(auth.uid).child('gruppe').val() === $gid",
+              ".validate": "root.child('spill').child($spill).child('eier').val() === auth.uid || (newData.child('status').val() === 'venter' && newData.child('uid').val() === auth.uid && newData.child('type').isString() && newData.child('tid').isNumber() && newData.child('tid').val() <= now + 60000)",
+              "type":   { ".validate": "newData.isString() && newData.val().length < 20" },
+              "uid":    { ".validate": "newData.isString()" },
+              "status": { ".validate": "newData.isString()" },
+              "tid":    { ".validate": "newData.isNumber()" },
+              "data":   { ".validate": true },
+              "svar":   { ".validate": true },
+              "$annet": { ".validate": false }
+            }
+          }
+        }
+      }
+    }
+  }
+}

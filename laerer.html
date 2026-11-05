@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jorda rundt – Lærer</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
+<link rel="stylesheet" href="css/felles.css">
+<style>
+  header.topp { background: var(--hav); color: #fff; padding: .7rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; }
+  header.topp h1 { color: #fff; font-size: 1.5rem; margin: 0; display: flex; align-items: center; gap: .4em; }
+  header.topp .rolle { font: 700 .75rem var(--font); background: var(--sol); color: var(--blekk); padding: .15em .6em; border-radius: 999px; }
+  header.topp select { width: auto; background: var(--hav-2); color: #fff; border-color: transparent; }
+  .bankstatus { font-size: .85rem; display: flex; align-items: center; gap: .4em; background: rgba(255,255,255,.1); padding: .3em .8em; border-radius: 999px; }
+  .bankstatus .lampe { width: .6em; height: .6em; border-radius: 50%; background: #4ade80; box-shadow: 0 0 0 0 rgba(74,222,128,.7); animation: puls 2s infinite; }
+  @keyframes puls { 70% { box-shadow: 0 0 0 8px rgba(74,222,128,0); } 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0); } }
+  nav.faner { display: flex; gap: .3rem; padding: .6rem 1.2rem 0; border-bottom: 2px solid var(--linje); background: var(--papir); position: sticky; top: 56px; z-index: 40; overflow-x: auto; }
+  nav.faner button { font: 700 1rem var(--font-tittel); background: none; border: 0; padding: .5em 1em; color: var(--blekk-2); cursor: pointer; border-radius: 10px 10px 0 0; white-space: nowrap; }
+  nav.faner button[aria-selected=true] { background: var(--kort); color: var(--hav); box-shadow: 0 -2px 0 var(--sol) inset; }
+  .badge { background: var(--korall); color: #fff; border-radius: 999px; font: 700 .7rem var(--font); padding: .1em .45em; margin-left: .2em; vertical-align: middle; }
+  main { padding: 1.2rem; max-width: 1280px; margin: 0 auto; }
+  .oversikt { display: grid; grid-template-columns: 1.6fr 1fr; gap: 1.2rem; align-items: start; }
+  @media (max-width: 900px) { .oversikt { grid-template-columns: 1fr; } }
+  .sentrert { min-height: 80vh; display: grid; place-items: center; text-align: center; padding: 16px; }
+  .velkommen { max-width: 440px; }
+  .velkommen .klode { font-size: 4.5rem; line-height: 1; }
+  .rangering td:first-child { font: 800 1.3rem var(--font-tittel); color: var(--hav); width: 2.2em; }
+  .gruppenavn { display: flex; align-items: center; gap: .5em; font-weight: 700; }
+  .oppgave { display: flex; align-items: center; gap: .7rem; padding: .7rem 0; border-bottom: 1px solid var(--linje); flex-wrap: wrap; }
+  .oppgave:last-child { border-bottom: 0; }
+  .oppgave .flagg { font-size: 1.8rem; }
+  .strom { max-height: 360px; overflow: auto; font-size: .9rem; }
+  .strom div { padding: .35rem 0; border-bottom: 1px dashed var(--linje); }
+  .grupper-rutenett { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+  .gruppekort { border-top: 6px solid var(--farge, var(--hav)); }
+  .grupper-rutenett .kort + .kort { margin-top: 0; }
+  .rangering td.tall { white-space: nowrap; }
+  .kodeboks { font: 800 1.15rem var(--font-tittel); letter-spacing: .06em; background: var(--papir); padding: .2em .6em; border-radius: 8px; color: var(--hav); }
+  .fargevalg { display: flex; gap: .35rem; flex-wrap: wrap; }
+  .fargevalg button { width: 28px; height: 28px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; }
+  .fargevalg button[aria-pressed=true] { border-color: var(--blekk); }
+  .innst-rutenett { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 1.2rem; }
+  .hjelp { font-size: .8rem; color: var(--blekk-2); margin-top: .2em; }
+  .landtabell td { padding: .4em .6em; }
+  .landtabell tr.stengt td { opacity: .55; }
+  .tom { color: var(--blekk-2); font-style: italic; padding: .6rem 0; }
+  .duell { background: linear-gradient(135deg, #fff7e6, #fff); border: 2px solid var(--sol); border-radius: 12px; padding: .8rem; margin-bottom: .6rem; }
+
+  /* innloggingskort for utskrift */
+  #utskrift { display: none; }
+  @media print {
+    body > *:not(#utskrift) { display: none !important; }
+    #utskrift { display: grid !important; grid-template-columns: 1fr 1fr; gap: 10mm; padding: 5mm; }
+    .loggkort { border: 2px dashed #999; border-radius: 6mm; padding: 6mm; break-inside: avoid; font-family: var(--font); }
+    .loggkort h2 { font-size: 20pt; margin: 0 0 2mm; }
+    .loggkort .k { font: 800 22pt var(--font-tittel); letter-spacing: .08em; }
+  }
+</style>
+</head>
+<body>
+<header class="topp">
+  <h1>🌍 Jorda rundt <span class="rolle">LÆRER</span></h1>
+  <select id="spillvelger" class="skjult" aria-label="Velg spill"></select>
+  <div class="bankstatus skjult" id="bankstatus" title="Banken behandler kjøp fra elevene så lenge denne siden er åpen"><span class="lampe"></span> Banken er åpen</div>
+  <span class="vokser"></span>
+  <a id="tavlelenke" class="knapp sol mini skjult" target="_blank">📺 Åpne tavla</a>
+  <button id="loggut" class="knapp lys mini skjult">Logg ut</button>
+</header>
+
+<!-- Innlogging -->
+<section id="innlogging" class="sentrert skjult">
+  <div class="velkommen">
+    <div class="klode">🌍✈️</div>
+    <h1>Jorda rundt</h1>
+    <p class="dempet">Logg inn med Google-kontoen din for å lage og styre spill. Elevene trenger ingen konto – de logger inn med gruppekode og PIN.</p>
+    <button id="googleknapp" class="knapp sol">Logg inn med Google</button>
+    <p><button id="testinn" class="knapp lys mini skjult">Testinnlogging (emulator)</button></p>
+  </div>
+</section>
+
+<!-- Nytt spill -->
+<section id="nyttspill" class="sentrert skjult">
+  <div class="velkommen kort">
+    <div class="klode">🧳</div>
+    <h2>Lag et nytt spill</h2>
+    <p class="dempet">Ett spill per klasse eller periode. Du kan justere alle regler etterpå.</p>
+    <div class="felt"><label for="nyttnavn">Navn på spillet</label><input id="nyttnavn" placeholder="7A høst 2026"></div>
+    <button id="lagspill" class="knapp">Lag spill</button>
+    <p class="liten"><button id="avbrytnytt" class="knapp lys mini skjult">Avbryt</button></p>
+  </div>
+</section>
+
+<!-- Selve spillet -->
+<div id="spillvisning" class="skjult">
+  <nav class="faner" role="tablist">
+    <button role="tab" data-fane="oversikt" aria-selected="true">Oversikt <span id="badgeOppgaver" class="badge skjult"></span></button>
+    <button role="tab" data-fane="grupper">Grupper</button>
+    <button role="tab" data-fane="land">Land</button>
+    <button role="tab" data-fane="innstillinger">Innstillinger</button>
+    <button role="tab" data-fane="logg">Logg</button>
+  </nav>
+  <main>
+    <!-- OVERSIKT -->
+    <section data-panel="oversikt">
+      <div class="oversikt">
+        <div>
+          <div class="kort">
+            <div class="rad" style="justify-content:space-between"><h2>Poengtavle</h2><span id="nedtelling" class="merke sol skjult"></span></div>
+            <div id="poengtavle"></div>
+          </div>
+          <div class="kort">
+            <h3>Siste hendelser</h3>
+            <div id="strom" class="strom"></div>
+          </div>
+        </div>
+        <div>
+          <div class="kort">
+            <h2>Venter på deg</h2>
+            <div id="dueller"></div>
+            <div id="reiselogger"></div>
+          </div>
+          <div class="kort">
+            <h3>Elevside</h3>
+            <p class="liten dempet">Elevene går hit og logger inn med gruppekoden og PIN-en fra innloggingskortet:</p>
+            <p><a id="elevlenke" target="_blank"></a></p>
+            <p class="liten"><a href="reiselogg.html" target="_blank">📓 Skriv ut reiseloggen (til kopiering)</a></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GRUPPER -->
+    <section data-panel="grupper" class="skjult">
+      <div class="rad" style="justify-content:space-between;margin-bottom:1rem">
+        <h2 style="margin:0">Grupper</h2>
+        <div class="rad">
+          <a href="reiselogg.html" target="_blank" class="knapp lys">📓 Reiselogg</a>
+          <button id="skrivut" class="knapp lys">🖨️ Skriv ut innloggingskort</button>
+          <button id="nygruppeknapp" class="knapp">＋ Ny gruppe</button>
+        </div>
+      </div>
+      <div id="grupperliste" class="grupper-rutenett"></div>
+    </section>
+
+    <!-- LAND -->
+    <section data-panel="land" class="skjult">
+      <div class="kort">
+        <div class="rad" style="justify-content:space-between">
+          <h2 style="margin:0">Land</h2>
+          <div class="rad">
+            <select id="landfilter" style="width:auto">
+              <option value="alle">Alle land</option>
+              <option value="eid">Eide land</option>
+              <option value="stengt">Stengte land</option>
+            </select>
+            <input id="landsok" placeholder="Søk etter land …" style="width:220px">
+          </div>
+        </div>
+        <p class="liten dempet">Stengte land kan ikke reises til. Låste land kan ikke utfordres – eieren beholder dem.</p>
+        <div style="overflow-x:auto"><table class="landtabell"><thead><tr><th></th><th>Land</th><th>Kontinent</th><th>Eier</th><th>Status</th><th></th></tr></thead><tbody id="landrader"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- INNSTILLINGER -->
+    <section data-panel="innstillinger" class="skjult">
+      <div class="kort">
+        <h2>Regler</h2>
+        <form id="innstskjema">
+          <div class="innst-rutenett">
+            <div class="felt"><label>Spillets navn</label><input name="navn"></div>
+            <div class="felt"><label>Startdato</label><input type="date" name="startdato"></div>
+            <div class="felt"><label>Sluttdato</label><input type="date" name="sluttdato"><div class="hjelp">Vises som nedtelling på tavla.</div></div>
+            <div class="felt"><label>Startbeløp per elev (kr)</label><input type="number" name="startbelopPerElev" min="0" step="1000"><div class="hjelp">En gruppe på 4 får 4 × beløpet. Gjelder nye grupper og nullstilling.</div></div>
+            <div class="felt"><label>Poeng per land</label><input type="number" name="poengLand" min="0"></div>
+            <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>
+            <div class="felt"><label>Land låses etter (dager)</label><input type="number" name="laasDager" min="0"><div class="hjelp">0 = aldri automatisk. Du kan alltid låse manuelt.</div></div>
+            <div class="felt"><label>Jobber per dag</label><input type="number" name="jobberPerDag" min="0"></div>
+            <div class="felt"><label>Geografiquizer per dag</label><input type="number" name="quizPerDag" min="0"></div>
+            <div class="felt"><label>Kr per riktig quizsvar</label><input type="number" name="quizBelop" min="0" step="50"></div>
+            <div class="felt"><label>Duellpremie (kr)</label><input type="number" name="duellPremie" min="0" step="500"></div>
+            <div class="felt"><label>Landquiz: riktige av 5 for å låse</label><input type="number" name="landquizKrav" min="0" max="5"><div class="hjelp">Gruppa kan låse et eget land med landquiz. 0 = av. Ett forsøk per land per dag.</div></div>
+          </div>
+          <div class="felt rad" style="gap:.5rem"><input type="checkbox" name="pause" id="pause" style="width:1.2em;height:1.2em"><label for="pause" style="margin:0">Pause – ingen kan kjøpe noe akkurat nå</label></div>
+          <button class="knapp">Lagre regler</button>
+        </form>
+      </div>
+      <div class="kort">
+        <h3>Farlig sone</h3>
+        <p class="liten dempet">Nullstilling gir alle grupper startbeløpet og en ny tilfeldig startposisjon, og fjerner alle land, reiselogger, dueller og logg. Gruppene, kodene og PIN-ene beholdes.</p>
+        <button id="nullstill" class="knapp korall">Nullstill spillet</button>
+      </div>
+    </section>
+
+    <!-- LOGG -->
+    <section data-panel="logg" class="skjult">
+      <div class="kort"><h2>Logg</h2><div style="overflow-x:auto"><table><thead><tr><th>Tid</th><th>Gruppe</th><th>Hendelse</th><th style="text-align:right">Beløp</th></tr></thead><tbody id="loggrader"></tbody></table></div></div>
+    </section>
+  </main>
+</div>
+
+<div id="utskrift"></div>
+<div id="varsler" aria-live="polite"></div>
+
+<script type="module">
+import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
+import { startBank, godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling } from './js/bank.js';
+import { DUELLER } from './data/dueller.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
+import { tilfeldigStart } from './data/motor.js';
+
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const qs = brukerEmulator ? '?emulator' : '';
+
+let bruker = null, spillId = null, spill = null, pins = {}, stoppSpill = null, stoppPins = null, stoppBank = null, mineSpill = {};
+
+function varsle(tekst, type = '') {
+  const el = document.createElement('div'); el.className = 'varsel ' + type; el.textContent = tekst;
+  $('#varsler').append(el); setTimeout(() => el.remove(), 4500);
+}
+function vis(id) { for (const s of ['innlogging', 'nyttspill', 'spillvisning']) $('#' + s).classList.toggle('skjult', s !== id); }
+
+// Bekreftelse uten nettleserens dialogboks
+function bekreft(tittel, tekst, knappetekst = 'Ja', farlig = false) {
+  return new Promise((ok) => {
+    const bg = document.createElement('div'); bg.className = 'modal-bakgrunn';
+    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3>${esc(tittel)}</h3><p>${tekst}</p><div class="rad" style="justify-content:flex-end"><button class="knapp lys" data-v="0">Avbryt</button><button class="knapp ${farlig ? 'korall' : ''}" data-v="1">${esc(knappetekst)}</button></div></div>`;
+    bg.addEventListener('click', (e) => { const v = e.target.dataset?.v; if (v !== undefined || e.target === bg) { bg.remove(); ok(v === '1'); } });
+    document.body.append(bg); $('[data-v="1"]', bg).focus();
+  });
+}
+function skjemaModal(tittel, html, knappetekst = 'Lagre') {
+  return new Promise((ok) => {
+    const bg = document.createElement('div'); bg.className = 'modal-bakgrunn';
+    bg.innerHTML = `<form class="modal"><h3>${esc(tittel)}</h3>${html}<div class="rad" style="justify-content:flex-end;margin-top:1rem"><button type="button" class="knapp lys" data-avbryt>Avbryt</button><button class="knapp">${esc(knappetekst)}</button></div></form>`;
+    const f = $('form', bg);
+    f.addEventListener('submit', (e) => { e.preventDefault(); const d = Object.fromEntries(new FormData(f)); bg.remove(); ok(d); });
+    $('[data-avbryt]', bg).onclick = () => { bg.remove(); ok(null); };
+    document.body.append(bg); f.querySelector('input,select')?.focus();
+  });
+}
+
+// ---------- innlogging ----------
+$('#googleknapp').onclick = () => loggInnLaerer().catch((e) => varsle('Innlogging feilet: ' + e.message, 'feil'));
+if (brukerEmulator) { $('#testinn').classList.remove('skjult'); $('#testinn').onclick = () => testLoggInnLaerer(); }
+$('#loggut').onclick = () => loggUt();
+
+vedInnlogging(async (u) => {
+  if (!u || u.isAnonymous) { bruker = null; stoppAlt(); vis('innlogging'); $('#loggut').classList.add('skjult'); return; }
+  bruker = u; $('#loggut').classList.remove('skjult');
+  onValue(r(`mineSpill/${u.uid}`), (snap) => {
+    mineSpill = snap.val() || {};
+    tegnSpillvelger();
+    const ids = Object.keys(mineSpill);
+    if (!ids.length) { vis('nyttspill'); return; }
+    if (!spillId || !mineSpill[spillId]) velgSpill(localStorageHent('jr-spill') in mineSpill ? localStorageHent('jr-spill') : ids[ids.length - 1]);
+  });
+});
+function localStorageHent(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function localStorageSett(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+function tegnSpillvelger() {
+  const sel = $('#spillvelger');
+  const ids = Object.keys(mineSpill);
+  sel.classList.toggle('skjult', !ids.length);
+  sel.innerHTML = ids.map((id) => `<option value="${id}" ${id === spillId ? 'selected' : ''}>${esc(mineSpill[id])}</option>`).join('') + '<option value="__nytt">＋ Nytt spill …</option>';
+}
+$('#spillvelger').onchange = (e) => {
+  if (e.target.value === '__nytt') { vis('nyttspill'); $('#avbrytnytt').classList.remove('skjult'); e.target.value = spillId; return; }
+  velgSpill(e.target.value);
+};
+$('#avbrytnytt').onclick = () => vis('spillvisning');
+
+$('#lagspill').onclick = async () => {
+  const navn = $('#nyttnavn').value.trim() || 'Jorda rundt';
+  const id = nyId(10);
+  await update(r('/'), {
+    [`spill/${id}`]: { eier: bruker.uid, info: { navn, opprettet: Date.now() }, innstillinger: { ...STANDARD_INNSTILLINGER, stengte: null } },
+    [`mineSpill/${bruker.uid}/${id}`]: navn,
+  });
+  spillId = null; velgSpill(id);
+  varsle('Spillet er laget! Lag gruppene under «Grupper».', 'ok');
+};
+
+function stoppAlt() { stoppSpill?.(); stoppPins?.(); stoppBank?.(); stoppSpill = stoppPins = stoppBank = null; }
+
+function velgSpill(id) {
+  if (id === spillId) return;
+  stoppAlt();
+  spillId = id; localStorageSett('jr-spill', id);
+  tegnSpillvelger();
+  vis('spillvisning');
+  $('#elevlenke').href = $('#elevlenke').textContent = new URL('index.html' + qs, location.href).href;
+  $('#tavlelenke').href = `tavle.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`;
+  $('#tavlelenke').classList.remove('skjult');
+  stoppSpill = onValue(r(`spill/${id}`), (snap) => { spill = snap.val(); if (spill) tegnAlt(); });
+  stoppPins = onValue(r(`pins/${id}`), (snap) => { pins = snap.val() || {}; if (spill) tegnGrupper(); });
+  stoppBank = startBank(id, {
+    vedBehandlet: (res) => { if (res && !res.ok) console.info('Avvist:', res.melding); },
+  });
+  $('#bankstatus').classList.remove('skjult');
+}
+
+// ---------- faner ----------
+$$('nav.faner button').forEach((b) => b.onclick = () => {
+  $$('nav.faner button').forEach((x) => x.setAttribute('aria-selected', x === b));
+  $$('[data-panel]').forEach((p) => p.classList.toggle('skjult', p.dataset.panel !== b.dataset.fane));
+});
+
+// ---------- tegning ----------
+const gnavn = (gid) => spill?.grupper?.[gid]?.navn || '(slettet gruppe)';
+const gfarge = (gid) => spill?.grupper?.[gid]?.farge || '#999';
+const prikk = (gid) => `<span class="prikk" style="background:${esc(gfarge(gid))}"></span>`;
+
+function tegnAlt() {
+  mineSpill[spillId] = spill.info?.navn || 'Spill';
+  tegnOversikt(); tegnGrupper(); tegnLand(); tegnInnstillinger(); tegnLogg();
+}
+
+function tegnOversikt() {
+  const i = innst(spill);
+  const rader = poengtavle(spill);
+  $('#poengtavle').innerHTML = rader.length ? `<table class="rangering"><thead><tr><th>#</th><th>Gruppe</th><th>Land</th><th>Kontinenter</th><th>Poeng</th><th style="text-align:right">Penger</th><th>Er nå</th></tr></thead><tbody>${
+    rader.map((g, n) => {
+      const her = landEtterId[g.posisjon];
+      const hotell = g.hotell && g.hotell.land === g.posisjon;
+      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td><td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td><td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? '<span class="merke gress">🏨</span>' : '<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>'}</td></tr>`;
+    }).join('')}</tbody></table>` : '<p class="tom">Ingen grupper ennå. Gå til «Grupper» og lag dem.</p>';
+
+  // nedtelling
+  const nt = $('#nedtelling');
+  if (i.sluttdato) {
+    const dager = Math.ceil((new Date(i.sluttdato + 'T15:00:00') - Date.now()) / 86400000);
+    nt.textContent = dager > 0 ? `${dager} dager igjen` : 'Spillet er slutt'; nt.classList.remove('skjult');
+  } else nt.classList.add('skjult');
+
+  // dueller
+  const dueller = Object.entries(spill.dueller || {}).filter(([, d]) => d.status === 'venter');
+  $('#dueller').innerHTML = dueller.map(([id, d]) => {
+    const l = landEtterId[d.land];
+    const o = d.oppgave != null ? DUELLER[d.oppgave] : null;
+    return `<div class="duell"><b>⚔️ Duell om ${l.flagg} ${esc(l.navn)}</b><p class="liten" style="margin:.3em 0 .6em">${prikk(d.utfordrer)} ${esc(gnavn(d.utfordrer))} utfordrer ${prikk(d.forsvarer)} ${esc(gnavn(d.forsvarer))}.</p>
+      ${o ? `<div style="background:#fff;border-radius:10px;padding:.6rem .8rem;margin-bottom:.6rem"><b>${esc(o.tittel)}</b><br>${esc(o.tekst)}<br><span class="liten"><b>Vinner:</b> ${esc(o.vinner)}<br><b>Utstyr:</b> ${esc(o.utstyr)}${o.tid ? ` · <b>Tid:</b> ${o.tid} sek` : ''}</span></div>` : '<p class="liten dempet">Trekk en oppgave – den vises stort på tavla.</p>'}
+      <div class="rad" style="margin-bottom:.5rem"><button class="knapp mini sol" data-trekk="${id}">🎲 ${o ? 'Trekk ny' : 'Trekk oppgave'}</button>${o && o.tid ? `<button class="knapp mini" data-start="${id}">▶ Start nedtelling</button>` : ''}</div>
+      <div class="liten dempet" style="margin-bottom:.3rem">Hvem vant?</div>
+      <div class="rad"><button class="knapp mini gress" data-duell="${id}" data-vinner="${d.utfordrer}">${esc(gnavn(d.utfordrer))} vant</button><button class="knapp mini gress" data-duell="${id}" data-vinner="${d.forsvarer}">${esc(gnavn(d.forsvarer))} vant</button></div></div>`;
+  }).join('');
+  $$('[data-trekk]').forEach((b) => b.onclick = async () => { b.disabled = true; const o = await trekkDuellOppgave(spillId, b.dataset.trekk); varsle(`Trukket: ${o.tittel}`, 'ok'); });
+  $$('[data-start]').forEach((b) => b.onclick = () => startDuellNedtelling(spillId, b.dataset.start));
+  $$('[data-duell]').forEach((b) => b.onclick = async () => {
+    b.disabled = true; await avgjorDuell(spillId, b.dataset.duell, b.dataset.vinner); varsle('Duellen er avgjort!', 'ok');
+  });
+
+  // reiselogger til godkjenning
+  const levert = [];
+  for (const [gid, liste] of Object.entries(spill.reiselogger || {})) for (const [land, rl] of Object.entries(liste)) if (rl.status === 'levert') levert.push({ gid, land, ...rl });
+  levert.sort((a, b) => a.tid - b.tid);
+  $('#reiselogger').innerHTML = levert.length ? levert.map((x) => {
+    const l = landEtterId[x.land]; const e = spill.eierskap?.[x.land];
+    const merknad = !e ? '<span class="merke gress">ledig land</span>' : e.gruppe === x.gid ? '<span class="merke">eier allerede</span>' : erLaast(e, i) ? '<span class="merke">låst – gir ikke landet</span>' : `<span class="merke korall">⚔️ gir duell mot ${esc(gnavn(e.gruppe))}</span>`;
+    return `<div class="oppgave"><span class="flagg">${l.flagg}</span><div class="vokser"><b>${esc(l.navn)}</b><br><span class="liten">${prikk(x.gid)} ${esc(gnavn(x.gid))} · reiselogg levert</span> ${merknad}</div>
+      <button class="knapp gress mini" data-godkjenn="${x.gid}|${x.land}">Godkjenn</button><button class="knapp lys mini" data-avvis="${x.gid}|${x.land}">Ikke godkjent</button></div>`;
+  }).join('') : (dueller.length ? '' : '<p class="tom">Ingen reiselogger venter. 👍</p>');
+  $$('[data-godkjenn]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.godkjenn.split('|'); const t = await godkjennReiselogg(spillId, g, l); varsle(`${gnavn(g)} ${t}`, 'ok'); });
+  $$('[data-avvis]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.avvis.split('|'); await avvisReiselogg(spillId, g, l); varsle('Reiseloggen ble sendt tilbake.'); });
+  const antall = levert.length + dueller.length;
+  $('#badgeOppgaver').textContent = antall; $('#badgeOppgaver').classList.toggle('skjult', !antall);
+
+  // strøm
+  const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 40);
+  $('#strom').innerHTML = logg.length ? logg.map((h) => `<div>${tid(h.tid)} · ${h.gruppe ? prikk(h.gruppe) + ' <b>' + esc(gnavn(h.gruppe)) + '</b> ' : ''}${esc(h.tekst)}${h.belop ? ` <span class="${h.belop < 0 ? 'dempet' : ''}">(${h.belop > 0 ? '+' : ''}${formaterKr(h.belop)})</span>` : ''}</div>`).join('') : '<p class="tom">Ingenting har skjedd ennå.</p>';
+}
+function tid(t) { const d = new Date(t); const idag = new Date().toDateString() === d.toDateString(); return d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' }) + (idag ? '' : ' ' + d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })); }
+
+// ---------- grupper ----------
+function tegnGrupper() {
+  const grupper = Object.entries(spill.grupper || {}).sort((a, b) => (a[1].opprettet || 0) - (b[1].opprettet || 0));
+  $('#grupperliste').innerHTML = grupper.length ? grupper.map(([gid, g]) => {
+    const her = landEtterId[g.posisjon];
+    const antallLand = Object.values(spill.eierskap || {}).filter((e) => e.gruppe === gid).length;
+    return `<div class="kort gruppekort" style="--farge:${esc(g.farge)}">
+      <div class="rad" style="justify-content:space-between"><h3 style="margin:0">${esc(g.navn)}</h3><span class="merke">${g.personer} elever</span></div>
+      <p class="liten" style="margin:.4em 0">${her ? `${her.flagg} ${esc(her.by)}, ${esc(her.navn)}` : ''} · ${antallLand} land · <b>${formaterKr(g.saldo)}</b></p>
+      <div class="rad" style="margin:.6rem 0"><div><div class="liten dempet">Gruppekode</div><span class="kodeboks">${esc(g.kode)}</span></div><div><div class="liten dempet">PIN</div><span class="kodeboks">${esc(pins[gid] || '······')}</span></div></div>
+      <div class="rad">
+        <button class="knapp mini" data-penger="${gid}">💰 Juster penger</button>
+        <button class="knapp mini lys" data-rediger="${gid}">✏️ Rediger</button>
+        <button class="knapp mini lys" data-flytt="${gid}">📍 Flytt</button>
+        <button class="knapp mini lys" data-nypin="${gid}">🔑 Ny PIN</button>
+        <button class="knapp mini lys" data-slett="${gid}" title="Slett gruppa">🗑️</button>
+      </div></div>`;
+  }).join('') : '<div class="kort"><p class="tom">Ingen grupper ennå. Trykk «Ny gruppe». Hver gruppe får en tilfeldig startposisjon i verden.</p></div>';
+
+  $$('[data-penger]').forEach((b) => b.onclick = async () => {
+    const gid = b.dataset.penger;
+    const d = await skjemaModal(`Juster penger – ${gnavn(gid)}`, `<div class="felt"><label>Beløp (bruk minus for å trekke fra)</label><input name="belop" type="number" step="100" required placeholder="5000 eller -2000"></div><div class="felt"><label>Grunn (vises i loggen)</label><input name="grunn" placeholder="God innsats i timen"></div>`);
+    if (!d || !Number(d.belop)) return;
+    await justerSaldo(spillId, gid, Number(d.belop), d.grunn.trim()); varsle('Pengene er justert.', 'ok');
+  });
+  $$('[data-rediger]').forEach((b) => b.onclick = async () => {
+    const gid = b.dataset.rediger; const g = spill.grupper[gid];
+    const d = await skjemaModal('Rediger gruppe', gruppeSkjema(g));
+    if (!d) return;
+    const nyePersoner = Math.max(1, Number(d.personer) || 4);
+    await update(r(`spill/${spillId}/grupper/${gid}`), { navn: d.navn.trim() || g.navn, farge: d.farge || g.farge, personer: nyePersoner });
+    const diff = nyePersoner - (g.personer || 4);
+    if (diff && await bekreft('Justere budsjettet?', `Gruppa har fått ${diff > 0 ? diff + ' flere' : -diff + ' færre'} elever. Skal saldoen ${diff > 0 ? 'økes' : 'reduseres'} med ${formaterKr(Math.abs(diff) * innst(spill).startbelopPerElev)}?`, 'Ja, juster')) {
+      await justerSaldo(spillId, gid, diff * innst(spill).startbelopPerElev, `gruppa endret størrelse (${g.personer || 4} → ${nyePersoner} elever)`);
+    }
+  });
+  $$('[data-flytt]').forEach((b) => b.onclick = async () => {
+    const gid = b.dataset.flytt;
+    const d = await skjemaModal(`Flytt ${gnavn(gid)}`, `<div class="felt"><label>Nytt land</label><select name="land">${LAND.map((l) => `<option value="${l.id}" ${l.id === spill.grupper[gid].posisjon ? 'selected' : ''}>${l.flagg} ${esc(l.navn)}</option>`).join('')}</select></div><p class="liten dempet">Gruppa må booke nytt hotell der.</p>`, 'Flytt');
+    if (!d) return;
+    await update(r(`spill/${spillId}/grupper/${gid}`), { posisjon: d.land, hotell: null });
+    varsle('Gruppa er flyttet.', 'ok');
+  });
+  $$('[data-nypin]').forEach((b) => b.onclick = async () => {
+    const gid = b.dataset.nypin;
+    if (!await bekreft('Ny PIN?', `${esc(gnavn(gid))} får en ny PIN. Elever som allerede er logget inn, blir værende inne.`, 'Lag ny PIN')) return;
+    await set(r(`pins/${spillId}/${gid}`), lagPin());
+  });
+  $$('[data-slett]').forEach((b) => b.onclick = async () => {
+    const gid = b.dataset.slett; const g = spill.grupper[gid];
+    if (!await bekreft('Slette gruppa?', `<b>${esc(g.navn)}</b> og alle landene deres blir slettet. Dette kan ikke angres.`, 'Slett', true)) return;
+    const u = { [`spill/${spillId}/grupper/${gid}`]: null, [`pins/${spillId}/${gid}`]: null, [`gruppekoder/${g.kode}`]: null, [`spill/${spillId}/reiselogger/${gid}`]: null, [`spill/${spillId}/foresporsler/${gid}`]: null };
+    for (const [land, e] of Object.entries(spill.eierskap || {})) if (e.gruppe === gid) u[`spill/${spillId}/eierskap/${land}`] = null;
+    const medl = (await get(r(`medlem/${spillId}`))).val() || {};
+    for (const [uid, m] of Object.entries(medl)) if (m.gruppe === gid) u[`medlem/${spillId}/${uid}`] = null;
+    await update(r('/'), u); varsle('Gruppa er slettet.');
+  });
+}
+
+function gruppeSkjema(g = {}) {
+  const brukt = Object.values(spill.grupper || {}).map((x) => x.farge);
+  const forslag = g.farge || (GRUPPEFARGER.find((f) => !brukt.includes(f.hex)) || GRUPPEFARGER[0]).hex;
+  return `<div class="felt"><label>Gruppenavn</label><input name="navn" required maxlength="24" value="${esc(g.navn || '')}" placeholder="F.eks. Globetrotterne"></div>
+    <div class="felt"><label>Antall elever i gruppa</label><input name="personer" type="number" min="1" max="8" value="${g.personer || 4}"><div class="hjelp">Bestemmer startbudsjettet (${formaterKr(innst(spill).startbelopPerElev)} per elev) og hvor mange flybilletter de må kjøpe.</div></div>
+    <div class="felt"><label>Farge</label><input type="hidden" name="farge" value="${forslag}"><div class="fargevalg">${GRUPPEFARGER.map((f) => `<button type="button" aria-label="${f.navn}" aria-pressed="${f.hex === forslag}" style="background:${f.hex}" onclick="this.closest('form').farge.value='${f.hex}';this.parentNode.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===this))"></button>`).join('')}</div></div>`;
+}
+
+const DYR = ['TIGER', 'PANDA', 'KOALA', 'ELG', 'ULV', 'REV', 'LAMA', 'KAMEL', 'SEL', 'HVAL', 'GEPARD', 'SEBRA', 'OTER', 'HAI', 'ORKA', 'PUMA', 'JAGUAR', 'KONDOR', 'PINGVIN', 'FALK', 'GORILLA', 'NESEHORN', 'DELFIN', 'KOBRA', 'LEOPARD'];
+function lagPin() { const a = crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000; return String(a); }
+async function lagKode() {
+  for (let n = 0; n < 30; n++) {
+    const k = DYR[crypto.getRandomValues(new Uint8Array(1))[0] % DYR.length] + (crypto.getRandomValues(new Uint8Array(1))[0] % 90 + 10);
+    if (!(await get(r(`gruppekoder/${k}`))).exists()) return k;
+  }
+  return 'GRUPPE' + nyId(4).toUpperCase();
+}
+
+$('#nygruppeknapp').onclick = async () => {
+  const d = await skjemaModal('Ny gruppe', gruppeSkjema(), 'Lag gruppe');
+  if (!d) return;
+  const i = innst(spill);
+  const gid = nyId(8), kode = await lagKode(), pin = lagPin();
+  const opptatt = Object.values(spill.grupper || {}).map((g) => g.start);
+  const start = tilfeldigStart(opptatt, i.stengte || {});
+  await update(r('/'), {
+    [`spill/${spillId}/grupper/${gid}`]: { navn: d.navn.trim(), farge: d.farge, personer: Math.max(1, Number(d.personer) || 4), saldo: startbelopFor(i, Number(d.personer) || 4), posisjon: start.id, start: start.id, kode, opprettet: Date.now(), reiser: 0 },
+    [`pins/${spillId}/${gid}`]: pin,
+    [`gruppekoder/${kode}`]: { spill: spillId, gruppe: gid },
+    [`spill/${spillId}/logg/${nyId(12)}`]: { tid: Date.now(), gruppe: gid, type: 'start', tekst: `starter reisen i ${start.flagg} ${start.navn}` },
+  });
+  varsle(`${d.navn} starter i ${start.flagg} ${start.navn}!`, 'ok');
+};
+
+$('#skrivut').onclick = () => {
+  const lenke = new URL('index.html', location.href).href;
+  $('#utskrift').innerHTML = Object.entries(spill.grupper || {}).map(([gid, g]) => `<div class="loggkort" style="border-color:${esc(g.farge)}">
+    <h2>🌍 Jorda rundt</h2><p style="margin:0 0 4mm"><b>${esc(g.navn)}</b></p>
+    <p style="margin:0">Gruppekode</p><div class="k">${esc(g.kode)}</div>
+    <p style="margin:3mm 0 0">PIN</p><div class="k">${esc(pins[gid] || '')}</div>
+    <p style="font-size:9pt;margin-top:4mm">Gå til: ${esc(lenke)}<br>Ikke del PIN-en med andre grupper!</p></div>`).join('');
+  window.print();
+};
+
+// ---------- land ----------
+function tegnLand() {
+  const i = innst(spill);
+  const sok = $('#landsok').value.trim().toLowerCase();
+  const filter = $('#landfilter').value;
+  const rader = LAND.filter((l) => {
+    if (sok && !l.navn.toLowerCase().includes(sok) && !l.by.toLowerCase().includes(sok)) return false;
+    if (filter === 'eid' && !spill.eierskap?.[l.id]) return false;
+    if (filter === 'stengt' && !erStengt(l.id, i)) return false;
+    return true;
+  });
+  $('#landrader').innerHTML = rader.map((l) => {
+    const e = spill.eierskap?.[l.id]; const stengt = erStengt(l.id, i);
+    let status = '';
+    if (e) {
+      if (erLaast(e, i)) status = '<span class="merke">🔒 låst</span>';
+      else { const ms = laasesOm(e, i); status = `<span class="merke sol">åpen for utfordring${ms != null ? ' · låses om ' + Math.ceil(ms / 86400000) + ' d' : ''}</span>`; }
+    }
+    return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td><td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>
+      <td>${e ? `<span class="gruppenavn">${prikk(e.gruppe)} ${esc(gnavn(e.gruppe))}</span>` : '<span class="dempet">–</span>'}</td>
+      <td>${stengt ? `<span class="merke korall" title="${esc(l.stengt || 'stengt av lærer')}">stengt</span> ` : ''}${status}</td>
+      <td style="white-space:nowrap;text-align:right">
+        ${e ? `<button class="knapp mini lys" data-laas="${l.id}">${e.laast ? 'Lås opp' : 'Lås'}</button> <button class="knapp mini lys" data-fjern="${l.id}" title="Fjern eier">✕</button> ` : ''}
+        <button class="knapp mini ${stengt ? 'gress' : 'lys'}" data-stengt="${l.id}">${stengt ? 'Åpne' : 'Steng'}</button></td></tr>`;
+  }).join('');
+  $$('[data-laas]').forEach((b) => b.onclick = () => settLaas(spillId, b.dataset.laas, !spill.eierskap[b.dataset.laas].laast));
+  $$('[data-fjern]').forEach((b) => b.onclick = async () => { if (await bekreft('Fjerne eier?', `${esc(landEtterId[b.dataset.fjern].navn)} blir ledig igjen.`, 'Fjern')) fjernEierskap(spillId, b.dataset.fjern); });
+  $$('[data-stengt]').forEach((b) => b.onclick = () => {
+    const id = b.dataset.stengt; const naa = erStengt(id, i);
+    const standard = !!landEtterId[id].stengt;
+    set(r(`spill/${spillId}/innstillinger/stengte/${id}`), (!naa) === standard ? null : !naa);
+  });
+}
+$('#landsok').oninput = tegnLand; $('#landfilter').onchange = tegnLand;
+
+// ---------- innstillinger ----------
+let innstRedigeres = false;
+$('#innstskjema').addEventListener('input', () => innstRedigeres = true);
+function tegnInnstillinger() {
+  if (innstRedigeres) return;
+  const i = innst(spill); const f = $('#innstskjema');
+  f.navn.value = spill.info?.navn || '';
+  for (const k of ['startdato', 'sluttdato', 'startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav']) f[k].value = i[k] ?? '';
+  f.pause.checked = !!i.pause;
+}
+$('#innstskjema').onsubmit = async (e) => {
+  e.preventDefault(); const f = e.target;
+  const tall = (k) => Math.max(0, Number(f[k].value) || 0);
+  await update(r('/'), {
+    [`spill/${spillId}/info/navn`]: f.navn.value.trim() || 'Jorda rundt',
+    [`mineSpill/${bruker.uid}/${spillId}`]: f.navn.value.trim() || 'Jorda rundt',
+    [`spill/${spillId}/innstillinger/startdato`]: f.startdato.value,
+    [`spill/${spillId}/innstillinger/sluttdato`]: f.sluttdato.value,
+    ...Object.fromEntries(['startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
+    [`spill/${spillId}/innstillinger/pause`]: f.pause.checked,
+  });
+  innstRedigeres = false; varsle('Reglene er lagret.', 'ok');
+};
+$('#nullstill').onclick = async () => {
+  if (!await bekreft('Nullstille spillet?', 'Alle grupper får startbeløpet og ny startposisjon. Alle land, reiselogger, dueller og hele loggen slettes. <b>Dette kan ikke angres.</b>', 'Nullstill', true)) return;
+  const i = innst(spill); const u = {}; const brukt = [];
+  for (const [gid, gr] of Object.entries(spill.grupper || {})) {
+    const s = tilfeldigStart(brukt, i.stengte || {}); brukt.push(s.id);
+    Object.assign(u, { [`spill/${spillId}/grupper/${gid}/saldo`]: startbelopFor(i, gr.personer), [`spill/${spillId}/grupper/${gid}/posisjon`]: s.id, [`spill/${spillId}/grupper/${gid}/start`]: s.id, [`spill/${spillId}/grupper/${gid}/hotell`]: null, [`spill/${spillId}/grupper/${gid}/reiser`]: 0, [`spill/${spillId}/grupper/${gid}/besokt`]: null, [`spill/${spillId}/grupper/${gid}/jobber`]: null, [`spill/${spillId}/grupper/${gid}/quiz`]: null, [`spill/${spillId}/grupper/${gid}/brukteFro`]: null });
+  }
+  for (const k of ['eierskap', 'reiselogger', 'dueller', 'logg', 'foresporsler']) u[`spill/${spillId}/${k}`] = null;
+  await update(r('/'), u); varsle('Spillet er nullstilt.', 'ok');
+};
+
+// ---------- logg ----------
+function tegnLogg() {
+  const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 300);
+  $('#loggrader').innerHTML = logg.map((h) => `<tr><td class="liten tall" style="white-space:nowrap">${tid(h.tid)}</td><td>${h.gruppe ? `<span class="gruppenavn">${prikk(h.gruppe)} ${esc(gnavn(h.gruppe))}</span>` : ''}</td><td>${esc(h.tekst)}</td><td class="tall" style="text-align:right">${h.belop ? (h.belop > 0 ? '+' : '') + formaterKr(h.belop) : ''}</td></tr>`).join('') || '<tr><td colspan="4" class="tom">Tom logg.</td></tr>';
+}
+// Oppdater "låses om"-tekst jevnlig
+setInterval(() => { if (spill) { tegnLand(); } }, 60000);
+</script>
+</body>
+</html>

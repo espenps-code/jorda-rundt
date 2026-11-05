@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reiselogg – Jorda rundt</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📓</text></svg>">
+<link rel="stylesheet" href="css/felles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Space+Mono:wght@700&display=swap">
+<style>
+  @page { size: A4 portrait; margin: 12mm 14mm; }
+  :root { --blekk-r: #18232f; --strek: #9aa4ae; --tone: #eef4f7; --tone-2: #fdf6e3; --aksent: #0B3A53; --aksent-2: #E2A336; }
+  body { background: #e9e4d8; }
+  .styring { max-width: 900px; margin: 1rem auto; }
+  .styring select, .styring input[type=text] { width: auto; min-width: 220px; }
+
+  .ark { width: 210mm; height: 297mm; margin: 1rem auto; background: #fff; padding: 12mm 14mm; box-shadow: 0 4px 20px rgba(0,0,0,.15); position: relative; color: var(--blekk-r); font-family: var(--font); overflow: hidden; break-after: page; display: flex; flex-direction: column; gap: 5mm; }
+  .ark:last-child { break-after: auto; }
+  .hand { font-family: 'Caveat', cursive; color: #6b7785; font-size: 13pt; }
+  .smaa { font: 700 7.5pt var(--font); letter-spacing: .12em; text-transform: uppercase; color: #5b6774; }
+
+  /* toppbånd – boardingkort */
+  .band { display: grid; grid-template-columns: auto 1fr auto; align-items: stretch; border: 1.6px solid var(--aksent); border-radius: 4mm; overflow: hidden; }
+  .band .logo { background: var(--aksent); color: #fff; padding: 2.5mm 4mm; display: flex; flex-direction: column; justify-content: center; }
+  .band .logo b { font: 800 14pt/1 var(--font-tittel); }
+  .band .logo span { font: 700 6.5pt var(--font); letter-spacing: .18em; opacity: .85; }
+  .band .felter { display: grid; grid-template-columns: 1.6fr 1fr .6fr; }
+  .band .felter > div { padding: 2mm 3.5mm; border-left: 1.2px dashed var(--strek); }
+  .band .felter .verdi { font: 800 12pt/1.2 var(--font-tittel); min-height: 6mm; border-bottom: 1px dotted transparent; }
+  .band .felter .verdi.tom { border-bottom-color: var(--strek); }
+  .band .del { background: var(--tone-2); padding: 2mm 4mm; display: flex; flex-direction: column; justify-content: center; text-align: center; border-left: 1.6px solid var(--aksent); }
+  .band .del b { font: 800 16pt/1 var(--font-tittel); color: var(--aksent); }
+
+  .guilloche { height: 7mm; width: 100%; display: block; }
+  h1.side { font: 800 24pt/1 var(--font-tittel); margin: 0; color: var(--aksent); display: flex; align-items: baseline; gap: 3mm; }
+  h1.side small { font: 400 13pt var(--font-tittel); color: #5b6774; }
+
+  /* skrivelinjer */
+  .felt-l { display: flex; flex-direction: column; gap: 1mm; }
+  .felt-l .lbl { display: flex; align-items: center; gap: 1.6mm; font: 700 8pt var(--font); letter-spacing: .1em; text-transform: uppercase; color: #3d4955; }
+  .felt-l .lbl i { font-style: normal; font-size: 10pt; }
+  .linjer { display: flex; flex-direction: column; border: 1.4px solid #7d8994; border-radius: 2.2mm; padding: 0 3mm 1.8mm; background: #fff; }
+  .linjer > div { height: 7.6mm; border-bottom: 1px dotted #b9c1c9; }
+  .lapp .linjer, .postkort .linjer, .billett .linjer { border: 0; padding: 0; border-radius: 0; }
+  .lapp .linjer > div, .postkort .linjer > div, .billett .linjer > div { border-bottom: 1px solid var(--strek); }
+
+  /* side 1 */
+  .passtopp { display: grid; grid-template-columns: 66mm 1fr; gap: 6mm; align-items: stretch; }
+  .frimerke { position: relative; padding: 3mm; background: #fff; border: 2.2px dotted #9aa4ae; border-radius: 1mm; }
+  .frimerke-ramme { border: 1.6px solid var(--blekk-r); height: 39mm; position: relative; display: grid; place-items: end start; padding: 2mm; }
+  .frimerke-ramme .hand { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); white-space: nowrap; color: #b0b8c0; }
+  .passinfo { display: flex; flex-direction: column; justify-content: space-between; border: 1.2px solid var(--strek); border-radius: 3mm; padding: 3mm 4mm; background: #fff; position: relative; }
+  .passinfo .landnavn { font: 800 26pt/1 var(--font-tittel); color: var(--blekk-r); height: 13mm; border: 1.4px solid #7d8994; border-radius: 2.2mm; margin-top: 1mm; position: relative; }
+  .passinfo .landnavn::after { content: ''; position: absolute; left: 3mm; right: 3mm; bottom: 2.5mm; border-bottom: 1px dotted #b9c1c9; }
+  .passinfo .rad2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .fakta { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 6mm; }
+  .fakta .bred { grid-column: 1 / -1; }
+  .postrad { display: grid; grid-template-columns: 1fr 38mm; gap: 5mm; align-items: center; }
+  .postkort { border: 1.6px solid var(--blekk-r); border-radius: 2mm; padding: 3mm 4mm; position: relative; background: #fff; box-shadow: 1.5mm 1.5mm 0 var(--tone); }
+  .postkort::after { content: ''; position: absolute; top: 3mm; right: 3mm; width: 14mm; height: 17mm; border: 1.2px dashed var(--strek); }
+  .postkort .tittel { font: 800 15pt var(--font-tittel); color: var(--aksent); }
+  .stempelfelt { width: 36mm; height: 36mm; border: 2px dashed #9aa4ae; border-radius: 50%; display: grid; place-items: center; text-align: center; transform: rotate(-10deg); }
+  .stempelfelt b { font: 800 9pt var(--font-tittel); letter-spacing: .08em; color: #8a96a2; }
+  .mrz { font: 700 10.5pt/1.5 'Space Mono', monospace; letter-spacing: .14em; color: #5b6774; border-top: 1.2px solid var(--strek); padding-top: 2mm; white-space: nowrap; overflow: hidden; margin-top: auto; }
+
+  /* side 2 */
+  .lapper { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5mm; }
+  .lapp { border: 1.6px solid var(--blekk-r); border-radius: 3mm 9mm 9mm 3mm; padding: 3mm 10mm 3mm 4mm; position: relative; background: #fff; }
+  .lapp::before { content: ''; position: absolute; right: 3.5mm; top: 50%; width: 3.5mm; height: 3.5mm; border: 1.4px solid var(--blekk-r); border-radius: 50%; transform: translateY(-50%); }
+  .lapp.bred { grid-column: 1 / -1; }
+  .rett { display: grid; grid-template-columns: 52mm 1fr; gap: 6mm; align-items: center; }
+  .tallerken { width: 52mm; height: 52mm; position: relative; display: grid; place-items: center; }
+  .tallerken::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 1.6px solid var(--blekk-r); box-shadow: inset 0 0 0 5mm #fff, inset 0 0 0 5.4mm var(--strek); }
+  .tallerken .hand { position: relative; text-align: center; line-height: 1; }
+  .kjendiser { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+  .ramme { display: flex; flex-direction: column; gap: 2mm; align-items: center; }
+  .ramme .bilde { width: 100%; height: 30mm; border: 1.6px solid var(--blekk-r); outline: 2mm solid var(--tone-2); outline-offset: -3.6mm; display: grid; place-items: center; }
+  .ramme .navnelinje { width: 100%; border: 1.4px solid #7d8994; border-radius: 2.2mm; height: 9mm; position: relative; }
+  .ramme .navnelinje::after { content: ''; position: absolute; left: 3mm; right: 3mm; bottom: 2mm; border-bottom: 1px dotted #b9c1c9; }
+  .parlor { border: 1.6px solid var(--aksent); border-radius: 4mm; padding: 3mm 4mm 4mm; background: #fff; }
+  .parlor-topp { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3mm; }
+  .parlor-topp b { font: 800 15pt var(--font-tittel); color: var(--aksent); }
+  .bobler { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 6mm; }
+  .boble { display: grid; grid-template-columns: auto 1fr; gap: 3mm; align-items: end; }
+  .boble .no { position: relative; background: #fff; border: 1.4px solid var(--blekk-r); border-radius: 4mm; padding: 1.5mm 3.5mm; font: 800 12pt var(--font-tittel); white-space: nowrap; }
+  .boble .no::after { content: ''; position: absolute; left: 4mm; bottom: -2.2mm; width: 3mm; height: 3mm; background: #fff; border-right: 1.4px solid var(--blekk-r); border-bottom: 1.4px solid var(--blekk-r); transform: rotate(45deg); }
+  .boble .oversatt { border: 1.4px solid #7d8994; border-radius: 2.2mm; height: 9.5mm; background: #fff; position: relative; }
+  .boble .oversatt::after { content: ''; position: absolute; left: 3mm; right: 3mm; bottom: 2mm; border-bottom: 1px dotted #b9c1c9; }
+  .boble.bred { grid-column: 1 / -1; }
+
+  /* side 3 */
+  .oppdrag { border: 2px solid var(--aksent); border-radius: 4mm; padding: 4mm 5mm; display: grid; grid-template-columns: auto 1fr; gap: 4mm; align-items: center; background: var(--tone); }
+  .oppdrag .ikon { font-size: 26pt; }
+  .oppdrag b { font: 800 14pt var(--font-tittel); color: var(--aksent); display: block; }
+  .oppdrag p { margin: 1mm 0 0; font-size: 10.5pt; }
+  .polaroider { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4mm 3.5mm; padding: 0 1.5mm; }
+  .polaroid { border: 1.2px solid var(--blekk-r); padding: 2mm 2mm 0; background: #fff; box-shadow: .8mm .8mm 0 var(--tone); }
+  .polaroid:nth-child(odd) { transform: rotate(-2deg); } .polaroid:nth-child(3n) { transform: rotate(1.6deg); }
+  .polaroid .foto { height: 24mm; border: 1px solid var(--strek); position: relative; }
+  .polaroid .foto span { position: absolute; top: 1mm; left: 1.5mm; font: 800 9pt var(--font-tittel); color: #9aa4ae; }
+  .polaroid .tekst { height: 9mm; border-bottom: 1px dotted var(--strek); margin: 0 .5mm 2mm; }
+  .billett { display: grid; grid-template-columns: 1fr 40mm; border: 1.6px solid var(--blekk-r); border-radius: 3mm; overflow: hidden; }
+  .billett .hoved { padding: 3mm 4mm; background: #fff; }
+  .billett .hoved b { font: 800 14pt var(--font-tittel); color: var(--aksent); }
+  .billett .stubb { border-left: 1.6px dashed var(--blekk-r); padding: 3mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1mm; }
+  .billett .stubb .bc { width: 30mm; height: 10mm; display: block; }
+  .bunn3 { display: grid; grid-template-columns: 1fr 44mm; gap: 6mm; align-items: center; margin-top: auto; }
+  .sjekk { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm 5mm; font-size: 10pt; }
+  .sjekk div { display: flex; gap: 2.5mm; align-items: center; }
+  .sjekk span { width: 4.5mm; height: 4.5mm; border: 1.4px solid var(--blekk-r); border-radius: 1mm; flex: none; }
+  .stort-stempel { width: 44mm; height: 44mm; border-radius: 50%; border: 2.4px solid #9aa4ae; display: grid; place-items: center; text-align: center; transform: rotate(-12deg); position: relative; }
+  .stort-stempel::before { content: ''; position: absolute; inset: 2.2mm; border: 1px solid #9aa4ae; border-radius: 50%; }
+  .stort-stempel b { font: 800 11pt/1.1 var(--font-tittel); color: #8a96a2; letter-spacing: .06em; }
+
+  @media print {
+    body { background: #fff; }
+    .styring { display: none; }
+    .ark { box-shadow: none; margin: 0; width: 182mm; height: 272mm; padding: 0; }
+    html, body { width: 182mm; }
+  }
+</style>
+</head>
+<body>
+<div class="styring kort">
+  <h2>📓 Reiselogg til utskrift</h2>
+  <p class="dempet" style="margin-top:0">Reiseloggen er landsnøytral – skriv ut ett sett og kopier opp til alle gruppene.</p>
+  <div class="rad" style="margin:.8rem 0">
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="valuta"> Ekstra felt: Valuta</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="kilder"> Ekstra felt: Kilder</label>
+  </div>
+  <button class="knapp sol" onclick="window.print()">🖨️ Skriv ut (3 sider)</button>
+  <p class="liten dempet">Laget for A4. Fungerer fint på svart-hvitt-skriver. Slå av «topptekst og bunntekst» i utskriftsvinduet.</p>
+</div>
+
+<div id="ark"></div>
+
+<script type="module">
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const p = new URLSearchParams(location.search);
+$('#valuta').checked = p.has('valuta'); $('#kilder').checked = p.has('kilder');
+
+// Guilloche-bånd (bølgemønster som på pengesedler og pass)
+function guilloche() {
+  const linjer = [];
+  for (let k = 0; k < 6; k++) {
+    let d = 'M0 13';
+    for (let x = 0; x <= 700; x += 4) {
+      const y = 13 + 9 * Math.sin(x / 22 + k * 0.9) * Math.cos(x / 61 + k * 0.4);
+      d += ` L${x} ${y.toFixed(2)}`;
+    }
+    linjer.push(`<path d="${d}" fill="none" stroke="${k % 2 ? '#0B3A53' : '#E2A336'}" stroke-width="0.7" opacity="${k % 2 ? .55 : .8}"/>`);
+  }
+  return `<svg class="guilloche" viewBox="0 0 700 26" preserveAspectRatio="none" aria-hidden="true">${linjer.join('')}</svg>`;
+}
+const strek = (n) => `<div class="linjer">${'<div></div>'.repeat(n)}</div>`;
+const felt = (ikon, navn, linjer = 1, klasse = '') => `<div class="felt-l ${klasse}"><div class="lbl"><i>${ikon}</i>${navn}</div>${strek(linjer)}</div>`;
+
+function mrz(l, gruppe) {
+  const rens = (s) => (s || '').toUpperCase().replace(/Æ/g, 'AE').replace(/Ø/g, 'O').replace(/Å/g, 'A').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]/g, '<');
+  const a = 'P<JRD<JORDA<RUNDT<<REISELOGG'.padEnd(44, '<');
+  const b = 'JR2026<VERDENSBORGER<<<GOD<TUR'.padEnd(44, '<');
+  const e = (t) => t.replace(/</g, '&lt;');
+  return `<div class="mrz">${e(a)}<br>${e(b)}</div>`;
+}
+
+function strekkode(tekst) {
+  let x = 0, rekt = '';
+  for (const c of tekst + tekst) { const k = c.charCodeAt(0); for (let b = 0; b < 3; b++) { const w = ((k >> b) & 1) + 1; rekt += `<rect x="${x}" y="0" width="${w}" height="20" fill="#18232f"/>`; x += w + 1 + ((k >> (b + 2)) & 1); } }
+  return `<svg class="bc" viewBox="0 0 ${x} 20" preserveAspectRatio="none" aria-hidden="true">${rekt}</svg>`;
+}
+
+function band(l, gruppe, del, navn) {
+  return `<div class="band">
+    <div class="logo"><b>🌍 Jorda rundt</b><span>REISELOGG · TRAVEL LOG</span></div>
+    <div class="felter">
+      <div><div class="smaa">Reisemål</div><div class="verdi ${l ? '' : 'tom'}">${l ? esc(l.navn) : ''}</div></div>
+      <div><div class="smaa">Gruppe</div><div class="verdi ${gruppe ? '' : 'tom'}">${esc(gruppe)}</div></div>
+      <div><div class="smaa">Dato</div><div class="verdi tom"></div></div>
+    </div>
+    <div class="del"><div class="smaa">Del</div><b>${del}/3</b><div class="smaa" style="letter-spacing:.06em">${navn}</div></div>
+  </div>`;
+}
+
+function tegn() {
+  const l = null, gruppe = '';
+  const medValuta = $('#valuta').checked, medKilder = $('#kilder').checked;
+
+  const side1 = `<section class="ark">
+    ${band(l, gruppe, 1, 'Fakta')}
+    <div><h1 class="side">Fakta <small>– landets passside</small></h1>${guilloche()}</div>
+    <div class="passtopp">
+      <div class="felt-l"><div class="lbl"><i>🏳️</i>Flagg <span class="hand" style="text-transform:none;letter-spacing:0;font-size:11pt;margin-left:1mm">– tegn det i rammen</span></div><div class="frimerke"><div class="frimerke-ramme"></div></div></div>
+      <div class="passinfo">
+        <div><div class="smaa">Navn på land</div><div class="landnavn">${l ? esc(l.navn) : ''}</div></div>
+        <div class="rad2">${felt('🏛️', 'Hovedstad')}${felt('👥', 'Folketall')}</div>
+      </div>
+    </div>
+    <div class="fakta">
+      ${felt('📐', 'Areal (km²)')}${felt('⛰️', 'Høyeste fjell (m.o.h.)')}
+      ${felt('🛐', 'Største religion')}${medValuta ? felt('💱', 'Valuta – 100 kr er …') : felt('🗺️', 'Kontinent')}
+      ${felt('🧭', 'Naboland', 2, 'bred')}
+      ${felt('🏭', 'Hovednæringer – hva lever folk av?', 2, 'bred')}
+      ${felt('🏙️', 'Tre største byer', 1, 'bred')}
+    </div>
+    <div class="postrad">
+      <div class="postkort"><div class="tittel">✉️ Fun fact!</div><div class="hand" style="margin-bottom:1mm">Visste du at …</div><div style="margin-right:20mm">${strek(3)}</div></div>
+      <div class="stempelfelt"><div><b>FAKTA<br>SJEKKET</b><div class="hand" style="font-size:9pt">lærerens stempel</div></div></div>
+    </div>
+    ${mrz(l, gruppe)}
+  </section>`;
+
+  const side2 = `<section class="ark">
+    ${band(l, gruppe, 2, 'Kultur')}
+    <div><h1 class="side">Kultur <small>– slik lever de i ${l ? esc(l.navn) : 'landet'}</small></h1>${guilloche()}</div>
+    <div class="lapper">
+      <div class="lapp">${felt('🗣️', 'Språk')}</div>
+      <div class="lapp">${felt('🎵', 'Nasjonalsang (navn)')}</div>
+    </div>
+    <div class="rett">
+      <div class="felt-l" style="align-items:center"><div class="tallerken"></div><div class="hand" style="font-size:11pt">Tegn nasjonalretten på tallerkenen</div></div>
+      <div>${felt('🍽️', 'Nasjonalrett', 1)}<div style="height:4mm"></div>${felt('🥄', 'Hva er den laget av?', 2)}</div>
+    </div>
+    <div>
+      <div class="felt-l" style="margin-bottom:2mm"><div class="lbl" style="white-space:nowrap"><i>⭐</i>Kjendisveggen – skuespillere, artister og idrettsstjerner</div><div class="hand" style="font-size:11pt;margin-top:-.5mm">Tegn eller lim inn et bilde, og skriv navnet under</div></div>
+      <div class="kjendiser">${[1, 2, 3].map(() => `<div class="ramme"><div class="bilde"></div><div class="navnelinje"></div></div>`).join('')}</div>
+    </div>
+    <div class="parlor">
+      <div class="parlor-topp"><b>📖 Parlør</b><span class="hand">Oversett til landets språk – og øv på å si det høyt!</span></div>
+      <div class="bobler">
+        ${['Hei', 'Velkommen', 'Takk', 'Hvor er …?'].map((o) => `<div class="boble"><span class="no">${o}</span><div class="oversatt"></div></div>`).join('')}
+        <div class="boble bred"><span class="no">Jeg heter …</span><div class="oversatt"></div></div>
+      </div>
+    </div>
+    ${medKilder ? `<div class="lapp bred" style="border-radius:3mm">${felt('🔎', 'Kilder – hvor fant dere informasjonen?', 2)}</div>` : ''}
+  </section>`;
+
+  const side3 = `<section class="ark">
+    ${band(l, gruppe, 3, 'Bilder')}
+    <div><h1 class="side">Bildecollage <small>– i BookCreator</small></h1>${guilloche()}</div>
+    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis ${l ? esc(l.navn) : 'landet'} i bilder!</b><p>Lag et bildecollage med ca. 10 bilder som beskriver landet. Planlegg først: skriv eller tegn hva hvert bilde skal vise – natur, mat, severdigheter, dyr, folk, sport …</p></div></div>
+    <div class="polaroider">${Array.from({ length: 10 }, (_, n) => `<div class="polaroid"><div class="foto"><span>${n + 1}</span></div><div class="tekst"></div></div>`).join('')}</div>
+    <div class="billett">
+      <div class="hoved"><div class="smaa">Adgangsbillett · Greenscreen-fotoboks</div><b>🎬 Gruppebilde foran en kjent severdighet</b>
+        <div style="margin-top:2.5mm">${felt('📍', 'Vi poserer foran')}</div>
+        <div style="margin-top:2mm">${felt('🤸', 'Positur / idé')}</div></div>
+      <div class="stubb"><div class="smaa">Gyldig for</div><b style="font:800 11pt var(--font-tittel)">HELE GRUPPA</b>${strekkode(l ? l.id + l.numerisk : "JORDARUNDT")}<div class="smaa">JORDA RUNDT</div></div>
+    </div>
+    <div class="bunn3">
+      <div><div class="smaa" style="margin-bottom:2mm">Sjekkliste før innsjekk</div>
+        <div class="sjekk"><div><span></span>Del 1 – fakta er fylt ut</div><div><span></span>Del 2 – kultur er fylt ut</div>
+        <div><span></span>Ca. 10 bilder i BookCreator</div><div><span></span>Gruppebilde med greenscreen</div>
+        <div><span></span>Vi har øvd på parløren</div><div><span></span>Trykket «levert» i spillet</div></div></div>
+      <div class="stort-stempel"><div><b>INNREISE<br>GODKJENT</b><div class="hand" style="font-size:10pt">lærerens stempel</div></div></div>
+    </div>
+    ${mrz(l, gruppe)}
+  </section>`;
+
+  $('#ark').innerHTML = side1 + side2 + side3;
+  const q = new URLSearchParams();
+  if (medValuta) q.set('valuta', ''); if (medKilder) q.set('kilder', '');
+  history.replaceState(null, '', '?' + q.toString().replace(/=(&|$)/g, '$1'));
+}
+['#valuta', '#kilder'].forEach((s) => $(s).addEventListener('input', tegn));
+tegn();
+</script>
+</body>
+</html>
