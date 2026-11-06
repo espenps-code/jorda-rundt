@@ -90,6 +90,65 @@
     .fase { grid-template-columns: 1fr; gap: .8rem; }
   }
   @media (max-width: 560px) { .steg-rutenett { grid-template-columns: 1fr; } }
+  /* ---------- felles node ---------- */
+  .medalje { width: 76px; height: 76px; border-radius: 50%; background: #fff; display: grid; place-items: center;
+    border: 3px solid var(--hav); box-shadow: 0 4px 0 var(--hav); position: relative; z-index: 2; flex: none; }
+  .medalje img { width: 50px; height: 50px; }
+  .medalje .nr { position: absolute; top: -8px; right: -8px; width: 28px; height: 28px; border-radius: 50%;
+    background: var(--korall); color: #fff; font: 700 .85rem/28px var(--font-mono); text-align: center; border: 2px solid #fff; }
+  .medalje.sol { background: var(--sol-lys); }
+  .medalje.gress { background: var(--gress-lys); border-color: var(--gress); box-shadow: 0 4px 0 var(--gress); }
+  .medalje.korall { background: var(--korall-lys); border-color: var(--korall); box-shadow: 0 4px 0 var(--korall); }
+  .nodetittel { font-family: var(--font-tittel); font-weight: 800; color: var(--hav); font-size: 1.08rem; margin: 14px 0 4px; line-height: 1.2; }
+  .nodetekst { font-size: .9rem; color: var(--blekk-2); margin: 0; line-height: 1.4; }
+
+  /* ---------- LÆRER: flyrute ---------- */
+  .fasemerke { display: inline-flex; gap: 10px; align-items: center; font-family: var(--font-mono); font-size: .8rem; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--hav); background: var(--sol-lys); border: 2px dashed var(--sol); border-radius: 999px; padding: 6px 14px; margin-bottom: 26px; }
+  .rute { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; position: relative; }
+  .rute::before { content: ''; position: absolute; left: 10%; right: 10%; top: 38px; border-top: 3px dashed var(--hav-3); z-index: 0; }
+  .stopp { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .rute .flyikon { position: absolute; right: calc(10% - 34px); top: 18px; width: 40px; z-index: 1; }
+
+  .pil-ned { display: flex; justify-content: center; margin: 34px 0 10px; }
+  .pil-ned svg { width: 40px; height: 64px; }
+
+  .okt { display: grid; grid-template-columns: 1fr 380px 1fr; gap: 26px; align-items: center; }
+  .okt .side { display: flex; flex-direction: column; gap: 70px; }
+  .okt .side.h { text-align: left; } .okt .side.v { text-align: right; }
+  .oktnode { display: flex; gap: 14px; align-items: center; }
+  .okt .side.v .oktnode { flex-direction: row-reverse; }
+  .oktnode .medalje { width: 64px; height: 64px; } .oktnode .medalje img { width: 42px; height: 42px; }
+  .oktnode .nodetittel { margin-top: 0; }
+  .ring { position: relative; width: 380px; height: 380px; }
+  .ring svg { position: absolute; inset: 0; }
+  .ringsenter { position: absolute; inset: 70px; border-radius: 50%; background: var(--hav); color: #fff; display: grid; place-items: center;
+    text-align: center; padding: 26px; box-shadow: 0 6px 0 #04101F, inset 0 0 0 6px var(--hav-2); }
+  .ringsenter img { width: 64px; height: 64px; margin: 0 auto 6px; display: block; }
+  .ringsenter b { font-family: var(--font-tittel); font-size: 1.25rem; display: block; line-height: 1.15; }
+  .ringsenter small { color: var(--lys-tekst); font-size: .82rem; display: block; margin-top: 6px; }
+  .ringetikett { position: absolute; font-family: var(--font-mono); font-size: .72rem; letter-spacing: .12em; color: var(--hav-3); text-transform: uppercase; }
+
+  @media (max-width: 860px) {
+    .rute { grid-template-columns: 1fr; gap: 22px; padding-left: 8px; }
+    .rute::before { left: 46px; right: auto; top: 30px; bottom: 30px; border-top: 0; border-left: 3px dashed var(--hav-3); }
+    .rute .flyikon { display: none; }
+    .stopp { flex-direction: row; text-align: left; gap: 16px; }
+    .stopp .nodetittel { margin-top: 0; }
+    .okt { grid-template-columns: 1fr; } .okt .side { gap: 18px; } .okt .side.v { text-align: left; } .okt .side.v .oktnode { flex-direction: row; }
+    .ring { width: 300px; height: 300px; margin: 0 auto 8px; order: 0; } .ringsenter { inset: 28px; padding: 18px; }
+    .ringsenter img { width: 48px; height: 48px; } .ringsenter b { font-size: 1.1rem; } .ringsenter small { font-size: .78rem; }
+    .okt { display: flex; flex-direction: column; align-items: stretch; gap: 18px; } .okt .side { display: contents; }
+    .okt .oktnode, .okt .side.v .oktnode { flex-direction: row; text-align: left; align-self: stretch; }
+    .okt .side.v .oktnode:nth-child(1) { order: 1; } .okt .side.h .oktnode:nth-child(1) { order: 2; }
+    .okt .side.h .oktnode:nth-child(2) { order: 3; } .okt .side.v .oktnode:nth-child(2) { order: 4; }
+  }
+  .flyt { margin: 1rem 0 2.5rem; }
+  .helveiledning { border: 2px solid var(--linje); border-radius: 16px; background: var(--papir); margin: 0 0 1.5rem; }
+  .helveiledning > summary { cursor: pointer; list-style: none; padding: 1rem 1.3rem; font: 800 1.1rem var(--font-tittel); color: var(--hav); display: flex; justify-content: space-between; gap: 1rem; }
+  .helveiledning > summary::after { content: '＋'; color: var(--blekk-2); }
+  .helveiledning[open] > summary::after { content: '－'; }
+  .helveiledning > .innhold { padding: 0 1.3rem .6rem; }
 </style>
 </head>
 <body>
@@ -154,6 +213,43 @@
         <p>Alt du trenger er en e-postadresse (gjerne jobbmailen) eller en Google-konto, en skriver og en storskjerm. Oppsettet tar ca. 15 minutter.</p>
       </div>
 
+      <div class="flyt">
+    <div class="fasemerke">✈ Før første økt · ca. 15 min</div>
+    <div class="rute">
+      <div class="stopp"><div class="medalje"><span class="nr">1</span><img src="ikoner/nokkel.webp" alt=""></div><div><div class="nodetittel">Logg inn</div><p class="nodetekst">Med Google eller e-post. Elevene trenger ingen konto.</p></div></div>
+      <div class="stopp"><div class="medalje"><span class="nr">2</span><img src="ikoner/kart.webp" alt=""></div><div><div class="nodetittel">Lag et spill</div><p class="nodetekst">Ett per klasse, f.eks. «7A høst».</p></div></div>
+      <div class="stopp"><div class="medalje"><span class="nr">3</span><img src="ikoner/liste.webp" alt=""></div><div><div class="nodetittel">Still inn regler</div><p class="nodetekst">Startbeløp, poeng og datoer. Standardverdiene fungerer fint.</p></div></div>
+      <div class="stopp"><div class="medalje"><span class="nr">4</span><img src="ikoner/ryggsekk.webp" alt=""></div><div><div class="nodetittel">Lag gruppene</div><p class="nodetekst">Hver gruppe får startland, kode og PIN.</p></div></div>
+      <div class="stopp"><div class="medalje sol"><span class="nr">5</span><img src="ikoner/printer.webp" alt=""></div><div><div class="nodetittel">Skriv ut</div><p class="nodetekst">Innloggingskort og reiselogger til alle.</p></div></div>
+      <img class="flyikon" src="ikoner/fly.webp" alt="">
+    </div>
+
+    <div class="pil-ned"><svg viewBox="0 0 40 64" fill="none" stroke="#C8382F" stroke-width="3" stroke-linecap="round" stroke-dasharray="6 7"><path d="M20 2v52"/><path d="M8 44l12 14 12-14" stroke-dasharray="none"/></svg></div>
+
+    <div style="text-align:center"><div class="fasemerke">↻ I hver økt</div></div>
+    <div class="okt">
+      <div class="side v">
+        <div class="oktnode"><div class="medalje"><img src="ikoner/tv.webp" alt=""></div><div><div class="nodetittel">Åpne tavla</div><p class="nodetekst">På storskjermen. Jordklode, poeng og siste nytt.</p></div></div>
+        <div class="oktnode"><div class="medalje korall"><img src="ikoner/duell.webp" alt=""></div><div><div class="nodetittel">Kjør dueller</div><p class="nodetekst">Trekk oppgave, start klokka, kår vinneren.</p></div></div>
+      </div>
+      <div class="ring">
+        <svg viewBox="0 0 380 380"><defs><marker id="pr" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1D5B8F"/></marker></defs>
+          <circle cx="190" cy="190" r="168" fill="none" stroke="#1D5B8F" stroke-width="3" stroke-dasharray="7 9"/>
+          <path d="M 330 96 A 168 168 0 0 1 356 170" fill="none" stroke="#1D5B8F" stroke-width="3" marker-end="url(#pr)"/>
+          <path d="M 50 284 A 168 168 0 0 1 24 210" fill="none" stroke="#1D5B8F" stroke-width="3" marker-end="url(#pr)"/>
+        </svg>
+        <div class="ringsenter"><div><img src="ikoner/penger.webp" alt=""><b>Tavla er banken</b><small>Ha tavla eller lærersiden åpen mens elevene spiller. Det er den som gjennomfører alle kjøp.</small></div></div>
+      </div>
+      <div class="side h">
+        <div class="oktnode"><div class="medalje"><img src="ikoner/megafon.webp" alt=""></div><div><div class="nodetittel">Del lenken</div><p class="nodetekst">QR-kode under «Del med elevene».</p></div></div>
+        <div class="oktnode"><div class="medalje gress"><img src="ikoner/stempel.webp" alt=""></div><div><div class="nodetittel">Godkjenn</div><p class="nodetekst">Reiselogger og diktater havner i «Venter på deg».</p></div></div>
+      </div>
+    </div>
+      </div>
+
+      <details class="helveiledning">
+        <summary>Les hele veiledningen steg for steg</summary>
+        <div class="innhold">
       <div class="fase">
         <div class="fasenavn">Før første økt<small>ca. 15 minutter</small></div>
         <ol class="punkter">
@@ -177,6 +273,9 @@
           <li><div><b>Åpne diktater.</b><p>Når en gruppe trykker «Vi er klare for diktat», får du beskjed. Gå bort til gruppa, se at notatene er lagt bort, og trykk «Åpne diktat».</p></div></li>
         </ol>
       </div>
+
+        </div>
+      </details>
 
       <div class="fase">
         <div class="fasenavn">Gode tips<small>fra klasserommet</small></div>
