@@ -1,0 +1,116 @@
+/* Jorda rundt – felles utseende */
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=DM+Mono:wght@500&display=swap');
+
+/* Flagg-emojier på Windows: Windows har ingen flagg i emoji-skriften og viser bare bokstaver (f.eks. «MT»).
+   Denne skriften inneholder kun landflagg og ligger lokalt i prosjektet. */
+@font-face {
+  font-family: 'Twemoji Country Flags';
+  unicode-range: U+1F1E6-1F1FF, U+1F3F4, U+E0062-E0063, U+E0065, U+E0067, U+E006C, U+E006E, U+E0073-E0074, U+E0077, U+E007F;
+  src: url('../../fonts/TwemojiCountryFlags.woff2') format('woff2');
+  font-display: swap;
+}
+
+:root {
+  /* «Flypost»-palett */
+  --hav: #0C2340;
+  --hav-2: #17457A;
+  --hav-3: #1D5B8F;
+  --papir: #F5EFE1;
+  --papir-2: #EAE1CC;
+  --kort: #FFFFFF;
+  --blekk: #13283F;
+  --blekk-2: #4F5B6B;
+  --linje: #D9CDB2;
+  --sol: #F3B23A;
+  --sol-lys: #FCEBC8;
+  --korall: #C8382F;
+  --korall-lys: #FBE3E0;
+  --gress: #2D6E4A;
+  --gress-lys: #DDF0E4;
+  --lys-tekst: #A9C4DD;
+  --skygge: 0 1px 2px rgba(12,35,64,.08), 0 6px 18px rgba(12,35,64,.08);
+  --radius: 16px;
+  --font-tittel: 'Twemoji Country Flags', 'Bricolage Grotesque', system-ui, sans-serif;
+  --font: 'Twemoji Country Flags', 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-mono: 'Twemoji Country Flags', 'DM Mono', ui-monospace, monospace;
+  --luftpost: repeating-linear-gradient(135deg, #C8382F 0 14px, #F5EFE1 14px 22px, #1D5B8F 22px 36px, #F5EFE1 36px 44px);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { font-family: var(--font); color: var(--blekk); background: var(--papir); font-size: 16px; line-height: 1.45; }
+h1, h2, h3, h4 { font-family: var(--font-tittel); font-weight: 800; letter-spacing: -.01em; line-height: 1.1; margin: 0 0 .4em; color: var(--hav); }
+h1 { font-size: 2rem; } h2 { font-size: 1.5rem; } h3 { font-size: 1.2rem; }
+a { color: var(--hav-3); }
+.skjult { display: none !important; }
+.dempet { color: var(--blekk-2); }
+.liten { font-size: .85rem; }
+.tall { font-variant-numeric: tabular-nums; }
+
+/* knapper */
+.knapp {
+  --k1: #1F5390; --k2: #0C2340; --kant: #04101F; --tekst: #fff; --loft: 4px;
+  min-height: 44px; font: 700 1rem var(--font); border: 0; border-radius: 999px; padding: .6em 1.2em; cursor: pointer;
+  color: var(--tekst); background: linear-gradient(180deg, var(--k1), var(--k2));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -2px 0 rgba(0,0,0,.12), 0 var(--loft) 0 var(--kant), 0 calc(var(--loft) + 4px) 14px rgba(12,35,64,.22);
+  margin-bottom: var(--loft); position: relative; top: 0;
+  display: inline-flex; align-items: center; gap: .45em; text-decoration: none; text-shadow: 0 1px 0 rgba(0,0,0,.15);
+  transition: top .08s, box-shadow .08s, filter .15s;
+}
+.knapp:hover { filter: brightness(1.08) saturate(1.05); }
+.knapp:active:not(:disabled) { top: calc(var(--loft) - 1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.2), inset 0 2px 4px rgba(0,0,0,.18), 0 1px 0 var(--kant); }
+.knapp:disabled { opacity: .5; cursor: not-allowed; filter: grayscale(.4); }
+.knapp.sol { --k1: #FFD875; --k2: #F3B23A; --kant: #B07510; --tekst: var(--blekk); text-shadow: 0 1px 0 rgba(255,255,255,.35); }
+.knapp.gress { --k1: #2F7D53; --k2: #225C3C; --kant: #123522; }
+.knapp.korall { --k1: #D2463C; --k2: #B02F27; --kant: #6E1A15; }
+.knapp.lys { --k1: #FFFFFF; --k2: #EEE5D1; --kant: #CBBC99; --tekst: var(--hav); text-shadow: none; }
+.knapp.omriss { background: transparent; --tekst: var(--hav); text-shadow: none; box-shadow: inset 0 0 0 2px var(--hav), 0 3px 0 rgba(12,35,64,.18); }
+.knapp.mini { --loft: 3px; font-size: .85rem; padding: .35em .85em; min-height: 36px; }
+.knapp:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--sol); outline-offset: 2px; }
+
+/* skjema */
+label { font-weight: 700; font-size: .9rem; min-height: 0; display: block; margin-bottom: .25em; color: var(--blekk-2); }
+input, select, textarea { font: 1rem var(--font); padding: .55em .7em; border: 2px solid var(--linje); border-radius: 10px; background: #fff; color: var(--blekk); width: 100%; }
+input[type=checkbox] { width: auto; }
+.felt { margin-bottom: .9rem; }
+.rad { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.rad > * { flex: 0 0 auto; }
+.vokser { flex: 1 1 auto !important; }
+
+/* kort */
+.kort { background: linear-gradient(180deg, #FFFFFF, #FFFCF5); border-radius: var(--radius); box-shadow: 0 3px 0 #E2D6BC, var(--skygge); padding: 1.1rem 1.2rem; }
+.kort + .kort { margin-top: 1rem; }
+
+/* merkelapper */
+.merke { box-shadow: inset 0 -1px 0 rgba(0,0,0,.08); display: inline-flex; align-items: center; gap: .3em; font-size: .8rem; font-weight: 700; padding: .15em .6em; border-radius: 999px; background: var(--papir-2); color: var(--blekk-2); white-space: nowrap; }
+.merke.gress { background: var(--gress-lys); color: #1F5537; }
+.merke.korall { background: var(--korall-lys); color: #a12a2e; }
+.merke.sol { background: var(--sol-lys); color: #7A4A00; }
+.prikk { width: .8em; height: .8em; border-radius: 50%; display: inline-block; flex: none; box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0,0,0,.08); }
+
+/* tabeller */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font: 500 .75rem var(--font-mono); text-transform: uppercase; letter-spacing: .12em; color: var(--blekk-2); padding: .5em .6em; border-bottom: 2px solid var(--linje); }
+td { padding: .6em; border-bottom: 1px solid var(--linje); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+
+/* varsel (toast) */
+#varsler { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 1000; width: min(92vw, 460px); }
+.varsel { background: linear-gradient(180deg, #1F5390, var(--hav)); box-shadow: 0 4px 0 #04101F, 0 10px 24px rgba(0,0,0,.25); color: #fff; padding: .75em 1em; border-radius: 12px; box-shadow: var(--skygge); animation: inn .25s ease-out; font-weight: 700; }
+.varsel.feil { background: linear-gradient(180deg, #D2463C, #B02F27); box-shadow: 0 4px 0 #6E1A15, 0 10px 24px rgba(0,0,0,.25); }
+.varsel.ok { background: linear-gradient(180deg, #2F7D53, #225C3C); box-shadow: 0 4px 0 #123522, 0 10px 24px rgba(0,0,0,.25); }
+@keyframes inn { from { transform: translateY(10px); opacity: 0; } }
+
+/* modal */
+.modal-bakgrunn { position: fixed; inset: 0; background: rgba(8,26,48,.55); display: grid; place-items: center; z-index: 900; padding: 16px; }
+.modal { background: var(--papir); border-radius: 18px; padding: 1.4rem; width: min(100%, 480px); box-shadow: 0 20px 60px rgba(0,0,0,.25); max-height: 90vh; overflow: auto; }
+
+/* «Flypost»-detaljer */
+.mono, .kode { font-family: var(--font-mono); font-weight: 500; letter-spacing: .08em; }
+.etikett-mono { font: 500 .72rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
+.luftpost { height: 8px; background: var(--luftpost); }
+input:focus, select:focus, textarea:focus { border-color: var(--hav-3); outline: none; }
+
+/* Eget ikonsett (js/ikoner.js bytter emojier mot disse) */
+img.ik { height: 1.3em; width: auto; vertical-align: -.3em; display: inline-block; margin: 0 .04em; }
+svg.ik-sym { width: 1.05em; height: 1.05em; vertical-align: -.16em; display: inline-block; flex: none; }
