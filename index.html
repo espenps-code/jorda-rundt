@@ -150,6 +150,18 @@
   .helveiledning > summary::after { content: '＋'; color: var(--blekk-2); }
   .helveiledning[open] > summary::after { content: '－'; }
   .helveiledning > .innhold { padding: 0 1.3rem .6rem; }
+  /* ---------- velg reise ---------- */
+  .reisevalg { padding: 3.5rem 0 0; }
+  .reisekort-rad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+  .reisekort { display: flex; flex-direction: column; background: var(--kort); border-radius: 22px; box-shadow: var(--skygge); padding: 1.6rem 1.5rem 1.4rem; text-decoration: none; color: var(--blekk); border-top: 8px solid var(--f, var(--hav-3)); transition: transform .15s, box-shadow .15s; }
+  .reisekort:hover, .reisekort:focus-visible { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(12,35,64,.18); }
+  .reisekort:nth-child(2) { --f: var(--sol); } .reisekort:nth-child(3) { --f: var(--korall); }
+  .reisekort .flagg { font-size: 2.6rem; line-height: 1; }
+  .reisekort h3 { margin: .5rem 0 .3rem; font-size: 1.6rem; color: var(--hav); }
+  .reisekort p { margin: 0 0 1rem; color: var(--blekk-2); line-height: 1.5; flex: 1; }
+  .reisekort .fakta { font: 500 .8rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--blekk-2); }
+  .reisekort .ga { margin-top: .9rem; font-weight: 700; color: var(--hav-3); }
+  @media (max-width: 860px) { .reisekort-rad { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -162,9 +174,9 @@
       <p class="ingress">Reis verden rundt med 200 000 kroner i lomma. Book fly og hotell, fullfør reiseloggen – og erobre flest land før de andre gruppene!</p>
       <div class="cta">
         <a class="knapp sol" href="laerer.html">Logg inn som lærer</a>
-        <a class="knapp omriss" href="#veiledning">Slik kommer du i gang</a>
+        <a class="knapp omriss" href="#reiser">Se alle tre reisene</a>
       </div>
-      <div class="fordeler"><span>✓ Gratis</span><span>✓ Ingen elevkontoer</span><span>✓ Nettbrett og PC</span><span>✓ 198 land</span></div>
+      <div class="fordeler"><span>✓ Gratis</span><span>✓ Ingen elevkontoer</span><span>✓ Nettbrett og PC</span><span>✓ Verden, Europa og Norge</span></div>
     </div>
     <div id="klode" aria-hidden="true">
       <div class="hero-nal" style="top:14%;left:4%">✈️ <b>Oslo → Tokyo</b><br>3 309 kr · 2 stopp</div>
@@ -175,6 +187,37 @@
 </header>
 
 <main>
+  <section class="reisevalg" id="reiser">
+    <div class="wrap">
+      <div class="seksjonstittel">
+        <h2>Velg reise</h2>
+        <p>Tre spill med samme regler – velg hvor stor verden klassen skal reise i.</p>
+      </div>
+      <div class="reisekort-rad">
+        <a class="reisekort" href="#veiledning">
+          <span class="flagg">🌍</span>
+          <h3>Jorda rundt</h3>
+          <p>Reis hele verden rundt med 200 000 kroner. Fly mellom land, book hotell og erobre flest land.</p>
+          <span class="fakta">198 land · fly</span>
+          <span class="ga">Les mer her på siden ↓</span>
+        </a>
+        <a class="reisekort" href="europa/">
+          <span class="flagg">🇪🇺</span>
+          <h3>Europa rundt</h3>
+          <p>Reis Europa rundt med 100 000 kroner. Velg mellom fly, tog og buss – og erobre flest byer.</p>
+          <span class="fakta">109 byer i 46 land · fly, tog, buss</span>
+          <span class="ga">Gå til Europa rundt →</span>
+        </a>
+        <a class="reisekort" href="norge/">
+          <span class="flagg">🇳🇴</span>
+          <h3>Norge rundt</h3>
+          <p>Reis Norge rundt med 80 000 kroner. Fly, tog, buss eller båt – og overnatt i telt med allemannsretten.</p>
+          <span class="fakta">54 steder i 15 fylker · fly, tog, buss, båt</span>
+          <span class="ga">Gå til Norge rundt →</span>
+        </a>
+      </div>
+    </div>
+  </section>
   <section class="teaser">
     <div class="wrap">
       <div class="teaser-kort">

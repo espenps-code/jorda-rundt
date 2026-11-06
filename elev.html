@@ -519,7 +519,7 @@ function tegnFly() {
   $('#videre')?.addEventListener('click', () => { fq.fase = 'spinn'; tegnFly(); });
   $('#land')?.addEventListener('click', async () => {
     const res = await send('landing', { svar: fq.svar });
-    if (res.ok) { try { localStorage.removeItem(lagringsnokkel('fly-') + fq.fro); } catch {} fq = null; flyVist = null; feir('🛬'); }
+    if (res.ok) { try { localStorage.removeItem(lagringsnokkel('fly-') + fq.fro); } catch {} fq = null; flyVist = null; feir(bakke ? kjoretoy : '🛬'); }
   });
 }
 
