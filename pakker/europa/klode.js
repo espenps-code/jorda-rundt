@@ -39,7 +39,7 @@ export async function lagKlode(el, valg = {}) {
     .backgroundColor('rgba(0,0,0,0)')
     .showAtmosphere(true).atmosphereColor('#9fd3ef').atmosphereAltitude(0.12)
     .polygonsData(former)
-    .polygonAltitude((f) => (!f.landId ? 0.002 : f.landId === hoverId ? 0.012 : heltEid(f.landId) ? 0.008 : 0.004))
+    .polygonAltitude((f) => (!f.landId ? 0.001 : f.landId === hoverId ? 0.006 : heltEid(f.landId) ? 0.004 : 0.002))
     .polygonCapColor((f) => fyllfarge(f.landId))
     .polygonSideColor(() => 'rgba(11,58,83,.25)')
     .polygonStrokeColor(() => FARGER.kant)
@@ -115,8 +115,8 @@ export async function lagKlode(el, valg = {}) {
       const farge = b.id === valgt ? '#F59E0B' : e ? (spill.grupper?.[e.gruppe]?.farge || '#888') : stengt ? '#6B7280' : '#FFFFFF';
       return {
         lat: b.lat, lng: b.lng, byId: b.id, farge,
-        hoyde: e || b.id === valgt ? 0.012 : 0.006,
-        radius: (b.id === valgt ? 0.32 : e ? 0.26 : 0.18) * (b.hovedstad ? 1.15 : 1),
+        hoyde: e || b.id === valgt ? 0.010 : 0.008,  // lave søyler: litt over fylkene/landene (maks 0.006), men ikke så høye at de skygger for naboene
+        radius: (b.id === valgt ? 0.24 : e ? 0.20 : 0.16) * (b.hovedstad ? 1.15 : 1),
         etikett: byEtikett(b),
       };
     });
