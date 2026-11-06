@@ -2,6 +2,7 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
 import {
   getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, GoogleAuthProvider, signOut, connectAuthEmulator, signInWithCredential,
+  signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, updateProfile,
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 import {
   getDatabase, ref, get, set, update, push, remove, onValue, onChildAdded, onChildChanged, off,
@@ -22,6 +23,14 @@ if (brukerEmulator) {
 export function loggInnLaerer() { return signInWithPopup(auth, new GoogleAuthProvider()); }
 // Bare for testing mot emulator: logg inn som en falsk Google-lærer
 export function testLoggInnLaerer() { return signInWithCredential(auth, GoogleAuthProvider.credential('{"sub":"testlaerer","email":"laerer@test.no","email_verified":true}')); }
+// Lærer med vanlig e-post og passord (f.eks. jobbmailen)
+export function loggInnEpost(epost, passord) { return signInWithEmailAndPassword(auth, epost.trim(), passord); }
+export async function lagEpostkonto(navn, epost, passord) {
+  const k = await createUserWithEmailAndPassword(auth, epost.trim(), passord);
+  if (navn) { await updateProfile(k.user, { displayName: navn.trim() }); await k.user.getIdToken(true); }
+  return k;
+}
+export function nyttPassord(epost) { auth.languageCode = 'no'; return sendPasswordResetEmail(auth, epost.trim()); }
 export function loggInnElev() { return signInAnonymously(auth); }
 export function loggUt() { return signOut(auth); }
 export function vedInnlogging(cb) { return onAuthStateChanged(auth, cb); }

@@ -82,7 +82,7 @@
 <body>
 <section id="innlogging" class="skjult">
   <div><div style="font-size:4rem">🌍📺</div><h1>Jorda rundt – tavle</h1><p style="color:#9fd3ef">Logg inn som lærer for å vise tavla. Banken kjører også her.</p>
-  <button class="knapp sol" id="googleknapp">Logg inn med Google</button> <button class="knapp lys skjult" id="testinn">Testinnlogging</button>
+  <div id="laererinn" style="margin-top:1rem"></div>
   <p id="melding" style="color:#fca5a5"></p></div>
 </section>
 <div id="duellscene" class="skjult"></div>
@@ -102,6 +102,7 @@
 </div>
 
 <script type="module">
+import { monterInnlogging } from './js/laererinn.js';
 import { r, get, onValue, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { startBank } from './js/bank.js';
 import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER } from './js/felles.js';
@@ -113,8 +114,7 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const spillId = new URLSearchParams(location.search).get('spill');
 let spill = null, klode = null, sisteLoggTid = null, kø = [], visesNaa = false, roter = true, pauseTil = 0;
 
-$('#googleknapp').onclick = () => loggInnLaerer().catch((e) => $('#melding').textContent = e.message);
-if (brukerEmulator) { $('#testinn').classList.remove('skjult'); $('#testinn').onclick = () => testLoggInnLaerer(); }
+monterInnlogging($('#laererinn'));
 
 vedInnlogging(async (u) => {
   if (!u || u.isAnonymous) { $('#innlogging').classList.remove('skjult'); $('#scene').classList.add('skjult'); return; }
@@ -126,7 +126,7 @@ vedInnlogging(async (u) => {
   } catch (e) { console.error(e); }
   onValue(r(`spill/${spillId}`), (snap) => {
     spill = snap.val();
-    if (!spill) { $('#melding').textContent = 'Fant ikke spillet, eller du er ikke eier av det.'; return; }
+    if (!spill) { $('#melding').textContent = 'Fant ikke spillet, eller du er ikke lærer i det.'; return; }
     tegn(); klode?.oppdater(spill);
     nyeHendelser(); tegnDuell();
   }, (e) => { $('#scene').classList.add('skjult'); $('#innlogging').classList.remove('skjult'); $('#melding').textContent = 'Du har ikke tilgang til dette spillet.'; });

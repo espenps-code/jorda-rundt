@@ -79,6 +79,12 @@
   nav.faner button[aria-selected=true] { background: linear-gradient(180deg, #1F5390, var(--hav)); color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 3px 0 #04101F, 0 6px 12px rgba(12,35,64,.25); }
   .badge { background: linear-gradient(180deg, #D2463C, #B02F27); box-shadow: 0 2px 0 #6E1A15; }
   .gruppekort { border-top-width: 8px; }
+  .laererliste { display: grid; gap: .5rem; margin: .8rem 0 1rem; }
+  .laererrad { display: flex; align-items: center; gap: .7rem; padding: .6rem .8rem; border: 1.5px solid var(--linje); border-radius: 12px; background: var(--papir); }
+  .laererrad .initial { width: 36px; height: 36px; border-radius: 50%; background: var(--hav); color: #fff; display: grid; place-items: center; font-weight: 700; flex: none; }
+  .laererrad .hvem { flex: 1; min-width: 0; } .laererrad .hvem small { display: block; color: var(--blekk-2); overflow: hidden; text-overflow: ellipsis; }
+  .invboks { border: 2px dashed var(--sol); background: var(--sol-lys); border-radius: 14px; padding: .9rem 1rem; margin-bottom: 1rem; }
+  .invboks .lenke { font-family: var(--font-mono); font-size: .85rem; word-break: break-all; background: #fff; border-radius: 8px; padding: .5rem .7rem; margin: .5rem 0; display: block; }
 </style>
 </head>
 <body>
@@ -98,9 +104,8 @@
   <div class="velkommen">
     <div class="klode">🌍✈️</div>
     <h1>Jorda rundt</h1>
-    <p class="dempet">Logg inn med Google-kontoen din for å lage og styre spill. Elevene trenger ingen konto – de logger inn med gruppekode og PIN.</p>
-    <button id="googleknapp" class="knapp sol">Logg inn med Google</button>
-    <p><button id="testinn" class="knapp lys mini skjult">Testinnlogging (emulator)</button></p>
+    <p class="dempet">Logg inn med Google eller e-post (f.eks. jobbmailen) for å lage og styre spill. Elevene trenger ingen konto – de logger inn med gruppekode og PIN.</p>
+    <div id="laererinn"></div>
   </div>
 </section>
 
@@ -223,7 +228,14 @@
           <button class="knapp">Lagre regler</button>
         </form>
       </div>
-      <div class="kort">
+      <div class="kort" id="laererkort">
+        <h3>👋 Lærere i spillet</h3>
+        <p class="liten dempet">Inviter kolleger som skal hjelpe deg å styre spillet. De kan godkjenne reiselogger, kjøre dueller, åpne diktater og vise tavla. Bare eieren kan invitere, fjerne lærere og nullstille spillet.</p>
+        <div id="laererliste" class="laererliste"></div>
+        <div id="invitasjonsboks"></div>
+        <button id="inviter" class="knapp sol">📣 Inviter en lærer</button>
+      </div>
+      <div class="kort" id="farligsone">
         <h3>Farlig sone</h3>
         <p class="liten dempet">Nullstilling gir alle grupper startbeløpet og en ny tilfeldig startposisjon, og fjerner alle land, reiselogger, dueller og logg. Gruppene, kodene og PIN-ene beholdes.</p>
         <button id="nullstill" class="knapp korall">Nullstill spillet</button>
@@ -241,6 +253,7 @@
 <div id="varsler" aria-live="polite"></div>
 
 <script type="module">
+import { monterInnlogging } from './js/laererinn.js';
 import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { startBank, godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
@@ -252,7 +265,9 @@ const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const qs = brukerEmulator ? '?emulator' : '';
 
-let bruker = null, spillId = null, spill = null, pins = {}, stoppSpill = null, stoppPins = null, stoppBank = null, mineSpill = {};
+let bruker = null, spillId = null, spill = null, pins = {}, stoppSpill = null, stoppPins = null, stoppBank = null, stoppLaerere = null, mineSpill = {}, laerere = {};
+const erEier = () => !!spill && !!bruker && spill.eier === bruker.uid;
+const mittNavn = () => bruker?.displayName || bruker?.email || 'Lærer';
 
 function varsle(tekst, type = '') {
   const el = document.createElement('div'); el.className = 'varsel ' + type; el.textContent = tekst;
@@ -281,13 +296,13 @@ function skjemaModal(tittel, html, knappetekst = 'Lagre') {
 }
 
 // ---------- innlogging ----------
-$('#googleknapp').onclick = () => loggInnLaerer().catch((e) => varsle('Innlogging feilet: ' + e.message, 'feil'));
-if (brukerEmulator) { $('#testinn').classList.remove('skjult'); $('#testinn').onclick = () => testLoggInnLaerer(); }
+monterInnlogging($('#laererinn'));
 $('#loggut').onclick = () => loggUt();
 
 vedInnlogging(async (u) => {
   if (!u || u.isAnonymous) { bruker = null; stoppAlt(); vis('innlogging'); $('#loggut').classList.add('skjult'); return; }
   bruker = u; $('#loggut').classList.remove('skjult');
+  await mottaInvitasjon();
   onValue(r(`mineSpill/${u.uid}`), (snap) => {
     mineSpill = snap.val() || {};
     tegnSpillvelger();
@@ -315,14 +330,14 @@ $('#lagspill').onclick = async () => {
   const navn = $('#nyttnavn').value.trim() || 'Jorda rundt';
   const id = nyId(10);
   await update(r('/'), {
-    [`spill/${id}`]: { eier: bruker.uid, info: { navn, opprettet: Date.now() }, innstillinger: { ...STANDARD_INNSTILLINGER, stengte: null } },
+    [`spill/${id}`]: { eier: bruker.uid, info: { navn, opprettet: Date.now(), eierNavn: mittNavn() }, innstillinger: { ...STANDARD_INNSTILLINGER, stengte: null } },
     [`mineSpill/${bruker.uid}/${id}`]: navn,
   });
   spillId = null; velgSpill(id);
   varsle('Spillet er laget! Lag gruppene under «Grupper».', 'ok');
 };
 
-function stoppAlt() { stoppSpill?.(); stoppPins?.(); stoppBank?.(); stoppSpill = stoppPins = stoppBank = null; }
+function stoppAlt() { stoppSpill?.(); stoppPins?.(); stoppBank?.(); stoppLaerere?.(); stoppSpill = stoppPins = stoppBank = stoppLaerere = null; laerere = {}; }
 
 function velgSpill(id) {
   if (id === spillId) return;
@@ -337,7 +352,8 @@ function velgSpill(id) {
   $('#tavlelenke').classList.remove('skjult');
   $('#rapportlenke').href = `rapport.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`;
   $('#rapportlenke').classList.remove('skjult');
-  stoppSpill = onValue(r(`spill/${id}`), (snap) => { spill = snap.val(); if (spill) tegnAlt(); });
+  stoppSpill = onValue(r(`spill/${id}`), (snap) => { spill = snap.val(); if (spill) tegnAlt(); }, () => mistetTilgang(id));
+  stoppLaerere = onValue(r(`laerere/${id}`), (snap) => { laerere = snap.val() || {}; if (spill) tegnLaerere(); }, () => {});
   stoppPins = onValue(r(`pins/${id}`), (snap) => { pins = snap.val() || {}; if (spill) tegnGrupper(); });
   stoppBank = startBank(id, {
     vedBehandlet: (res) => { if (res && !res.ok) console.info('Avvist:', res.melding); },
@@ -375,7 +391,8 @@ const prikk = (gid) => `<span class="prikk" style="background:${esc(gfarge(gid))
 
 function tegnAlt() {
   mineSpill[spillId] = spill.info?.navn || 'Spill';
-  tegnOversikt(); tegnGrupper(); tegnLand(); tegnInnstillinger(); tegnLogg();
+  tegnOversikt(); tegnGrupper(); tegnLand(); tegnInnstillinger(); tegnLogg(); tegnLaerere();
+  if (erEier() && !spill.info?.eierNavn) update(r(`spill/${spillId}/info`), { eierNavn: mittNavn() });
 }
 
 function tegnOversikt() {
@@ -658,6 +675,72 @@ $('#nullstill').onclick = async () => {
   for (const k of ['eierskap', 'reiselogger', 'dueller', 'logg', 'foresporsler']) u[`spill/${spillId}/${k}`] = null;
   await update(r('/'), u); varsle('Spillet er nullstilt.', 'ok');
 };
+
+// ---------- lærere og invitasjoner ----------
+const INV_DAGER = 7;
+function tegnLaerere() {
+  const eier = erEier();
+  const rad = (navn, under, merke, knapp = '') => `<div class="laererrad"><span class="initial">${esc((navn || '?').trim()[0]?.toUpperCase() || '?')}</span><div class="hvem"><b>${esc(navn)}</b> ${merke}<small>${esc(under)}</small></div>${knapp}</div>`;
+  const eierNavn = spill.info?.eierNavn || 'Eieren';
+  let html = rad(eier ? `${eierNavn} (deg)` : eierNavn, 'Laget spillet', '<span class="merke sol">Eier</span>');
+  for (const [uid, l] of Object.entries(laerere)) {
+    const meg = uid === bruker.uid;
+    const knapp = eier ? `<button class="knapp mini lys" data-fjernlaerer="${uid}">Fjern</button>` : meg ? '<button class="knapp mini lys" id="forlat">Forlat spillet</button>' : '';
+    html += rad(meg ? `${l.navn || 'Deg'} (deg)` : (l.navn || 'Lærer'), l.epost || '', '<span class="merke">Lærer</span>', knapp);
+  }
+  $('#laererliste').innerHTML = html;
+  $('#inviter').classList.toggle('skjult', !eier);
+  $('#farligsone').classList.toggle('skjult', !eier);
+  $$('[data-fjernlaerer]').forEach((b) => b.onclick = async () => {
+    const l = laerere[b.dataset.fjernlaerer];
+    if (await bekreft('Fjerne læreren?', `${esc(l?.navn || 'Læreren')} mister tilgangen til spillet.`, 'Fjern', true)) remove(r(`laerere/${spillId}/${b.dataset.fjernlaerer}`));
+  });
+  const forlat = $('#forlat');
+  if (forlat) forlat.onclick = async () => {
+    if (!await bekreft('Forlate spillet?', 'Du mister tilgangen til spillet. Eieren kan invitere deg igjen.', 'Forlat', true)) return;
+    const id = spillId; stoppAlt(); spillId = null;
+    await remove(r(`laerere/${id}/${bruker.uid}`)); await remove(r(`mineSpill/${bruker.uid}/${id}`));
+    varsle('Du har forlatt spillet.', 'ok');
+  };
+}
+$('#inviter').onclick = async () => {
+  const kode = nyId(8);
+  const utloper = Date.now() + INV_DAGER * 86400000;
+  try {
+    await set(r(`invitasjoner/${kode}`), { spill: spillId, navn: spill.info?.navn || 'Jorda rundt', av: mittNavn(), utloper });
+  } catch (e) { varsle('Kunne ikke lage invitasjon: ' + e.message, 'feil'); return; }
+  const url = new URL(`laerer.html?invitasjon=${kode}${brukerEmulator ? '&emulator' : ''}`, location.href).href;
+  $('#invitasjonsboks').innerHTML = `<div class="invboks"><b>Invitasjonslenke</b><span class="lenke" id="invlenke">${esc(url)}</span>
+    <div class="rad"><button class="knapp mini" id="kopierinv">Kopier lenken</button><span class="liten dempet">Gyldig til ${new Date(utloper).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}. Send den bare til kolleger – alle med lenken kan bli lærer i spillet.</span></div></div>`;
+  $('#kopierinv').onclick = async () => {
+    try { await navigator.clipboard.writeText(url); varsle('Invitasjonslenken er kopiert!', 'ok'); } catch { varsle('Merk lenken og kopier den selv.', 'feil'); }
+  };
+};
+
+async function mottaInvitasjon() {
+  const p = new URLSearchParams(location.search); const kode = p.get('invitasjon');
+  if (!kode) return;
+  p.delete('invitasjon'); history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : '') + location.hash);
+  let inv = null;
+  try { inv = (await get(r(`invitasjoner/${kode}`))).val(); } catch {}
+  if (!inv || inv.utloper < Date.now()) { varsle('Invitasjonen finnes ikke eller er utløpt. Be om en ny lenke.', 'feil'); return; }
+  const finnes = (await get(r(`mineSpill/${bruker.uid}/${inv.spill}`))).exists();
+  if (finnes) { localStorageSett('jr-spill', inv.spill); return; }
+  if (!await bekreft('Bli lærer i spillet?', `<b>${esc(inv.av || 'En kollega')}</b> har invitert deg til å styre «${esc(inv.navn)}».`, 'Bli med')) return;
+  try {
+    await set(r(`laerere/${inv.spill}/${bruker.uid}`), { kode, navn: mittNavn().slice(0, 80), epost: (bruker.email || '').slice(0, 120), tid: Date.now() });
+    await set(r(`mineSpill/${bruker.uid}/${inv.spill}`), inv.navn || 'Jorda rundt');
+    localStorageSett('jr-spill', inv.spill);
+    varsle(`Velkommen! Du er nå lærer i «${inv.navn}».`, 'ok');
+  } catch (e) { varsle('Kunne ikke bli med: ' + e.message, 'feil'); }
+}
+
+async function mistetTilgang(id) {
+  if (id !== spillId) return;
+  stoppAlt(); spillId = null;
+  try { await remove(r(`mineSpill/${bruker.uid}/${id}`)); } catch {}
+  varsle('Du har ikke lenger tilgang til det spillet.', 'feil');
+}
 
 // ---------- logg ----------
 function tegnLogg() {

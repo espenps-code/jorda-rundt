@@ -98,14 +98,16 @@
   <div class="rad">
     <select id="velg"><option value="alle">Alle grupper</option></select>
     <button class="knapp sol" onclick="window.print()">🖨️ Skriv ut / lagre som PDF</button>
-    <button class="knapp lys hand-knapp skjult" id="loggInn">Logg inn med Google</button>
+    
   </div>
   <p class="liten dempet">Tips: I utskriftsvinduet velger du «Lagre som PDF» for å sende rapporten digitalt. Slå på «Bakgrunnsgrafikk» for farger.</p>
 </div>
 <div id="status">Laster …</div>
+<div id="laererinn" class="skjult" style="margin:1rem 0 2rem"></div>
 <div class="bok" id="bok"></div>
 
 <script type="module">
+import { monterInnlogging } from './js/laererinn.js';
 import { r, get, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER, LAND } from './js/felles.js';
 import { avstandKm } from './data/motor.js';
@@ -118,11 +120,10 @@ let spill = null, verden = null;
 vedInnlogging(async (u) => {
   if (!u || u.isAnonymous) {
     $('#status').textContent = 'Logg inn som lærer for å se rapportene.';
-    $('#loggInn').classList.remove('skjult');
-    $('#loggInn').onclick = () => (brukerEmulator ? testLoggInnLaerer() : loggInnLaerer());
+    $('#laererinn').classList.remove('skjult'); if (!$('#laererinn').firstChild) monterInnlogging($('#laererinn'));
     return;
   }
-  $('#loggInn').classList.add('skjult');
+  $('#laererinn').classList.add('skjult');
   if (!spillId) { $('#status').textContent = 'Mangler spill. Åpne rapportene fra lærersiden.'; return; }
   try {
     spill = (await get(r(`spill/${spillId}`))).val();
