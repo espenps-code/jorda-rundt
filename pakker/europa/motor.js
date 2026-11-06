@@ -1,0 +1,225 @@
+// Jorda rundt – prismotor for fly, hotell og jobb.
+// Europa rundt: reisene går mellom BYER. Fly + tog og buss mellom byer på fastlandet.
+// Alle priser beregnes ut fra ekte avstander og landets prisnivå (Norge = 1.00),
+// kalibrert mot typiske billettpriser fra Norge. Samme søk gir samme svar samme dag
+// (rettferdig mellom gruppene), men prisene varierer litt fra dag til dag.
+import { LAND, landEtterId, KNUTEPUNKT } from './land.js';
+
+// ---------- hjelpere ----------
+function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { let s = hash(String(seed)) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
+const runde9 = (x) => Math.max(9, Math.round(x / 10) * 10 - 1);           // 2849-stil
+const runde10 = (x) => Math.round(x / 10) * 10;
+
+export function avstandKm(a, b) {
+  const r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLng = (b.lng - a.lng) * r;
+  const x = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin(dLng / 2) ** 2;
+  return Math.round(12742 * Math.asin(Math.sqrt(x)));
+}
+export function formaterKr(n) { return Math.round(n).toLocaleString('nb-NO').replace(/,/g, ' ') + ' kr'; }
+export function iLokalValuta(kr, land) {
+  if (!land.kurs || land.valuta === 'NOK') return null;
+  const v = kr / land.kurs;
+  const avrundet = v >= 1000 ? Math.round(v / 10) * 10 : Math.round(v);
+  return avrundet.toLocaleString('nb-NO') + ' ' + land.valuta;
+}
+
+// ---------- fly ----------
+const SELSKAP = ['Nordvind Air', 'Globetrotter Airways', 'Albatross Airlines', 'Passat Air', 'Monsun Airways',
+  'Kompass Air', 'Sirocco Air', 'Polarlys Air', 'Kolibri Express', 'Skyline Sør'];
+// Knutepunkt-flyplasser er egne byer i spillet (se KNUTEPUNKT i land.js). mega = store knutepunkt.
+const HUBS = LAND.filter((l) => l.id in KNUTEPUNKT).map((l) => ({ id: l.id, navn: l.navn, by: l.by, lat: l.lat, lng: l.lng, mega: KNUTEPUNKT[l.id] === 1 }));
+const erMega = (l) => KNUTEPUNKT[l.id] === 1;
+
+function besteVia(a, b, unntak = [], kunMega = false) {
+  let best = null, bestEkstra = Infinity;
+  for (const h of HUBS) {
+    if (h.id === a.id || h.id === b.id || unntak.includes(h.id)) continue;
+    if (kunMega && !h.mega) continue;
+    if (avstandKm(a, h) < 300 || avstandKm(h, b) < 300) continue;   // ingen meningsløse småhopp
+    if (avstandKm(a, h) > 14500 || avstandKm(h, b) > 14500) continue; // ingen fly kan fly så langt
+    const ekstra = avstandKm(a, h) + avstandKm(h, b) - avstandKm(a, b);
+    if (ekstra < bestEkstra) { bestEkstra = ekstra; best = h; }
+  }
+  return best;
+}
+function kanFlyDirekte(a, b, km) {
+  if (erMega(a) && erMega(b)) return km < 14000;   // f.eks. London–Singapore
+  if (erMega(a) || erMega(b)) return km < 7000;     // f.eks. Dubai–Nairobi
+  if (a.hub || b.hub) return km < 4000;             // f.eks. Oslo–Madrid
+  return km < 1500;
+}
+const flytidMin = (km) => Math.round(km / 820 * 60 + 35);
+
+/**
+ * Flytilbud fra ett land til et annet.
+ * @param {string} fraId  landkode (f.eks. "NO")
+ * @param {string} tilId  landkode
+ * @param {string} dato   "2026-11-05" – prisene endrer seg litt fra dag til dag
+ * @param {number} personer antall i gruppa
+ * @returns liste med 3–5 tilbud, billigst først
+ */
+export function flyTilbud(fraId, tilId, dato, personer = 4) {
+  const a = landEtterId[fraId], b = landEtterId[tilId];
+  if (!a || !b || a.id === b.id) return [];
+  const km = avstandKm(a, b);
+  const r = rng(`${fraId}-${tilId}-${dato}`);
+  const dagsFaktor = 0.88 + r() * 0.27;                     // 0.88–1.15
+  let grunn = (450 + 0.45 * km) * 1.3;                      // Europa: 30 % over Jorda rundt (Oslo–Bergen direkte ≈ 850 kr per person)
+  if (b.liten && !b.hub) grunn *= 1.35;                      // små øynasjoner er dyrere å fly til
+  if (a.liten && !a.hub) grunn *= 1.15;
+
+  const ruter = [];
+  if (b.spesial === 'antarktis' || a.spesial === 'antarktis') {
+    // Til Antarktis flyr man bare fra Punta Arenas i Chile
+    if (a.id !== 'CL' && b.id !== 'CL') return [];
+  }
+  const langt = km > 6000;
+  const antarktis = b.spesial === 'antarktis' || a.spesial === 'antarktis';
+  if (antarktis || kanFlyDirekte(a, b, km)) ruter.push({ stopp: 0, via: [], faktor: 1.25 });
+  if (!antarktis) {
+    const v1 = besteVia(a, b, [], langt);
+    if (v1) ruter.push({ stopp: 1, via: [v1], faktor: 1.0 });
+    const v1b = besteVia(a, b, [v1 && v1.id], langt);
+    if (v1b) ruter.push({ stopp: 1, via: [v1b], faktor: 0.95 });
+    if (km > 2500 && v1) {
+      // Billig variant: først et knutepunkt nær avreise, så et nær målet
+      const naerMal = HUBS.filter((h) => ![a.id, b.id, v1.id].includes(h.id) && avstandKm(v1, h) > 1500 && avstandKm(v1, h) < 13500 && avstandKm(h, b) > 300)
+        .sort((x, y) => avstandKm(x, b) - avstandKm(y, b))[0];
+      if (naerMal && avstandKm(naerMal, b) < km * 0.6) ruter.push({ stopp: 2, via: [v1, naerMal], faktor: 0.82 });
+    }
+  } else if (ruter.length) {
+    ruter.push({ stopp: 0, via: [], faktor: 1.0, ekstra: true });
+  }
+
+  const tilbud = ruter.map((rute, i) => {
+    const sel = SELSKAP[hash(fraId + tilId + i + dato) % SELSKAP.length];
+    const selFaktor = 0.92 + r() * 0.18;
+    // Faktisk reisevei (med omveier via knutepunkt)
+    const punkter = [a, ...rute.via, b];
+    let flyMin = 0, ventMin = 0;
+    for (let p = 0; p < punkter.length - 1; p++) flyMin += flytidMin(avstandKm(punkter[p], punkter[p + 1]));
+    for (let s = 0; s < rute.stopp; s++) ventMin += 70 + Math.floor(r() * 170);
+    const avgangTime = 6 + Math.floor(r() * 16), avgangMin = [0, 15, 30, 45][Math.floor(r() * 4)];
+    const prisPerPerson = b.spesial === 'antarktis'
+      ? runde9((14000 + km * 0.5) * dagsFaktor * rute.faktor * selFaktor)
+      : runde9(grunn * rute.faktor * dagsFaktor * selFaktor);
+    return {
+      id: `${fraId}-${tilId}-${dato}-${i}`,
+      selskap: sel,
+      fra: a.id, til: b.id,
+      stopp: rute.stopp,
+      via: rute.via.map((v) => ({ id: v.id, by: v.by, navn: v.navn })),
+      avgang: `${String(avgangTime).padStart(2, '0')}:${String(avgangMin).padStart(2, '0')}`,
+      varighetMin: flyMin + ventMin,
+      km,
+      prisPerPerson,
+      personer,
+      totalt: prisPerPerson * personer,
+    };
+  });
+  for (const t of tilbud) { t.type = 'fly'; t.krav = KRAV_FLY[Math.min(t.stopp, 2)]; }
+  tilbud.push(...bakkeTilbud(a, b, km, dato, personer));
+  return tilbud.sort((x, y) => x.totalt - y.totalt);
+}
+
+// ---------- tog og buss ----------
+// Billigere enn fly, men reisen tar lengre tid – og det blir flere spørsmål underveis.
+export const KRAV_FLY = [2, 4, 6];               // spørsmål for direktefly / 1 stopp / 2 stopp
+const TOGSELSKAP = ['EuroRail', 'Nordic Rail', 'Alpen Express', 'Trans-Europa Express', 'Donau Rail'];
+const BUSSELSKAP = ['EuroBuss', 'Kontinentbussen', 'Nordbuss', 'Balkan Express', 'Atlantic Coach'];
+export const MAKS_KM = { tog: 1300, buss: 900 };
+function bakkeTilbud(a, b, km, dato, personer) {
+  if (a.oy || b.oy) return [];
+  const ut = [];
+  const veiKm = Math.round(km * 1.3);                       // veien/skinnene er lengre enn luftlinja
+  const prisniva = (((a.prisniva || 1) + (b.prisniva || 1)) / 2) ** 0.8;
+  for (const type of ['tog', 'buss']) {
+    if (km > MAKS_KM[type]) continue;
+    const r = rng(`${type}-${a.id}-${b.id}-${dato}`);
+    const liste = type === 'tog' ? TOGSELSKAP : BUSSELSKAP;
+    const grunn = type === 'tog' ? 250 + 0.75 * veiKm : 150 + 0.5 * veiKm;   // Oslo–Bergen ≈ 550 / 350 kr per person
+    const prisPerPerson = runde9(grunn * prisniva * (0.9 + r() * 0.2));
+    const fart = type === 'tog' ? 85 : 65;                  // km/t i snitt med stopp
+    const avgangTime = 6 + Math.floor(r() * 14), avgangMin = [0, 10, 20, 30, 40, 50][Math.floor(r() * 6)];
+    ut.push({
+      id: `${a.id}-${b.id}-${dato}-${type}`,
+      type,
+      selskap: liste[hash(a.id + b.id + type + dato) % liste.length],
+      fra: a.id, til: b.id, stopp: 0, via: [],
+      avgang: `${String(avgangTime).padStart(2, '0')}:${String(avgangMin).padStart(2, '0')}`,
+      varighetMin: Math.round(veiKm / fart * 60),
+      km: veiKm,
+      krav: type === 'tog' ? 2 + Math.ceil(km / 400) : 3 + Math.ceil(km / 300),
+      prisPerPerson, personer, totalt: prisPerPerson * personer,
+    });
+  }
+  return ut;
+}
+export function formaterVarighet(min) { const t = Math.floor(min / 60), m = min % 60; return `${t} t ${m} min`; }
+
+// ---------- hotell ----------
+const NAVNEMAL = {
+  standard: ['Hotel {by} Sentrum', '{by} Backpackers', 'Grand Hotel {by}', 'Hotel Panorama', 'City Inn {by}', 'Hotel Atlas', 'The Royal {by}', 'Budget Rooms {by}', 'Hotel Bellevue', 'Comfort Stay {by}', 'Hotel Meridian', 'Sunrise Hotel', 'Old Town Lodge', 'Hotel Kompass', 'The Globe Hotel'],
+  Afrika: ['{by} Safari Lodge', 'Baobab Hotel', 'Savanna Inn', 'Hotel Kilimanjaro', 'Sunset Lodge {by}'],
+  Nordafrika: ['Hotel Oasis', 'Hotel Sahara', 'Kasbah Inn', 'Palm Garden Hotel', 'Medina Lodge'],
+  Asia: ['Lotus Hotel {by}', 'Bamboo Garden Inn', 'Jade Palace Hotel', 'Golden Dragon Hotel', 'Orchid Residence'],
+  'Sør-Amerika': ['Pousada {by}', 'Hotel Cóndor', 'Casa Colonial', 'Hostal del Sol', 'Hotel Andes'],
+  'Nord-Amerika': ['{by} Downtown Hotel', 'Maple Inn', 'Liberty Suites', 'Hotel Casa Azul', 'Harbor View Inn'],
+  Europa: ['Gasthaus Zentral', 'Hotel Metropol', 'Pension Rosa', 'Hotel Europa', 'Residence Opera'],
+  Oseania: ['Coral Reef Resort', 'Palm Beach Lodge', 'Lagoon Hotel', 'Reef & Rainforest Inn', 'Island Breeze Hotel'],
+  Antarktis: ['Union Glacier Camp – telt', 'Polar Dome Camp', 'Pingvin Base', 'Forskningsstasjonens gjesterom', 'Iskanten Ekspedisjonsleir', 'Snøstorm Hytte', 'Sørpolen Ekspedisjonstelt', 'Isbreen Lodge', 'Keiserpingvin Camp', 'Polarnatt Kuppeltelt'],
+};
+const SPESIAL = { JP: ['Ryokan Sakura', 'Capsule Hotel {by}'], MA: ['Riad Jasmin', 'Riad Dar Zitoun'], TR: ['Sultan Konak Hotel'], IS: ['Nordlys Guesthouse'], MX: ['Hacienda {by}'], KE: ['Masai Mara Gate Lodge'], MV: ['Overwater Villas'], GR: ['Hotel Akropolis View'], EG: ['Pyramid View Hotel'], IN: ['Maharaja Palace Inn'], PE: ['Inka Trail Hostal'], AU: ['Outback Motel {by}'], NO: ['Fjordhotellet', 'Hytta Inn'] };
+const LAV = /Backpackers|Budget|Hostal|Pension|Rooms|Guesthouse|Capsule|telt|Motel|Gasthaus|Hytta|Kasbah Inn|Hostal|Comfort Stay|City Inn|Inka Trail|Savanna Inn|Snøstorm|Forskningsstasjonens/;
+const HOY = /Grand|Royal|Palace|Resort|Villas|Suites|Metropol|Sultan|Maharaja|Hacienda|Ryokan|Riad Dar|Residence|Overwater|Polar Dome|Pingvin Base|Keiserpingvin|Isbreen Lodge|Fjordhotellet|Opera|Jade|Golden Dragon|Lagoon|Bellevue|Panorama/;
+function nivaa(navn) { return LAV.test(navn) ? 'lav' : HOY.test(navn) ? 'hoy' : 'mid'; }
+// De tre første gir fordeler i spillet (se hotellEffekt i js/felles.js). Resten er bare kos.
+const FASILITETER = ['Frokost inkludert', 'Flyplassbuss', 'Gratis wifi', 'Basseng', 'Gangavstand til sentrum', 'Takterrasse', 'Treningsrom', 'Familierom', 'Spillrom', 'Utsikt'];
+const STJERNE_PRIS = [770, 1190, 1750, 2590, 4340];   // kr per natt for et familierom i Norge (Europa: 40 % over Jorda rundt)
+const STJERNER = [1, 2, 2, 3, 3, 3, 4, 4, 5, 5];
+
+/** 10 hoteller i byen. Prisen er per natt for hele gruppa (familierom). */
+export function hoteller(landId, uke = '') {
+  const l = landEtterId[landId]; if (!l) return [];
+  const r = rng('hotell-' + landId);
+  const rUke = rng('hotelluke-' + landId + uke);
+  const mal = l.spesial === 'antarktis' ? NAVNEMAL.Antarktis : [...(SPESIAL[l.landId] || []), ...(NAVNEMAL[['MA','DZ','TN','LY','EG','SD','MR'].includes(landId) ? 'Nordafrika' : l.kontinent] || []), ...NAVNEMAL.standard];
+  const brukt = new Set();
+  return STJERNER.map((st, i) => {
+    const niva = st <= 2 ? 'lav' : st >= 4 ? 'hoy' : 'mid';
+    const passer = mal.filter((m) => nivaa(m) === niva && !brukt.has(m.replace('{by}', l.by.split(' (')[0])));
+    const kilde = passer.length ? passer : mal.filter((m) => !brukt.has(m.replace('{by}', l.by.split(' (')[0])));
+    const navn = (kilde.length ? kilde : mal)[Math.floor(r() * (kilde.length || mal.length))].replace('{by}', l.by.split(' (')[0]);
+    brukt.add(navn);
+    // fasiliteter med fordeler (de tre første) er sjeldne på billige hoteller
+    const fas = FASILITETER.filter((_, k) => r() < (k < 3 ? 0.02 + st * 0.06 : 0.2 + st * 0.08)).slice(0, 4);
+    const pris = Math.max(150, STJERNE_PRIS[st - 1] * Math.pow(l.prisniva, 0.85) * (0.85 + r() * 0.35) * (0.95 + rUke() * 0.1));
+    return {
+      id: `${landId}-h${i}`,
+      navn, stjerner: st,
+      vurdering: +(Math.min(9.7, 5.8 + st * 0.6 + r() * 1.4)).toFixed(1),
+      sentrumKm: +(0.2 + r() * (st >= 4 ? 2 : 6)).toFixed(1),
+      fasiliteter: fas.length ? fas : ['Familierom'],
+      prisNatt: runde9(pris),
+    };
+  }).sort((a, b) => a.prisNatt - b.prisNatt);
+}
+
+// ---------- jobb ----------
+/** Lønn for én jobb i landet (lokalt lønnsnivå, regnet om til kroner). */
+export function jobbLonn(landId) {
+  const l = landEtterId[landId]; if (!l) return 0;
+  return Math.max(200, runde10(1500 * Math.pow(l.prisniva, 1.1)));
+}
+
+// ---------- start ----------
+/** Tilfeldig startby blant åpne byer (ikke i Norge). Overstyring kan gjelde byen eller hele landet. */
+export function tilfeldigStart(opptatt = [], stengteOverstyrt = {}) {
+  const apne = LAND.filter((l) => {
+    const o = stengteOverstyrt || {};
+    const stengt = l.id in o ? o[l.id] : l.landId in o ? o[l.landId] : !!l.stengt;
+    return !stengt && !opptatt.includes(l.id) && l.landId !== 'NO';
+  });
+  return apne[Math.floor(Math.random() * apne.length)];
+}

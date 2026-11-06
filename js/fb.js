@@ -1,4 +1,4 @@
-// Jorda rundt – kobling til Firebase. Legg til ?emulator i adressen for å teste lokalt.
+// MOTOREN – kobling til Firebase (samme prosjekt for alle spillpakkene). Legg til ?emulator i adressen for å teste lokalt.
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
 import {
   getAuth, onAuthStateChanged, signInAnonymously, signInWithPopup, GoogleAuthProvider, signOut, connectAuthEmulator, signInWithCredential,
@@ -9,6 +9,7 @@ import {
   runTransaction, serverTimestamp, connectDatabaseEmulator, query, orderByChild, limitToLast,
 } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-database.js';
 import { firebaseConfig } from '../firebase-config.js';
+import { PAKKE } from '#pakke/pakke.js';
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -35,7 +36,10 @@ export function loggInnElev() { return signInAnonymously(auth); }
 export function loggUt() { return signOut(auth); }
 export function vedInnlogging(cb) { return onAuthStateChanged(auth, cb); }
 
-export const r = (sti) => ref(db, sti);
+// Hver spillpakke har sin egen «rot» i databasen (Jorda rundt: øverst, Europa rundt: /europa …),
+// så spillene aldri blandes. Se pakker/<spill>/pakke.js.
+export const ROT = PAKKE.rot || '';
+export const r = (sti) => ref(db, ROT ? `${ROT}/${String(sti || '').replace(/^\/+/, '')}`.replace(/\/$/, '') : sti);
 export {
   ref, get, set, update, push, remove, onValue, onChildAdded, onChildChanged, off,
   runTransaction, serverTimestamp, query, orderByChild, limitToLast,

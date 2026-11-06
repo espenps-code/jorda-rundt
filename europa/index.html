@@ -1,12 +1,13 @@
 <!doctype html>
-<html lang="no">
+<html lang="no" data-pakke="europa">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Europa rundt – reis Europa rundt i klasserommet</title>
 <meta name="description" content="Europa rundt er et gratis klasseromsspill for mellomtrinnet. Elevene reiser rundt i Europa med et budsjett, velger fly, tog eller buss, booker hotell, fullfører reiselogger og erobrer byer og land.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
-<link rel="stylesheet" href="css/felles.css">
+<link rel="stylesheet" href="../css/felles.css">
+<script src="../js/pakke.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.45.3/dist/globe.gl.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 <style>
@@ -160,7 +161,7 @@
       <h1>Europa <span>rundt</span></h1>
       <p class="ingress">Reis Europa rundt med 100 000 kroner i lomma. Fly, tog eller buss? Book hotell, fullfør reiseloggen – og erobre flest byer før de andre gruppene!</p>
       <div class="cta">
-        <a class="knapp sol" href="laerer.html">Logg inn som lærer</a>
+        <a class="knapp sol" href="../laerer.html?pakke=europa">Logg inn som lærer</a>
         <a class="knapp omriss" href="#veiledning">Slik kommer du i gang</a>
       </div>
       <div class="fordeler"><span>✓ Gratis</span><span>✓ Ingen elevkontoer</span><span>✓ Nettbrett og PC</span><span>✓ 109 byer i 46 land</span></div>
@@ -238,7 +239,7 @@
           <path d="M 330 96 A 168 168 0 0 1 356 170" fill="none" stroke="#1D5B8F" stroke-width="3" marker-end="url(#pr)"/>
           <path d="M 50 284 A 168 168 0 0 1 24 210" fill="none" stroke="#1D5B8F" stroke-width="3" marker-end="url(#pr)"/>
         </svg>
-        <div class="ringsenter"><div><img src="../ikoner/penger.webp" alt=""><b>Tavla er banken</b><small>Ha tavla eller lærersiden åpen mens elevene spiller. Det er den som gjennomfører alle kjøp.</small></div></div>
+        <div class="ringsenter"><div><img src="../ikoner/penger.webp" alt=""><b>Banken går av seg selv</b><small>Kjøp, quiz og jobber behandles automatisk i skyen – også når lærersiden er lukket.</small></div></div>
       </div>
       <div class="side h">
         <div class="oktnode"><div class="medalje"><img src="../ikoner/megafon.webp" alt=""></div><div><div class="nodetittel">Del lenken</div><p class="nodetekst">QR-kode under «Del med elevene».</p></div></div>
@@ -265,7 +266,7 @@
       <div class="fase">
         <div class="fasenavn">I hver økt<small>slik flyter en økt</small></div>
         <ol class="punkter">
-          <li><div><b>Åpne tavla på storskjermen.</b><p>Knappen «📺 Åpne tavla» på lærersiden. Tavla viser Europakartet, poengtavla, siste nytt og dueller. <b>Tavla (eller lærersiden) må være åpen mens elevene spiller</b> – det er den som er «banken» og gjennomfører kjøpene.</p></div></li>
+          <li><div><b>Åpne tavla på storskjermen.</b><p>Knappen «📺 Åpne tavla» på lærersiden. Tavla viser Europakartet, poengtavla, siste nytt og dueller. Du kan også vise tavla rett i lærerportalen med knappen <b>«📺 Tavle»</b> – med en skuff for reiselogger, dueller og diktater.</p></div></li>
           <li><div><b>Del lenken med elevene.</b><p>Under <i>Oversikt</i> → «Del med elevene» finner du elevlenken og en QR-kode. Elevene går ikke via forsiden – de bruker lenken og logger inn med gruppekode og PIN.</p></div></li>
           <li><div><b>Elevene reiser.</b><p>Book hotell → gjør reiseloggen → trykk «levert» → jobb, quiz eller reis videre. Underveis spinner de et lykkehjul og svarer på allmennkunnskap: 2 riktige for direktefly, 4 med ett stopp, 6 med to stopp – og flere for tog og buss, avhengig av avstanden. «Neste steg»-boksen øverst forteller dem alltid hva de skal gjøre.</p></div></li>
           <li><div><b>Godkjenn reiselogger.</b><p>Under <i>Oversikt</i> → «Venter på deg». Er byen ledig, blir den gruppas. Eier en annen gruppe den, blir det duell.</p></div></li>
@@ -299,7 +300,7 @@
       <div class="faq">
         <details><summary>Hva med personvern?</summary><div>Elevene logger inn med en gruppekode og PIN – ingen navn, e-post eller kontoer. Gruppenavnene bestemmer du. Dataene lagres i Firebase i EU (Belgia). Siden bruker ingen sporing eller reklame. Unngå å bruke elevnavn som gruppenavn.</div></details>
         <details><summary>Hva trenger jeg av utstyr?</summary><div>Ett nettbrett eller én PC per gruppe, en storskjerm til tavla og en skriver til reiseloggen og innloggingskortene. Siden fungerer i vanlige nettlesere (Chrome, Edge, Safari).</div></details>
-        <details><summary>Hvorfor må lærersiden eller tavla være åpen?</summary><div>Det er din nettleser som er «banken». Elevene sender bare forespørsler («vi vil kjøpe denne billetten»), og banken regner ut prisen på nytt og sjekker saldoen. Slik kan ingen jukse ved å endre priser eller penger. Er banken stengt, får elevene beskjed om at banken ikke svarer.</div></details>
+        <details><summary>Må lærersiden eller tavla være åpen mens elevene spiller?</summary><div>Nei. «Banken» kjører i skyen. Elevene sender bare forespørsler («vi vil kjøpe denne billetten»), og banken regner ut prisen på nytt og sjekker saldoen. Slik kan ingen jukse ved å endre priser eller penger. Lærersiden trenger du bare når du skal godkjenne reiselogger, kjøre dueller eller åpne diktater.</div></details>
         <details><summary>Er prisene ekte?</summary><div>Prisene er beregnet – ikke hentet live – men kalibrert mot ekte prisnivå: flyprisen følger avstanden og ekte knutepunkt-flyplasser, tog og buss følger veilengden, og hotell og lønn følger landets prisnivå. Flyselskapene og tog- og busselskapene er oppdiktede. Prisene endrer seg litt fra dag til dag, men er like for alle grupper samme dag.</div></details>
         <details><summary>Hvor lenge varer spillet?</summary><div>Du bestemmer selv med start- og sluttdato. Det passer godt som en intensiv periode på 2–4 uker med flere økter i uka. Byer låses automatisk 5 dager etter erobring (du kan endre det), så spillet ikke blir evig ping-pong.</div></details>
         <details><summary>Koster det noe?</summary><div>Nei. Spillet er gratis å bruke.</div></details>
@@ -312,7 +313,7 @@
       <h2>Klar for avreise?</h2>
       <p class="dempet" style="font-size:1.1rem">Logg inn, lag gruppene og del lenken med elevene – så er dere i gang.</p>
       <div class="cta" style="justify-content:center">
-        <a class="knapp sol" href="laerer.html">Logg inn som lærer</a>
+        <a class="knapp sol" href="../laerer.html?pakke=europa">Logg inn som lærer</a>
       </div>
     </div>
   </section>
@@ -320,11 +321,11 @@
 
 <div class="luftpost" aria-hidden="true"></div>
 <footer>
-  <div class="wrap"><span>🇪🇺 Europa rundt – et klasseromsspill i geografi og økonomi</span><span><a href="#veiledning">Lærerveiledning</a> · <a href="laerer.html">Logg inn som lærer</a></span></div>
+  <div class="wrap"><span>🇪🇺 Europa rundt – et klasseromsspill i geografi og økonomi</span><span><a href="#veiledning">Lærerveiledning</a> · <a href="../laerer.html?pakke=europa">Logg inn som lærer</a></span></div>
 </footer>
 
 <script type="module">
-import { lagKlode } from './js/klode.js';
+import { lagKlode } from '#pakke/klode.js';
 const el = document.getElementById('klode');
 const ikkeAnimasjon = matchMedia('(prefers-reduced-motion: reduce)').matches;
 try {
@@ -335,6 +336,6 @@ try {
   k.visReise('AT-wien', 'CZ-praha');
 } catch (e) { console.warn('Kartet kunne ikke lastes', e); }
 </script>
-<script type="module" src="js/ikoner.js"></script>
+<script type="module" src="../js/ikoner.js"></script>
 </body>
 </html>

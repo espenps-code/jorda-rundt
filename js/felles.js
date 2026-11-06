@@ -1,11 +1,14 @@
-// Jorda rundt – felles spillregler (brukes av elevside, lærerside, tavle og banken)
-import { LAND, landEtterId, KONTINENTER } from '../data/land.js';
-import { jobbLonn } from '../data/motor.js';
+// MOTOREN – felles spillregler for alle spillpakkene (brukes av elevside, lærerside, tavle og banken).
+// Det som er spesielt for hvert spill (steder, poeng, quiz, standardverdier) ligger i pakker/<spill>/.
+// «#pakke/» peker på spillpakken som er valgt (se js/pakke.js og functions/kopier.mjs).
+import { LAND, landEtterId, KONTINENTER, LANDENE, landInfo, landKode, byerILand } from '#pakke/land.js';
+import { jobbLonn } from '#pakke/motor.js';
+import { PAKKE } from '#pakke/pakke.js';
+import * as REGLER from '#pakke/regler.js';
+import { rng, velg, stokk } from './tilfeldig.js';
 
 export const STANDARD_INNSTILLINGER = {
-  startbelopPerElev: 50000, // kr per gruppemedlem ved start (gruppe på 4 = 200 000 kr)
-  poengLand: 5,           // poeng per land gruppa eier
-  poengKontinent: 10,     // poeng per kontinent gruppa har minst ett land på
+  startbelopPerElev: 50000, // kr per gruppemedlem ved start (overstyres av spillpakken)
   laasDager: 5,           // land er åpne for duell så mange dager etter erobring, så blir de låst. 0 = aldri automatisk
   jobberPerDag: 2,        // hvor mange jobber en gruppe kan ta per dag
   quizPerDag: 3,          // hvor mange geografiquizer per dag
@@ -16,7 +19,8 @@ export const STANDARD_INNSTILLINGER = {
   startdato: '',          // "2026-11-10"
   sluttdato: '',          // "2026-11-28" – vises som nedtelling
   pause: false,           // når true kan ingen kjøpe noe (banken avviser)
-  stengte: {},            // overstyring: { "UA": false } åpner Ukraina, { "FR": true } stenger Frankrike
+  stengte: {},            // overstyring: { "UA": false } åpner Ukraina, { "FR-nice": true } stenger bare Nice
+  ...REGLER.STANDARD,     // spillpakkens egne standardverdier (startbeløp, poeng …)
 };
 
 export const GRUPPEFARGER = [
@@ -47,10 +51,13 @@ export function idag(d = new Date()) {
 }
 export function igaar() { return idag(new Date(Date.now() - 86400000)); }
 
-export function erStengt(landId, innstillinger) {
-  const l = landEtterId[landId]; if (!l) return true;
+/** Er et sted stengt? Overstyring kan gjelde stedet («FR-nice») eller hele regionen/landet («FR»). */
+export function erStengt(stedId, innstillinger) {
+  const l = landEtterId[stedId]; if (!l) return true;
   const o = innstillinger?.stengte || {};
-  return landId in o ? !!o[landId] : !!l.stengt;
+  if (stedId in o) return !!o[stedId];
+  if (l.landId in o) return !!o[l.landId];
+  return !!l.stengt;
 }
 
 /** Er et eid land låst (kan ikke lenger utfordres)? */
@@ -87,27 +94,16 @@ export function oppdaterNedtellinger(rot = document) {
   }
 }
 
-/** Poengtavle: liste over grupper med land, kontinenter og poeng, sortert. */
+/** Poengtavle: grupper med steder og poeng, sortert. Hvordan poengene regnes ut, bestemmer spillpakken. */
 export function poengtavle(spill) {
   const i = innst(spill);
   const grupper = spill?.grupper || {};
   const eierskap = spill?.eierskap || {};
-  const rader = Object.entries(grupper).map(([gid, g]) => {
-    const land = Object.entries(eierskap).filter(([, e]) => e.gruppe === gid).map(([id]) => id);
-    const kont = [...new Set(land.map((id) => landEtterId[id]?.kontinent).filter(Boolean))];
-    return {
-      gid, ...g, land, kontinenter: kont,
-      poeng: land.length * i.poengLand + kont.length * i.poengKontinent,
-    };
-  });
+  const rader = Object.entries(grupper).map(([gid, g]) => ({ gid, ...g, ...REGLER.poengForGruppe(gid, eierskap, i, erStengt) }));
   return rader.sort((a, b) => b.poeng - a.poeng || (b.saldo || 0) - (a.saldo || 0));
 }
-
-// ---------- tilfeldighet med frø (lik på elevside og i banken) ----------
-function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
-function rng(seed) { let s = hash(String(seed)) || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
-const velg = (r, liste) => liste[Math.floor(r() * liste.length)];
-function stokk(r, liste) { const a = [...liste]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+export const heltLandBonus = (n, i) => REGLER.heltLandBonus(n, { ...STANDARD_INNSTILLINGER, ...(i || {}) });
+export const POENGFELT = REGLER.POENGFELT;
 
 // ---------- jobb ----------
 const JOBBER = [
@@ -153,33 +149,8 @@ export function rettJobb(landId, fro, svar = []) {
   return { riktige, antall: jobb.oppgaver.length, utbetaling: Math.round(jobb.lonn * riktige / jobb.oppgaver.length / 10) * 10 };
 }
 
-// ---------- geografiquiz ----------
-const QUIZLAND = LAND.filter((l) => l.spesial !== 'antarktis');
-export function lagQuiz(fro, antall = 5) {
-  const r = rng('quiz-' + fro);
-  const spm = [];
-  const typer = stokk(r, ['hovedstad', 'flagg', 'kontinent', 'nord', 'hovedstad', 'flagg', 'land']);
-  for (let n = 0; n < antall; n++) {
-    const type = typer[n % typer.length];
-    const fasit = velg(r, QUIZLAND);
-    const andre = stokk(r, QUIZLAND.filter((l) => l.id !== fasit.id)).slice(0, 3);
-    if (type === 'hovedstad') {
-      spm.push({ tekst: `Hva er hovedstaden i ${fasit.navn}?`, valg: stokk(r, [fasit, ...andre].map((l) => l.by)), svar: fasit.by });
-    } else if (type === 'land') {
-      spm.push({ tekst: `${fasit.by} er hovedstaden i hvilket land?`, valg: stokk(r, [fasit, ...andre].map((l) => l.navn)), svar: fasit.navn });
-    } else if (type === 'flagg') {
-      spm.push({ tekst: `Hvilket land har dette flagget?`, stort: fasit.flagg, valg: stokk(r, [fasit, ...andre].map((l) => l.navn)), svar: fasit.navn });
-    } else if (type === 'kontinent') {
-      const k = KONTINENTER.filter((x) => x !== 'Antarktis' && x !== fasit.kontinent);
-      spm.push({ tekst: `Hvilket kontinent ligger ${fasit.navn} i?`, valg: stokk(r, [fasit.kontinent, ...stokk(r, k).slice(0, 3)]), svar: fasit.kontinent });
-    } else {
-      const tre = [fasit, ...andre.slice(0, 2)].sort((a, b) => b.lat - a.lat);
-      if (tre[0].lat - tre[1].lat < 3) { n--; continue; }
-      spm.push({ tekst: `Hvilken hovedstad ligger lengst nord?`, valg: stokk(r, tre.map((l) => `${l.by} (${l.navn})`)), svar: `${tre[0].by} (${tre[0].navn})` });
-    }
-  }
-  return spm;
-}
+// ---------- geografiquiz (spørsmålene lages av spillpakken) ----------
+export const lagQuiz = REGLER.lagQuiz;
 export function rettQuiz(fro, svar = []) {
   const q = lagQuiz(fro);
   return { riktige: q.filter((s, i) => svar[i] === s.svar).length, antall: q.length };
@@ -212,9 +183,9 @@ export function hotellEffekt(hotell, innstillinger) {
     livliner: fas.includes('Gratis wifi') ? 1 : 0,
   };
 }
-/** Flyprisen etter eventuell flyplassbuss-rabatt (lik i elevsiden og banken). */
-export function flyPrisMedRabatt(totalt, hotell, posisjon) {
-  const ok = hotell && hotell.land === posisjon && (hotell.fasiliteter || []).includes('Flyplassbuss');
+/** Flyprisen etter eventuell flyplassbuss-rabatt (lik i elevsiden og banken). Gjelder bare fly, ikke tog/buss. */
+export function flyPrisMedRabatt(totalt, hotell, posisjon, type = 'fly') {
+  const ok = type === 'fly' && hotell && hotell.land === posisjon && (hotell.fasiliteter || []).includes('Flyplassbuss');
   return ok ? Math.round(totalt * 0.9 / 10) * 10 : totalt;
 }
 // Overraskelser på billige hoteller. kr ganges med landets prisnivå.
@@ -231,4 +202,13 @@ export const HENDELSE_SJANSE = { 1: 0.5, 2: 0.3 };
 
 export function formaterKr(n) { return Math.round(n || 0).toLocaleString('nb-NO').replace(/,/g, ' ') + ' kr'; }
 export function nyId(lengde = 8) { const t = 'abcdefghijkmnpqrstuvwxyz23456789'; let s = ''; const a = crypto.getRandomValues(new Uint8Array(lengde)); for (const x of a) s += t[x % t.length]; return s; }
-export { LAND, landEtterId, KONTINENTER };
+export { LAND, landEtterId, KONTINENTER, LANDENE, landInfo, landKode, byerILand, PAKKE };
+
+/** «Tokyo, Japan» / «Bergen, Norge» */
+export function stedNavn(id) { const l = landEtterId[id]; return l ? `${l.by}, ${l.landNavn}` : ''; }
+/** Stor forbokstav: stor('landet') → 'Landet' */
+export const stor = (t) => (t ? t[0].toUpperCase() + t.slice(1) : '');
+/** Ordene til spillpakken (land/by …), se pakker/<spill>/pakke.js */
+export const ORD = PAKKE.ord;
+/** Nøkkel for lagring i nettleseren, f.eks. lagringsnokkel('spill') → 'jr-spill' / 'eu-spill' */
+export const lagringsnokkel = (navn) => `${PAKKE.prefiks}-${navn}`;
