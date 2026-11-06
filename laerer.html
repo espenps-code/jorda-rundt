@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jorda rundt – Lærer</title>
+<title>Lærer</title>
+<script src="js/pakke.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
 <link rel="stylesheet" href="css/felles.css">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
@@ -103,11 +104,11 @@
 </head>
 <body>
 <header class="topp">
-  <h1>🌍 Jorda rundt <span class="rolle">LÆRER</span></h1>
+  <h1><span data-p="ikon">🌍</span> <span data-p="navn">Jorda rundt</span> <span class="rolle">LÆRER</span></h1>
   <select id="spillvelger" class="skjult" aria-label="Velg spill"></select>
   <div class="bankstatus skjult" id="bankstatus" title="Banken kjører i skyen og behandler elevenes kjøp døgnet rundt – også når denne siden er lukket"><span class="lampe"></span> Banken er åpen</div>
   <span class="vokser"></span>
-  <a href="index.html#veiledning" target="_blank" class="knapp lys mini">❓ Veiledning</a>
+  <a id="veiledningslenke" href="index.html#veiledning" target="_blank" class="knapp lys mini">❓ Veiledning</a>
   <a id="rapportlenke" class="knapp lys mini skjult" target="_blank" title="Reisedagbok for hver gruppe – til utskrift">📔 Rapporter</a>
   <a id="tavlelenke" class="knapp lys mini skjult" target="_blank" title="Åpner tavla i en egen fane – nyttig hvis du har to skjermer">↗ Tavle i eget vindu</a>
   <button id="loggut" class="knapp lys mini skjult">Logg ut</button>
@@ -117,7 +118,7 @@
 <section id="innlogging" class="sentrert skjult">
   <div class="velkommen">
     <div class="klode">🌍✈️</div>
-    <h1>Jorda rundt</h1>
+    <h1 data-p="navn">Jorda rundt</h1>
     <p class="dempet">Logg inn med Google eller e-post (f.eks. jobbmailen) for å lage og styre spill. Elevene trenger ingen konto – de logger inn med gruppekode og PIN.</p>
     <div id="laererinn"></div>
   </div>
@@ -179,7 +180,7 @@
                 <div class="rad"><button class="knapp mini" id="kopierlenke">📋 Kopier lenke</button><button class="knapp mini lys" id="storqr">🔍 Vis stor QR</button></div>
               </div>
             </div>
-            <p class="liten"><a href="reiselogg.html" target="_blank">📓 Skriv ut reiseloggen (til kopiering)</a></p>
+            <p class="liten"><a data-reiselogg href="reiselogg.html" target="_blank">📓 Skriv ut reiseloggen (til kopiering)</a></p>
           </div>
         </div>
       </div>
@@ -190,7 +191,7 @@
       <div class="rad" style="justify-content:space-between;margin-bottom:1rem">
         <h2 style="margin:0">Grupper</h2>
         <div class="rad">
-          <a href="reiselogg.html" target="_blank" class="knapp lys">📓 Reiselogg</a>
+          <a data-reiselogg href="reiselogg.html" target="_blank" class="knapp lys">📓 Reiselogg</a>
           <button id="skrivut" class="knapp lys">🖨️ Skriv ut innloggingskort</button>
           <button id="autogruppeknapp" class="knapp sol">⚡ Lag mange grupper</button>
           <button id="nygruppeknapp" class="knapp">＋ Ny gruppe</button>
@@ -203,18 +204,18 @@
     <section data-panel="land" class="skjult">
       <div class="kort">
         <div class="rad" style="justify-content:space-between">
-          <h2 style="margin:0">Land</h2>
+          <h2 style="margin:0" data-p="ord.steder" data-stor>Steder</h2>
           <div class="rad">
             <select id="landfilter" style="width:auto">
-              <option value="alle">Alle land</option>
-              <option value="eid">Eide land</option>
-              <option value="stengt">Stengte land</option>
+              <option value="alle" id="valgAlle">Alle</option>
+              <option value="eid" id="valgEid">Eide</option>
+              <option value="stengt" id="valgStengt">Stengte</option>
             </select>
-            <input id="landsok" placeholder="Søk etter land …" style="width:220px">
+            <input id="landsok" placeholder="Søk etter by eller land …" style="width:220px">
           </div>
         </div>
-        <p class="liten dempet">Stengte land kan ikke reises til. Låste land kan ikke utfordres – eieren beholder dem.</p>
-        <div style="overflow-x:auto"><table class="landtabell"><thead><tr><th></th><th>Land</th><th>Kontinent</th><th>Eier</th><th>Status</th><th></th></tr></thead><tbody id="landrader"></tbody></table></div>
+        <p class="liten dempet" id="landhjelp"></p>
+        <div style="overflow-x:auto"><table class="landtabell"><thead><tr><th></th><th id="kolSted">Sted</th><th id="kolRegion">Region</th><th>Eier</th><th>Status</th><th></th></tr></thead><tbody id="landrader"></tbody></table></div>
       </div>
     </section>
 
@@ -228,9 +229,8 @@
             <div class="felt"><label>Startdato</label><input type="date" name="startdato"></div>
             <div class="felt"><label>Sluttdato</label><input type="date" name="sluttdato"><div class="hjelp">Vises som nedtelling på tavla.</div></div>
             <div class="felt"><label>Startbeløp per elev (kr)</label><input type="number" name="startbelopPerElev" min="0" step="1000"><div class="hjelp">En gruppe på 4 får 4 × beløpet. Gjelder nye grupper og nullstilling.</div></div>
-            <div class="felt"><label>Poeng per land</label><input type="number" name="poengLand" min="0"></div>
-            <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>
-            <div class="felt"><label>Land er åpne for duell i (dager)</label><input type="number" name="laasDager" min="0"><div class="hjelp">Etter erobring kan andre utfordre i så mange dager – så blir landet låst. Elevene ser en nedtelling. Standard 5. 0 = aldri automatisk.</div></div>
+            <div id="poengfelt" style="display:contents"></div>
+            <div class="felt"><label><span data-p="ord.steder" data-stor>Steder</span> er åpne for duell i (dager)</label><input type="number" name="laasDager" min="0"><div class="hjelp">Etter erobring kan andre utfordre i så mange dager – så blir <span data-p="ord.stedet">stedet</span> låst. Elevene ser en nedtelling. Standard 5. 0 = aldri automatisk.</div></div>
             <div class="felt"><label>Jobber per dag</label><input type="number" name="jobberPerDag" min="0"></div>
             <div class="felt"><label>Geografiquizer per dag</label><input type="number" name="quizPerDag" min="0"></div>
             <div class="felt"><label>Kr per riktig quizsvar</label><input type="number" name="quizBelop" min="0" step="50"></div>
@@ -284,13 +284,32 @@ import { monterInnlogging } from './js/laererinn.js';
 import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
-import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
-import { tilfeldigStart } from './data/motor.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel } from './js/felles.js';
+import { tilfeldigStart } from '#pakke/motor.js';
+import { fyllPakkeTekster, lenke, fullLenke } from './js/side.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const qs = brukerEmulator ? '?emulator' : '';
+
+// ---------- spillpakke: tekster og felt som er ulike i spillene ----------
+fyllPakkeTekster();
+document.title = `${PAKKE.navn} – Lærer`;
+$('#veiledningslenke').href = lenke(PAKKE.sider.forside + '#veiledning');
+for (const a of document.querySelectorAll('[data-reiselogg]')) a.href = lenke(PAKKE.sider.reiselogg);
+$('#valgAlle').textContent = `Alle ${ORD.steder}`; $('#valgEid').textContent = `Eide ${ORD.steder}`; $('#valgStengt').textContent = `Stengte ${ORD.steder}`;
+$('#landsok').placeholder = PAKKE.modell === 'land' ? 'Søk etter land …' : `Søk etter ${ORD.sted} eller ${ORD.region} …`;
+$('#kolSted').textContent = stor(ORD.sted); $('#kolRegion').textContent = PAKKE.modell === 'land' ? 'Kontinent' : stor(ORD.region);
+$('#landhjelp').textContent = `Stengte ${ORD.steder} kan ikke reises til. Låste ${ORD.steder} kan ikke utfordres – eieren beholder dem.` + (PAKKE.modell === 'land' ? '' : ` «Steng ${ORD.region}» stenger alle ${ORD.stedene} i ${ORD.regionen}.`);
+$('#poengfelt').innerHTML = PAKKE.modell === 'land' ? `
+            <div class="felt"><label>Poeng per land</label><input type="number" name="poengLand" min="0"></div>
+            <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>` : `
+            <div class="felt"><label>Poeng per by</label><input type="number" name="poengBy" min="0"></div>
+            <div class="felt"><label>Bonus for hele landet</label><div class="rad" style="gap:.3rem;flex-wrap:nowrap"><input type="number" name="heltLand1" min="0" title="1 by" style="width:3.6rem"><input type="number" name="heltLand2" min="0" title="2 byer" style="width:3.6rem"><input type="number" name="heltLand3" min="0" title="3 byer" style="width:3.6rem"><input type="number" name="heltLand4" min="0" title="4 byer" style="width:3.6rem"><input type="number" name="heltLand5" min="0" title="5 byer" style="width:3.6rem"></div><div class="hjelp">For land med 1, 2, 3, 4 og 5 byer. Gis når én gruppe eier alle byene i landet. Standard 5 · 10 · 20 · 30 · 40.</div></div>`;
+/** Innstillinger for poeng (ulike i spillene) */
+const POENGNOKLER = PAKKE.modell === 'land' ? ['poengLand', 'poengKontinent'] : ['poengBy', 'heltLand1', 'heltLand2', 'heltLand3', 'heltLand4', 'heltLand5'];
+
 
 let bruker = null, spillId = null, spill = null, pins = {}, stoppSpill = null, stoppPins = null, stoppBank = null, stoppLaerere = null, mineSpill = {}, laerere = {};
 const erEier = () => !!spill && !!bruker && spill.eier === bruker.uid;
@@ -335,7 +354,7 @@ vedInnlogging(async (u) => {
     tegnSpillvelger();
     const ids = Object.keys(mineSpill);
     if (!ids.length) { vis('nyttspill'); return; }
-    if (!spillId || !mineSpill[spillId]) velgSpill(localStorageHent('jr-spill') in mineSpill ? localStorageHent('jr-spill') : ids[ids.length - 1]);
+    if (!spillId || !mineSpill[spillId]) velgSpill(localStorageHent(lagringsnokkel('spill')) in mineSpill ? localStorageHent(lagringsnokkel('spill')) : ids[ids.length - 1]);
   });
 });
 function localStorageHent(k) { try { return localStorage.getItem(k); } catch { return null; } }
@@ -354,7 +373,7 @@ $('#spillvelger').onchange = (e) => {
 $('#avbrytnytt').onclick = () => vis('spillvisning');
 
 $('#lagspill').onclick = async () => {
-  const navn = $('#nyttnavn').value.trim() || 'Jorda rundt';
+  const navn = $('#nyttnavn').value.trim() || PAKKE.navn;
   const id = nyId(10);
   await update(r('/'), {
     [`spill/${id}`]: { eier: bruker.uid, info: { navn, opprettet: Date.now(), eierNavn: mittNavn() }, innstillinger: { ...STANDARD_INNSTILLINGER, stengte: null } },
@@ -369,15 +388,15 @@ function stoppAlt() { stoppSpill?.(); stoppPins?.(); stoppBank?.(); stoppLaerere
 function velgSpill(id) {
   if (id === spillId) return;
   stoppAlt();
-  spillId = id; localStorageSett('jr-spill', id);
+  spillId = id; localStorageSett(lagringsnokkel('spill'), id);
   tegnSpillvelger();
   vis('spillvisning');
-  const elevUrl = new URL('elev.html' + qs, location.href).href;
+  const elevUrl = fullLenke('elev.html' + qs);
   $('#elevlenke').href = $('#elevlenke').textContent = elevUrl;
   $('#qr').innerHTML = qrSvg(elevUrl, 3);
-  $('#tavlelenke').href = `tavle.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`;
+  $('#tavlelenke').href = lenke(`tavle.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`);
   $('#tavlelenke').classList.remove('skjult');
-  $('#rapportlenke').href = `rapport.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`;
+  $('#rapportlenke').href = lenke(`rapport.html?spill=${id}${brukerEmulator ? '&emulator' : ''}`);
   $('#rapportlenke').classList.remove('skjult');
   stoppSpill = onValue(r(`spill/${id}`), (snap) => { spill = snap.val(); if (spill) tegnAlt(); }, () => mistetTilgang(id));
   stoppLaerere = onValue(r(`laerere/${id}`), (snap) => { laerere = snap.val() || {}; if (spill) tegnLaerere(); }, () => {});
@@ -398,7 +417,7 @@ $('#kopierlenke').onclick = async () => {
 };
 $('#storqr').onclick = () => {
   const bg = document.createElement('div'); bg.className = 'modal-bakgrunn';
-  bg.innerHTML = `<div class="modal" style="text-align:center;width:min(100%,560px)"><h2>🌍 Jorda rundt</h2><p class="dempet">Skann koden – eller gå til</p><p style="word-break:break-all"><b>${esc($('#elevlenke').href)}</b></p><div style="background:#fff;padding:16px;border-radius:14px;display:inline-block;line-height:0">${qrSvg($('#elevlenke').href, 9)}</div><p><button class="knapp lys">Lukk</button></p></div>`;
+  bg.innerHTML = `<div class="modal" style="text-align:center;width:min(100%,560px)"><h2>${PAKKE.ikon} ${esc(PAKKE.navn)}</h2><p class="dempet">Skann koden – eller gå til</p><p style="word-break:break-all"><b>${esc($('#elevlenke').href)}</b></p><div style="background:#fff;padding:16px;border-radius:14px;display:inline-block;line-height:0">${qrSvg($('#elevlenke').href, 9)}</div><p><button class="knapp lys">Lukk</button></p></div>`;
   bg.onclick = (e) => { if (e.target === bg || e.target.tagName === 'BUTTON') bg.remove(); };
   document.body.append(bg);
 };
@@ -408,7 +427,7 @@ $('#storqr').onclick = () => {
 // mens tavla er åpen, og tilbake til Oversikt når den lukkes – samme knapper, samme funksjoner.
 function aapneTavle() {
   if (!spillId) return;
-  $('#tavleramme').src = `tavle.html?spill=${encodeURIComponent(spillId)}&innebygd${brukerEmulator ? '&emulator' : ''}`;
+  $('#tavleramme').src = lenke(`tavle.html?spill=${encodeURIComponent(spillId)}&innebygd${brukerEmulator ? '&emulator' : ''}`);
   $('#skuffinnhold').append($('#venterpanel'));
   $('#tavlelag').classList.remove('skjult');
   document.body.style.overflow = 'hidden';
@@ -451,11 +470,11 @@ function tegnAlt() {
 function tegnOversikt() {
   const i = innst(spill);
   const rader = poengtavle(spill);
-  $('#poengtavle').innerHTML = rader.length ? `<table class="rangering"><thead><tr><th>#</th><th>Gruppe</th><th>Land</th><th>Kontinenter</th><th>Poeng</th><th style="text-align:right">Penger</th><th>Er nå</th></tr></thead><tbody>${
+  $('#poengtavle').innerHTML = rader.length ? `<table class="rangering"><thead><tr><th>#</th><th>Gruppe</th>${PAKKE.modell === 'land' ? '<th>Land</th><th>Kontinenter</th>' : `<th>${stor(ORD.steder)}</th><th>Hele ${ORD.regioner}</th>`}<th>Poeng</th><th style="text-align:right">Penger</th><th>Er nå</th></tr></thead><tbody>${
     rader.map((g, n) => {
       const her = landEtterId[g.posisjon];
       const hotell = g.hotell && g.hotell.land === g.posisjon;
-      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td><td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td><td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${g.iLufta ? `<span class="merke">✈️ i lufta → ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}</span>` : `${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? '<span class="merke gress">🏨</span>' : '<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>'}`}</td></tr>`;
+      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td>${PAKKE.modell === 'land' ? `<td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td>` : `<td class="tall">${g.byer.length}</td><td class="tall" title="${esc(g.heleLand.map((k) => landInfo[k]?.navn).join(', '))}">${g.heleLand.length ? g.heleLand.map((k) => landInfo[k]?.flagg).join(' ') : '–'}</td>`}<td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${g.iLufta ? `<span class="merke">${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} på vei → ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}</span>` : `${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? '<span class="merke gress">🏨</span>' : '<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>'}`}</td></tr>`;
     }).join('')}</tbody></table>` : '<p class="tom">Ingen grupper ennå. Gå til «Grupper» og lag dem.</p>';
 
   // nedtelling
@@ -508,8 +527,8 @@ function tegnOversikt() {
   const antall = levert.length + dueller.length + diktater.filter(([, k]) => !k.aapnet).length;
   $('#badgeOppgaver').textContent = antall; $('#badgeOppgaver').classList.toggle('skjult', !antall);
   $('#venterTeller').textContent = antall; $('#venterpanel').classList.toggle('aktiv', !!antall);
-  document.title = (antall ? `(${antall}) ` : '') + 'Jorda rundt – lærer';
   oppdaterSkuffknapp(antall);
+  document.title = (antall ? `(${antall}) ` : '') + `${PAKKE.navn} – lærer`;
 
   // strøm
   const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 40);
@@ -525,7 +544,7 @@ function tegnGrupper() {
     const antallLand = Object.values(spill.eierskap || {}).filter((e) => e.gruppe === gid).length;
     return `<div class="kort gruppekort" style="--farge:${esc(g.farge)}">
       <div class="rad" style="justify-content:space-between"><h3 style="margin:0">${esc(g.navn)}</h3><span class="merke">${g.personer} elever</span></div>
-      <p class="liten" style="margin:.4em 0">${her ? `${her.flagg} ${esc(her.by)}, ${esc(her.navn)}` : ''} · ${antallLand} land · <b>${formaterKr(g.saldo)}</b></p>
+      <p class="liten" style="margin:.4em 0">${her ? `${her.flagg} ${esc(her.by)}, ${esc(her.landNavn)}` : ''} · ${antallLand} ${antallLand === 1 ? ORD.sted : ORD.steder} · <b>${formaterKr(g.saldo)}</b></p>
       <div class="rad" style="margin:.6rem 0"><div><div class="liten dempet">Gruppekode</div><span class="kodeboks">${esc(g.kode)}</span></div><div><div class="liten dempet">PIN</div><span class="kodeboks">${esc(pins[gid] || '······')}</span></div></div>
       <div class="rad">
         <button class="knapp mini" data-penger="${gid}">💰 Juster penger</button>
@@ -535,7 +554,7 @@ function tegnGrupper() {
         <button class="knapp mini lys" data-diktat="${gid}" title="Godkjenn parlør-diktat manuelt">✍️ Diktat</button>
         <button class="knapp mini lys" data-slett="${gid}" title="Slett gruppa">🗑️</button>
       </div></div>`;
-  }).join('') : '<div class="kort"><p class="tom">Ingen grupper ennå. Trykk «Ny gruppe». Hver gruppe får en tilfeldig startposisjon i verden.</p></div>';
+  }).join('') : `<div class="kort"><p class="tom">Ingen grupper ennå. Trykk «Ny gruppe». Hver gruppe får ${PAKKE.startsted}.</p></div>`;
 
   $$('[data-penger]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.penger;
@@ -556,16 +575,18 @@ function tegnGrupper() {
   });
   $$('[data-flytt]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.flytt;
-    const d = await skjemaModal(`Flytt ${gnavn(gid)}`, `<div class="felt"><label>Nytt land</label><select name="land">${LAND.map((l) => `<option value="${l.id}" ${l.id === spill.grupper[gid].posisjon ? 'selected' : ''}>${l.flagg} ${esc(l.navn)}</option>`).join('')}</select></div><p class="liten dempet">Gruppa må booke nytt hotell der.</p>`, 'Flytt');
+    const d = await skjemaModal(`Flytt ${gnavn(gid)}`, `<div class="felt"><label>${stor(ORD.nye)} ${ORD.sted}</label><select name="land">${LAND.map((l) => `<option value="${l.id}" ${l.id === spill.grupper[gid].posisjon ? 'selected' : ''}>${l.flagg} ${esc(l.navn)}${PAKKE.modell === 'land' ? '' : ` (${esc(l.landNavn)})`}</option>`).join('')}</select></div><p class="liten dempet">Gruppa må booke nytt hotell der.</p>`, 'Flytt');
     if (!d) return;
     await update(r(`spill/${spillId}/grupper/${gid}`), { posisjon: d.land, hotell: null, iLufta: null });
     varsle('Gruppa er flyttet.', 'ok');
   });
   $$('[data-diktat]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.diktat; const g = spill.grupper[gid];
-    const land = Object.keys(spill.reiselogger?.[gid] || {}).filter((id) => !g.diktat?.[id]);
+    // én by per land som gruppa har levert reiselogg i, og som ikke har fått diktat-pengene
+    const sett = new Set();
+    const land = Object.keys(spill.reiselogger?.[gid] || {}).filter((id) => landEtterId[id] && !g.diktat?.[landKode(id)] && !sett.has(landKode(id)) && sett.add(landKode(id)));
     if (!land.length) { varsle('Gruppa har ingen leverte reiselogger uten godkjent diktat.'); return; }
-    const d = await skjemaModal(`Godkjenn diktat – ${g.navn}`, `<p class="liten dempet">Bruk dette hvis gruppa har skrevet riktig, men med en skrivemåte spillet ikke kjente igjen. Gruppa får ${formaterKr(innst(spill).diktatBelopPerElev * (g.personer || 4))}.</p><div class="felt"><label>Land</label><select name="land">${land.map((id) => `<option value="${id}">${landEtterId[id].flagg} ${esc(landEtterId[id].navn)}</option>`).join('')}</select></div>`, 'Godkjenn og betal');
+    const d = await skjemaModal(`Godkjenn diktat – ${g.navn}`, `<p class="liten dempet">Bruk dette hvis gruppa har skrevet riktig, men med en skrivemåte spillet ikke kjente igjen. Gruppa får ${formaterKr(innst(spill).diktatBelopPerElev * (g.personer || 4))}.</p><div class="felt"><label>Land</label><select name="land">${land.map((id) => `<option value="${id}">${landEtterId[id].flagg} ${esc(landEtterId[id].landNavn)}</option>`).join('')}</select></div>`, 'Godkjenn og betal');
     if (!d) return;
     varsle(await godkjennDiktatManuelt(spillId, gid, d.land), 'ok');
   });
@@ -652,12 +673,12 @@ $('#autogruppeknapp').onclick = async () => {
 };
 
 $('#skrivut').onclick = () => {
-  const lenke = new URL('elev.html', location.href).href;
+  const elevlenke = fullLenke('elev.html');
   $('#utskrift').innerHTML = Object.entries(spill.grupper || {}).map(([gid, g]) => `<div class="loggkort" style="border-color:${esc(g.farge)}">
-    <h2>🌍 Jorda rundt</h2><p style="margin:0 0 4mm"><b>${esc(g.navn)}</b></p>
+    <h2>${PAKKE.ikon} ${esc(PAKKE.navn)}</h2><p style="margin:0 0 4mm"><b>${esc(g.navn)}</b></p>
     <p style="margin:0">Gruppekode</p><div class="k">${esc(g.kode)}</div>
     <p style="margin:3mm 0 0">PIN</p><div class="k">${esc(pins[gid] || '')}</div>
-    <p style="font-size:9pt;margin-top:4mm">Gå til: ${esc(lenke)}<br>Ikke del PIN-en med andre grupper!</p></div>`).join('');
+    <p style="font-size:9pt;margin-top:4mm">Gå til: ${esc(elevlenke)}<br>Ikke del PIN-en med andre grupper!</p></div>`).join('');
   window.print();
 };
 
@@ -667,7 +688,7 @@ function tegnLand() {
   const sok = $('#landsok').value.trim().toLowerCase();
   const filter = $('#landfilter').value;
   const rader = LAND.filter((l) => {
-    if (sok && !l.navn.toLowerCase().includes(sok) && !l.by.toLowerCase().includes(sok)) return false;
+    if (sok && !l.navn.toLowerCase().includes(sok) && !l.by.toLowerCase().includes(sok) && !l.landNavn.toLowerCase().includes(sok)) return false;
     if (filter === 'eid' && !spill.eierskap?.[l.id]) return false;
     if (filter === 'stengt' && !erStengt(l.id, i)) return false;
     return true;
@@ -679,19 +700,29 @@ function tegnLand() {
       if (erLaast(e, i)) status = '<span class="merke">🔒 låst</span>';
       else { const ms = laasesOm(e, i); status = `<span class="merke sol">åpen for utfordring${ms != null ? ' · låses om ' + nedtelling(ms) : ''}</span>`; }
     }
-    return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td><td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>
+    return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td>${PAKKE.modell === 'land' ? `<td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>` : `<td><b>${esc(l.navn)}</b>${l.hovedstad ? ' <span class="liten dempet">★</span>' : ''}</td><td class="liten">${esc(l.landNavn)}</td>`}
       <td>${e ? `<span class="gruppenavn">${prikk(e.gruppe)} ${esc(gnavn(e.gruppe))}</span>` : '<span class="dempet">–</span>'}</td>
       <td>${stengt ? `<span class="merke korall" title="${esc(l.stengt || 'stengt av lærer')}">stengt</span> ` : ''}${status}</td>
       <td style="white-space:nowrap;text-align:right">
         ${e ? `<button class="knapp mini lys" data-laas="${l.id}">${e.laast ? 'Lås opp' : 'Lås'}</button> <button class="knapp mini lys" data-fjern="${l.id}" title="Fjern eier">✕</button> ` : ''}
-        <button class="knapp mini ${stengt ? 'gress' : 'lys'}" data-stengt="${l.id}">${stengt ? 'Åpne' : 'Steng'}</button></td></tr>`;
+        <button class="knapp mini ${stengt ? 'gress' : 'lys'}" data-stengt="${l.id}">${stengt ? 'Åpne' : 'Steng'}</button>${l.hovedstad ? ` <button class="knapp mini lys" data-stengland="${l.landId}" title="Gjelder alle ${ORD.stedene} i ${esc(l.landNavn)}">${byerILand(l.landId).every((b) => erStengt(b.id, i)) ? `Åpne ${ORD.region}` : `Steng ${ORD.region}`}</button>` : ''}</td></tr>`;
   }).join('');
   $$('[data-laas]').forEach((b) => b.onclick = () => settLaas(spillId, b.dataset.laas, !spill.eierskap[b.dataset.laas].laast));
   $$('[data-fjern]').forEach((b) => b.onclick = async () => { if (await bekreft('Fjerne eier?', `${esc(landEtterId[b.dataset.fjern].navn)} blir ledig igjen.`, 'Fjern')) fjernEierskap(spillId, b.dataset.fjern); });
   $$('[data-stengt]').forEach((b) => b.onclick = () => {
     const id = b.dataset.stengt; const naa = erStengt(id, i);
     const standard = !!landEtterId[id].stengt;
-    set(r(`spill/${spillId}/innstillinger/stengte/${id}`), (!naa) === standard ? null : !naa);
+    const landStengt = landEtterId[id].landId !== id ? i.stengte?.[landEtterId[id].landId] : undefined;
+    set(r(`spill/${spillId}/innstillinger/stengte/${id}`), (!naa) === (landStengt ?? standard) ? null : !naa);
+  });
+  // steng/åpne et helt land: overstyring på landkoden, og fjern overstyringer på enkeltbyene
+  $$('[data-stengland]').forEach((b) => b.onclick = () => {
+    const kode = b.dataset.stengland; const byer = byerILand(kode);
+    const ny = !byer.every((x) => erStengt(x.id, i));
+    const standard = !!byer[0]?.stengt;
+    const u = { [`spill/${spillId}/innstillinger/stengte/${kode}`]: ny === standard ? null : ny };
+    for (const x of byer) u[`spill/${spillId}/innstillinger/stengte/${x.id}`] = null;
+    update(r('/'), u);
   });
 }
 $('#landsok').oninput = tegnLand; $('#landfilter').onchange = tegnLand;
@@ -703,24 +734,24 @@ function tegnInnstillinger() {
   if (innstRedigeres) return;
   const i = innst(spill); const f = $('#innstskjema');
   f.navn.value = spill.info?.navn || '';
-  for (const k of ['startdato', 'sluttdato', 'startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'diktatBelopPerElev', 'diktatMinutter']) f[k].value = i[k] ?? '';
+  for (const k of ['startdato', 'sluttdato', 'startbelopPerElev', ...POENGNOKLER, 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'diktatBelopPerElev', 'diktatMinutter']) f[k].value = i[k] ?? '';
   f.pause.checked = !!i.pause;
 }
 $('#innstskjema').onsubmit = async (e) => {
   e.preventDefault(); const f = e.target;
   const tall = (k) => Math.max(0, Number(f[k].value) || 0);
   await update(r('/'), {
-    [`spill/${spillId}/info/navn`]: f.navn.value.trim() || 'Jorda rundt',
-    [`mineSpill/${bruker.uid}/${spillId}`]: f.navn.value.trim() || 'Jorda rundt',
+    [`spill/${spillId}/info/navn`]: f.navn.value.trim() || PAKKE.navn,
+    [`mineSpill/${bruker.uid}/${spillId}`]: f.navn.value.trim() || PAKKE.navn,
     [`spill/${spillId}/innstillinger/startdato`]: f.startdato.value,
     [`spill/${spillId}/innstillinger/sluttdato`]: f.sluttdato.value,
-    ...Object.fromEntries(['startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'diktatBelopPerElev', 'diktatMinutter'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
+    ...Object.fromEntries(['startbelopPerElev', ...POENGNOKLER, 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'diktatBelopPerElev', 'diktatMinutter'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
     [`spill/${spillId}/innstillinger/pause`]: f.pause.checked,
   });
   innstRedigeres = false; varsle('Reglene er lagret.', 'ok');
 };
 $('#nullstill').onclick = async () => {
-  if (!await bekreft('Nullstille spillet?', 'Alle grupper får startbeløpet og ny startposisjon. Alle land, reiselogger, dueller og hele loggen slettes. <b>Dette kan ikke angres.</b>', 'Nullstill', true)) return;
+  if (!await bekreft('Nullstille spillet?', `Alle grupper får startbeløpet og ny startposisjon. Alle ${ORD.steder}, reiselogger, dueller og hele loggen slettes. <b>Dette kan ikke angres.</b>`, 'Nullstill', true)) return;
   const i = innst(spill); const u = {}; const brukt = [];
   for (const [gid, gr] of Object.entries(spill.grupper || {})) {
     const s = tilfeldigStart(brukt, i.stengte || {}); brukt.push(s.id);
@@ -761,9 +792,9 @@ $('#inviter').onclick = async () => {
   const kode = nyId(8);
   const utloper = Date.now() + INV_DAGER * 86400000;
   try {
-    await set(r(`invitasjoner/${kode}`), { spill: spillId, navn: spill.info?.navn || 'Jorda rundt', av: mittNavn(), utloper });
+    await set(r(`invitasjoner/${kode}`), { spill: spillId, navn: spill.info?.navn || PAKKE.navn, av: mittNavn(), utloper });
   } catch (e) { varsle('Kunne ikke lage invitasjon: ' + e.message, 'feil'); return; }
-  const url = new URL(`laerer.html?invitasjon=${kode}${brukerEmulator ? '&emulator' : ''}`, location.href).href;
+  const url = fullLenke(`laerer.html?invitasjon=${kode}${brukerEmulator ? '&emulator' : ''}`);
   $('#invitasjonsboks').innerHTML = `<div class="invboks"><b>Invitasjonslenke</b><span class="lenke" id="invlenke">${esc(url)}</span>
     <div class="rad"><button class="knapp mini" id="kopierinv">Kopier lenken</button><span class="liten dempet">Gyldig til ${new Date(utloper).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}. Send den bare til kolleger – alle med lenken kan bli lærer i spillet.</span></div></div>`;
   $('#kopierinv').onclick = async () => {
@@ -779,12 +810,12 @@ async function mottaInvitasjon() {
   try { inv = (await get(r(`invitasjoner/${kode}`))).val(); } catch {}
   if (!inv || inv.utloper < Date.now()) { varsle('Invitasjonen finnes ikke eller er utløpt. Be om en ny lenke.', 'feil'); return; }
   const finnes = (await get(r(`mineSpill/${bruker.uid}/${inv.spill}`))).exists();
-  if (finnes) { localStorageSett('jr-spill', inv.spill); return; }
+  if (finnes) { localStorageSett(lagringsnokkel('spill'), inv.spill); return; }
   if (!await bekreft('Bli lærer i spillet?', `<b>${esc(inv.av || 'En kollega')}</b> har invitert deg til å styre «${esc(inv.navn)}».`, 'Bli med')) return;
   try {
     await set(r(`laerere/${inv.spill}/${bruker.uid}`), { kode, navn: mittNavn().slice(0, 80), epost: (bruker.email || '').slice(0, 120), tid: Date.now() });
-    await set(r(`mineSpill/${bruker.uid}/${inv.spill}`), inv.navn || 'Jorda rundt');
-    localStorageSett('jr-spill', inv.spill);
+    await set(r(`mineSpill/${bruker.uid}/${inv.spill}`), inv.navn || PAKKE.navn);
+    localStorageSett(lagringsnokkel('spill'), inv.spill);
     varsle(`Velkommen! Du er nå lærer i «${inv.navn}».`, 'ok');
   } catch (e) { varsle('Kunne ikke bli med: ' + e.message, 'feil'); }
 }

@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Reisedagbøker – Jorda rundt</title>
+<title>Reisedagbøker</title>
+<script src="js/pakke.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📔</text></svg>">
 <link rel="stylesheet" href="css/felles.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap">
@@ -37,7 +38,7 @@
   .tall span { font-size: 7.5pt; color: #5b6774; }
 
   .kart { background: #eaf3f8; border-radius: 4mm; border: 1px solid #d5e5ee; overflow: hidden; position: relative; }
-  .kart svg { display: block; width: 100%; height: auto; }
+  .kart svg { display: block; width: 100%; height: auto; max-height: 105mm; margin: 0 auto; }
   .kart .tegnf { position: absolute; left: 3mm; bottom: 2.5mm; font-size: 7.5pt; color: #3d4955; background: rgba(255,255,255,.85); padding: 1mm 2.5mm; border-radius: 2mm; display: flex; gap: 3mm; }
   .kart .tegnf i { display: inline-block; width: 3mm; height: 3mm; border-radius: 1mm; vertical-align: -.4mm; margin-right: 1mm; }
 
@@ -109,8 +110,10 @@
 <script type="module">
 import { monterInnlogging } from './js/laererinn.js';
 import { r, get, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator } from './js/fb.js';
-import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER, LAND } from './js/felles.js';
-import { avstandKm } from './data/motor.js';
+import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER, LAND, LANDENE, landInfo, landKode, PAKKE, ORD, stor } from './js/felles.js';
+document.title = `Reisedagbøker – ${PAKKE.navn}`;
+import { avstandKm } from '#pakke/motor.js';
+import { KART_URL, kartSvg as lagKart } from '#pakke/rapportkart.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -130,7 +133,7 @@ vedInnlogging(async (u) => {
     if (!spill) throw new Error('fant ikke');
   } catch { $('#status').textContent = 'Fant ikke spillet, eller du har ikke tilgang.'; return; }
   try {
-    const kart = await (await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json')).json();
+    const kart = await (await fetch(KART_URL)).json();
     verden = window.topojson.feature(kart, kart.objects.countries).features;
   } catch { verden = []; }
   $('#velg').innerHTML = '<option value="alle">Alle grupper</option>' + poengtavle(spill).map((g) => `<option value="${g.gid}">${esc(g.navn)}</option>`).join('');
@@ -139,42 +142,8 @@ vedInnlogging(async (u) => {
   tegn();
 });
 
-// ---------- kart (enkel ekvirektangulær projeksjon, uten Antarktis-stripa) ----------
-const W = 1000, H = 470, TOPP = 84, BUNN = -58;
-const px = (lng) => ((lng + 180) / 360) * W;
-const py = (lat) => ((TOPP - Math.max(BUNN, Math.min(TOPP, lat))) / (TOPP - BUNN)) * H;
-const NUM = Object.fromEntries(LAND.map((l) => [l.numerisk, l.id]));
-function ringSti(ring) {
-  let d = '', forrige = null;
-  for (const [lng, lat] of ring) {
-    const hopp = forrige !== null && Math.abs(lng - forrige) > 180;
-    d += `${d && !hopp ? 'L' : 'M'}${px(lng).toFixed(1)},${py(lat).toFixed(1)}`;
-    forrige = lng;
-  }
-  return d + 'Z';
-}
-function featureSti(f) {
-  const g = f.geometry; if (!g) return '';
-  const polys = g.type === 'Polygon' ? [g.coordinates] : g.type === 'MultiPolygon' ? g.coordinates : [];
-  return polys.map((p) => p.map(ringSti).join('')).join('');
-}
-function kartSvg(gid, farge, rute, eide, besokt) {
-  const land = verden.map((f) => {
-    const id = NUM[f.id] || (f.properties?.name === 'Kosovo' ? 'XK' : null);
-    const fyll = eide.has(id) ? farge : besokt.has(id) ? farge + '55' : '#fbf7ee';
-    return `<path d="${featureSti(f)}" fill="${fyll}" stroke="#b8c7d1" stroke-width=".5"/>`;
-  }).join('');
-  const smaa = [...eide].filter((id) => !verden.some((f) => NUM[f.id] === id)).map((id) => { const l = landEtterId[id]; return `<circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="4" fill="${farge}" stroke="#fff" stroke-width="1.2"/>`; }).join('');
-  let linjer = '';
-  for (let n = 1; n < rute.length; n++) {
-    const a = landEtterId[rute[n - 1]], b = landEtterId[rute[n]]; if (!a || !b) continue;
-    const x1 = px(a.lng), y1 = py(a.lat), x2 = px(b.lng), y2 = py(b.lat);
-    const mx = (x1 + x2) / 2, my = (y1 + y2) / 2 - Math.min(80, Math.hypot(x2 - x1, y2 - y1) * 0.25);
-    linjer += `<path d="M${x1},${y1} Q${mx},${my} ${x2},${y2}" fill="none" stroke="#0B3A53" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round" opacity=".85"/>`;
-  }
-  const punkter = rute.map((id, n) => { const l = landEtterId[id]; if (!l) return ''; return `<g><circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="8.5" fill="${n === 0 ? '#F59E0B' : '#0B3A53'}" stroke="#fff" stroke-width="2"/><text x="${px(l.lng)}" y="${py(l.lat) + 3.4}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff" font-family="Baloo 2, sans-serif">${n === 0 ? 'S' : n}</text></g>`; }).join('');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Kart over reiseruta">${land}${smaa}${linjer}${punkter}</svg>`;
-}
+// Kartet tegnes av spillpakken (pakker/<spill>/rapportkart.js)
+const kartSvg = (...a) => lagKart(verden, ...a);
 
 // ---------- data for én gruppe ----------
 function analyser(gid) {
@@ -194,7 +163,7 @@ function analyser(gid) {
       const a = landEtterId[h.fra], b = landEtterId[h.til];
       const d = a && b ? avstandKm(a, b) : 0; km += d; turbulens += h.turbulens || 0;
       if (!lengst || d > lengst.km) lengst = { km: d, fra: h.fra, til: h.til };
-      rute.push(h.til); stopp.push({ land: h.til, tid: h.tid, km: d, stoppPaaVei: h.stopp, turbulens: h.turbulens, hendelser: [] });
+      rute.push(h.til); stopp.push({ land: h.til, tid: h.tid, km: d, stoppPaaVei: h.stopp, turbulens: h.turbulens, reisemate: h.reisemate || 'fly', hendelser: [] });
     } else if (h.type === 'billett') sum.fly += -(h.belop || 0);
     else if (h.type === 'hotell') {
       const pris = h.pris ?? -(h.belop || 0); sum.hotell += pris; hotellnetter += 3;
@@ -206,7 +175,7 @@ function analyser(gid) {
       if (h.hendelse) { overraskelser.push({ ...h.hendelse, land: h.land }); naa.hendelser.push(h.hendelse.tekst); }
     } else if (h.type === 'jobb') { sum.jobb += h.belop || 0; jobber++; }
     else if (h.type === 'quiz') { sum.quiz += h.belop || 0; quizer++; }
-    else if (h.type === 'diktat') { if (h.belop) { sum.diktat += h.belop; diktater.push(h.land); naa.hendelser.push('✍️ Klarte parlør-diktaten (5 av 5)'); } }
+    else if (h.type === 'diktat') { if (h.belop) { sum.diktat += h.belop; diktater.push(landKode(h.land)); naa.hendelser.push('✍️ Klarte parlør-diktaten (5 av 5)'); } }
     else if (h.type === 'duell') { sum.duell += h.belop || 0; naa.hendelser.push(`🏆 ${h.tekst.replace(/^vant/, 'Vant')}`); }
     else if (h.type === 'erobring') { if (/erobret/.test(h.tekst)) { erobringer.push({ land: h.land, tid: h.tid }); naa.hendelser.push(`🏳️ Erobret ${landEtterId[h.land]?.navn}!`); } else if (/utfordrer/.test(h.tekst)) naa.hendelser.push(`⚔️ Utfordret til duell om ${landEtterId[h.land]?.navn}`); }
     else if (h.type === 'laas') { laasinger.push(h.land); naa.hendelser.push(`🔒 Låste ${landEtterId[h.land]?.navn} med landquiz`); }
@@ -226,17 +195,18 @@ function analyser(gid) {
 
 function hoydepunkter(a) {
   const ut = []; const L = (id) => landEtterId[id];
-  if (a.erobringer[0]) ut.push(['🏳️', 'Første erobring', `${L(a.erobringer[0].land).flagg} ${esc(L(a.erobringer[0].land).navn)} ble gruppas første land ${new Date(a.erobringer[0].tid).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}.`]);
+  if (a.erobringer[0]) ut.push(['🏳️', 'Første erobring', `${L(a.erobringer[0].land).flagg} ${esc(L(a.erobringer[0].land).navn)} ble gruppas første ${ORD.sted} ${new Date(a.erobringer[0].tid).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}.`]);
   if (a.vunnet.length) ut.push(['🏆', `${a.vunnet.length} ${a.vunnet.length === 1 ? 'duell' : 'dueller'} vunnet`, `Vant kampen om ${a.vunnet.map((d) => `${L(d.land).flagg} ${esc(L(d.land).navn)}`).join(', ')}.`]);
-  if (a.lengst && a.lengst.km) ut.push(['✈️', 'Lengste flytur', `${esc(L(a.lengst.fra).by)} → ${esc(L(a.lengst.til).by)}: ${a.lengst.km.toLocaleString('nb-NO')} km.`]);
-  if (a.rad?.kontinenter.length) ut.push(['🌍', `${a.rad.kontinenter.length} ${a.rad.kontinenter.length === 1 ? 'kontinent' : 'kontinenter'}`, `${a.rad.kontinenter.join(', ')}.`]);
+  if (a.lengst && a.lengst.km) ut.push(['🧭', 'Lengste reise', `${esc(L(a.lengst.fra).by)} → ${esc(L(a.lengst.til).by)}: ${a.lengst.km.toLocaleString('nb-NO')} km.`]);
+  if (PAKKE.modell !== 'land' && a.rad?.heleLand.length) ut.push(['🏳️', `${a.rad.heleLand.length} ${a.rad.heleLand.length === 1 ? `helt ${ORD.region}` : `hele ${ORD.regioner}`}`, `Eier alle ${ORD.stedene} i ${a.rad.heleLand.map((k) => `${landInfo[k].flagg} ${esc(landInfo[k].navn)}`).join(', ')}.`]);
+  if (PAKKE.modell === 'land' && a.rad?.kontinenter.length) ut.push(['🌍', `${a.rad.kontinenter.length} ${a.rad.kontinenter.length === 1 ? 'kontinent' : 'kontinenter'}`, `${a.rad.kontinenter.join(', ')}.`]);
   if (a.dyrestHotell && a.dyrestHotell.stjerner >= 4) ut.push(['🌟', 'Luksusopphold', `${esc(a.dyrestHotell.navn)} ${'★'.repeat(a.dyrestHotell.stjerner)} i ${esc(L(a.dyrestHotell.land).by)} for ${formaterKr(a.dyrestHotell.pris)}.`]);
   if (a.overraskelser[0]) ut.push(['🎲', 'Hostell-overraskelse', `${esc(a.overraskelser[0].tekst.replace(/^\S+\s/, ''))}`]);
-  if (a.diktater.length) ut.push(['✍️', 'Språkmester', `Klarte parlør-diktaten i ${a.diktater.map((id) => esc(L(id).navn)).join(', ')}.`]);
-  if (a.laasinger.length) ut.push(['🔒', 'Landquiz-eksperter', `Låste ${a.laasinger.map((id) => esc(L(id).navn)).join(', ')} med landquiz.`]);
+  if (a.diktater.length) ut.push(['✍️', 'Språkmester', `Klarte parlør-diktaten i ${[...new Set(a.diktater)].map((id) => esc(landInfo[id]?.navn || '')).join(', ')}.`]);
   if (a.rute.includes('AQ')) ut.push(['🐧', 'Helt til Antarktis!', 'En av de få som klarte reisen til verdens kaldeste kontinent.']);
+  if (a.laasinger.length) ut.push(['🔒', 'Landquiz-eksperter', `Låste ${a.laasinger.map((id) => esc(L(id).navn)).join(', ')} med landquiz.`]);
   if (a.jobber >= 3) ut.push(['💼', 'Hardt arbeidende', `Tok ${a.jobber} jobber og tjente ${formaterKr(a.sum.jobb)}.`]);
-  if (a.turbulens === 0 && a.stopp.length > 2) ut.push(['🧠', 'Null turbulens', 'Svarte riktig på alle spørsmål om bord på flyene!']);
+  if (a.turbulens === 0 && a.stopp.length > 2) ut.push(['🧠', 'Null turbulens', 'Svarte riktig på alle spørsmål underveis på reisene!']);
   if (a.tapt.length) ut.push(['⚔️', 'Kjempet tappert', `Tapte ${a.tapt.length} ${a.tapt.length === 1 ? 'duell' : 'dueller'} – men ga aldri opp.`]);
   if (!ut.length) ut.push(['🧳', 'Reisen har så vidt begynt', 'Flere eventyr venter!']);
   return ut.slice(0, 6);
@@ -252,23 +222,23 @@ function rapport(gid) {
   const maksInn = Math.max(1, a.sum.jobb, a.sum.quiz, a.sum.diktat, a.sum.duell, a.sum.laererPluss, a.sum.overraskelsePluss);
   const maksUt = Math.max(1, a.sum.fly, a.sum.hotell, a.sum.overraskelseMinus, a.sum.laererMinus);
   const startkr = (i.startbelopPerElev || 0) * (g.personer || 4);
-  const bunn = `<div class="bunntekst"><span>🌍 Jorda rundt · ${esc(spill.info?.navn || '')}</span><span>${esc(g.navn)}</span></div>`;
+  const bunn = `<div class="bunntekst"><span>${PAKKE.ikon} ${esc(PAKKE.navn)} · ${esc(spill.info?.navn || '')}</span><span>${esc(g.navn)}</span></div>`;
   const rotasjon = (n) => `${((n * 37) % 13) - 6}deg`;
 
   const side1 = `<section class="side" style="--f:${esc(f)}">
-    <div class="omslag"><div class="smaa">Reisedagbok · Jorda rundt${periode ? ' · ' + esc(periode) : ''}</div>
-      <h1>${esc(g.navn)}</h1><div class="under">${g.personer || 4} reisende · startet i ${L(a.rute[0])?.flagg || ''} ${esc(L(a.rute[0])?.by || '')}, ${esc(L(a.rute[0])?.navn || '')}</div>
+    <div class="omslag"><div class="smaa">Reisedagbok · ${esc(PAKKE.navn)}${periode ? ' · ' + esc(periode) : ''}</div>
+      <h1>${esc(g.navn)}</h1><div class="under">${g.personer || 4} reisende · startet i ${L(a.rute[0])?.flagg || ''} ${esc(L(a.rute[0])?.by || '')}, ${esc(L(a.rute[0])?.landNavn || '')}</div>
       <div class="plass"><b>${a.plass}.</b><span>plass av ${a.antall}<br>${a.rad?.poeng || 0} poeng</span></div></div>
     <div class="tall">
-      <div><b>${a.eide.size}</b><span>land erobret</span></div>
-      <div><b>${a.rad?.kontinenter.length || 0}</b><span>kontinenter</span></div>
-      <div><b>${a.stopp.length - 1}</b><span>flyreiser</span></div>
-      <div><b>${a.km.toLocaleString('nb-NO')}</b><span>km fløyet</span></div>
+      <div><b>${a.eide.size}</b><span>${ORD.steder} erobret</span></div>
+      ${PAKKE.modell === 'land' ? `<div><b>${a.rad?.kontinenter.length || 0}</b><span>kontinenter</span></div>` : `<div><b>${a.rad?.heleLand.length || 0}</b><span>hele ${ORD.regioner}</span></div>`}
+      <div><b>${a.stopp.length - 1}</b><span>reiser</span></div>
+      <div><b>${a.km.toLocaleString('nb-NO')}</b><span>km reist</span></div>
       <div><b>${a.hotellnetter}</b><span>hotellnetter</span></div>
       <div><b>${a.jobber}</b><span>jobber</span></div>
     </div>
     <div class="kart">${verden.length ? kartSvg(gid, f, a.rute, a.eide, besokt) : '<p style="padding:1rem">Kartet kunne ikke lastes.</p>'}
-      <div class="tegnf"><span><i style="background:${esc(f)}"></i>eide land</span><span><i style="background:${esc(f)}55"></i>besøkt</span><span>S = start · tallene viser reiserekkefølgen</span></div></div>
+      <div class="tegnf"><span><i style="background:${esc(f)}"></i>eide ${ORD.steder}</span><span><i style="${PAKKE.modell === 'land' ? `background:${esc(f)}55` : `background:#fff;border:1.5px solid ${esc(f)}`}"></i>besøkt</span><span>S = start · tallene viser reiserekkefølgen</span></div></div>
     <div><h2 class="del">✨ Reisens høydepunkter <span class="strek"></span></h2>
       <div class="hoydepunkter">${hoydepunkter(a).map(([ik, t, tx]) => `<div class="hp"><span class="ik">${ik}</span><div><b>${t}</b><span>${tx}</span></div></div>`).join('')}</div></div>
     ${bunn}
@@ -279,8 +249,8 @@ function rapport(gid) {
     const linjer = [];
     if (s.hotell) linjer.push(`🏨 ${esc(s.hotell.navn)} ${s.hotell.stjerner ? '★'.repeat(s.hotell.stjerner) : ''} – ${formaterKr(s.hotell.pris)} for tre netter`);
     linjer.push(...s.hendelser.map(esc));
-    return `<div class="stopp" data-nr="${n === 0 ? 'S' : n}"><div class="topp"><span class="land">${l.flagg} ${esc(l.by)}, ${esc(l.navn)}</span><span class="dato">${s.tid ? new Date(s.tid).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }) : ''}</span></div>
-      ${!s.start && s.km ? `<div class="fly">✈️ ${s.km.toLocaleString('nb-NO')} km${s.stoppPaaVei != null ? ` · ${s.stoppPaaVei ? s.stoppPaaVei + ' mellomlanding' + (s.stoppPaaVei > 1 ? 'er' : '') : 'direktefly'}` : ''}${s.turbulens ? ` · ${s.turbulens} turbulens` : ''}</div>` : s.start ? '<div class="fly">🎒 Startsted</div>' : ''}
+    return `<div class="stopp" data-nr="${n === 0 ? 'S' : n}"><div class="topp"><span class="land">${l.flagg} ${esc(l.by)}, ${esc(l.landNavn)}</span><span class="dato">${s.tid ? new Date(s.tid).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }) : ''}</span></div>
+      ${!s.start && s.km ? `<div class="fly">${{ tog: '🚆', buss: '🚌' }[s.reisemate] || '✈️'} ${s.km.toLocaleString('nb-NO')} km${s.reisemate === 'tog' ? ' · tog' : s.reisemate === 'buss' ? ' · buss' : s.stoppPaaVei != null ? ` · ${s.stoppPaaVei ? s.stoppPaaVei + ' mellomlanding' + (s.stoppPaaVei > 1 ? 'er' : '') : 'direktefly'}` : ''}${s.turbulens ? ` · ${s.turbulens} turbulens` : ''}</div>` : s.start ? '<div class="fly">🎒 Startsted</div>' : ''}
       ${linjer.length ? `<div class="linjer">${linjer.map((x) => `<div>${x}</div>`).join('')}</div>` : ''}</div>`;
   }).join('');
 
@@ -291,7 +261,7 @@ function rapport(gid) {
         <div class="boks"><h3>Tjent: ${formaterKr(a.inntekt)}</h3>
           ${bar('💼 Jobb', a.sum.jobb, maksInn, '#30A46C')}${bar('🧭 Quiz', a.sum.quiz, maksInn, '#30A46C')}${bar('✍️ Diktat', a.sum.diktat, maksInn, '#30A46C')}${bar('🏆 Premier', a.sum.duell, maksInn, '#30A46C')}${a.sum.laererPluss ? bar('⭐ Bonus', a.sum.laererPluss, maksInn, '#30A46C') : ''}${a.sum.overraskelsePluss ? bar('🍀 Flaks', a.sum.overraskelsePluss, maksInn, '#30A46C') : ''}</div>
         <div class="boks"><h3>Brukt: ${formaterKr(a.utgift)}</h3>
-          ${bar('✈️ Fly', a.sum.fly, maksUt, '#E5484D')}${bar('🏨 Hotell', a.sum.hotell, maksUt, '#E5484D')}${a.sum.overraskelseMinus ? bar('🐜 Uflaks', a.sum.overraskelseMinus, maksUt, '#E5484D') : ''}${a.sum.laererMinus ? bar('➖ Trekk', a.sum.laererMinus, maksUt, '#E5484D') : ''}</div>
+          ${bar('🎫 Reiser', a.sum.fly, maksUt, '#E5484D')}${bar('🏨 Hotell', a.sum.hotell, maksUt, '#E5484D')}${a.sum.overraskelseMinus ? bar('🐜 Uflaks', a.sum.overraskelseMinus, maksUt, '#E5484D') : ''}${a.sum.laererMinus ? bar('➖ Trekk', a.sum.laererMinus, maksUt, '#E5484D') : ''}</div>
       </div>
       <div class="regnskap" style="margin-top:3mm"><span>Startet med <b>${formaterKr(startkr || 0)}</b></span><span>→</span><span>Igjen i reisekassa <b>${formaterKr(g.saldo)}</b></span></div></div>
     <div><h2 class="del">🛂 Landsamlingen <span class="strek"></span></h2>

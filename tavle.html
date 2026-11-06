@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jorda rundt – Tavle</title>
+<title>Tavle</title>
+<script src="js/pakke.js"></script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
 <link rel="stylesheet" href="css/felles.css">
 <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.45.3/dist/globe.gl.min.js"></script>
@@ -19,7 +20,7 @@
   .side::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 8px; background: repeating-linear-gradient(45deg, #C8382F 0 14px, #F5EFE1 14px 22px, #1D5B8F 22px 36px, #F5EFE1 36px 44px); }
   .tittel { display: flex; align-items: center; gap: .8rem; }
   .tittel h1 { color: #fff; font-size: clamp(1.8rem, 3.6vw, 4rem); margin: 0; line-height: .95; }
-  .tittel h1::before { content: 'AVGANGER · VERDEN'; display: block; font: 500 clamp(.7rem, .9vw, 1rem) var(--font-mono); letter-spacing: .3em; color: var(--sol); margin-bottom: .5em; }
+  .tittel h1::before { content: var(--tavle-tittel, 'AVGANGER'); display: block; font: 500 clamp(.7rem, .9vw, 1rem) var(--font-mono); letter-spacing: .3em; color: var(--sol); margin-bottom: .5em; }
   .tittel .spillnavn { color: var(--lys-tekst); font: 700 clamp(.9rem, 1.2vw, 1.3rem) var(--font); }
   .nedtelling { margin-left: auto; text-align: right; }
   .nedtelling b { font: 500 clamp(1.8rem, 3.2vw, 3.6rem) var(--font-mono); color: var(--sol); display: block; line-height: 1; }
@@ -82,7 +83,7 @@
 </head>
 <body>
 <section id="innlogging" class="skjult">
-  <div><div style="font-size:4rem">🌍📺</div><h1>Jorda rundt – tavle</h1><p style="color:#9fd3ef">Logg inn som lærer for å vise tavla.</p>
+  <div><div style="font-size:4rem"><span data-p="ikon">🌍</span>📺</div><h1><span data-p="navn">Jorda rundt</span> – tavle</h1><p style="color:#9fd3ef">Logg inn som lærer for å vise tavla.</p>
   <div id="laererinn" style="margin-top:1rem"></div>
   <p id="melding" style="color:#fca5a5"></p></div>
 </section>
@@ -93,7 +94,7 @@
   </div>
   <aside class="side">
     <div class="tittel">
-      <div><h1>🌍 Jorda rundt</h1><div class="spillnavn" id="spillnavn"></div></div>
+      <div><h1><span data-p="ikon">🌍</span> <span data-p="navn">Jorda rundt</span></h1><div class="spillnavn" id="spillnavn"></div></div>
       <div class="nedtelling skjult" id="nedtelling"><b id="dager"></b><small id="dagertekst"></small></div>
     </div>
     <div id="dueller"></div>
@@ -105,8 +106,12 @@
 <script type="module">
 import { monterInnlogging } from './js/laererinn.js';
 import { r, get, onValue, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator } from './js/fb.js';
-import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER } from './js/felles.js';
-import { lagKlode } from './js/klode.js';
+import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER, landInfo, PAKKE, ORD } from './js/felles.js';
+import { lagKlode } from '#pakke/klode.js';
+import { fyllPakkeTekster } from './js/side.js';
+fyllPakkeTekster();
+document.title = `${PAKKE.navn} – Tavle`;
+document.documentElement.style.setProperty('--tavle-tittel', JSON.stringify(PAKKE.kart.tavle));
 import { DUELLER } from './data/dueller.js';
 
 const $ = (s) => document.querySelector(s);
@@ -124,7 +129,7 @@ vedInnlogging(async (u) => {
   $('#innlogging').classList.add('skjult'); $('#scene').classList.remove('skjult');
   try {
     klode = await lagKlode($('#klode'), { autoRoter: true });
-    klode.globe.pointOfView({ lat: 25, lng: 10, altitude: 2.3 });
+    if (klode.oversikt) klode.oversikt(0); else klode.globe.pointOfView({ lat: 25, lng: 10, altitude: 2.3 });
   } catch (e) { console.error(e); }
   onValue(r(`spill/${spillId}`), (snap) => {
     spill = snap.val();
@@ -152,8 +157,9 @@ function tegn() {
     return `<div class="rad-g ${n === 0 && g.poeng > 0 ? 'forst' : ''}" style="--f:${esc(g.farge)}">
       <div class="nr">${n === 0 && g.poeng > 0 ? '👑' : n + 1}</div>
       <div style="min-width:0"><div class="navn">${esc(g.navn)}</div>
-        <div class="detaljer"><span>${g.iLufta ? `✈️ på vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}` : `📍 ${her ? her.flagg + ' ' + esc(her.navn) : ''}`}</span><span>🏳️ ${g.land.length} land</span>
-        <span class="kont" title="Kontinenter">${KONTINENTER.map((k) => `<i class="${g.kontinenter.includes(k) ? 'har' : ''}" title="${k}">${{ Europa: 'EU', Asia: 'AS', Afrika: 'AF', 'Nord-Amerika': 'NA', 'Sør-Amerika': 'SA', Oseania: 'OS', Antarktis: 'AN' }[k]}</i>`).join('')}</span></div></div>
+        <div class="detaljer"><span>${g.iLufta ? `${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} på vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}` : `📍 ${her ? her.flagg + ' ' + esc(her.navn) : ''}`}</span>${PAKKE.modell === 'land' ? `<span>🏳️ ${g.land.length} land</span>
+        <span class="kont" title="Kontinenter">${KONTINENTER.map((k) => `<i class="${g.kontinenter.includes(k) ? 'har' : ''}" title="${k}">${{ Europa: 'EU', Asia: 'AS', Afrika: 'AF', 'Nord-Amerika': 'NA', 'Sør-Amerika': 'SA', Oseania: 'OS', Antarktis: 'AN' }[k]}</i>`).join('')}</span>` : `<span>🏙️ ${g.byer.length} ${g.byer.length === 1 ? ORD.sted : ORD.steder}</span>`}
+        ${g.heleLand.length ? `<span title="Hele ${ORD.regioner}">🏆 ${g.heleLand.map((k) => landInfo[k]?.flagg || '').join(' ')}</span>` : ''}</div></div>
       <div class="penger">${formaterKr(g.saldo)}</div>
       <div class="poeng">${g.poeng}<small>poeng</small></div></div>`;
   }).join('') || '<p style="color:#9fd3ef">Ingen grupper ennå.</p>';
@@ -191,7 +197,7 @@ function visNeste() {
     klode.velg(landId); klode.fokus(landId, 1.6, 1600);
   }
   const el = document.createElement('div'); el.className = 'hendelse'; el.style.setProperty('--f', g?.farge || '#F59E0B');
-  el.innerHTML = `<div class="stort">${h.type === 'fly' ? '✈️' : l?.flagg || VIKTIG[h.type]}</div><div><div class="t1" style="color:${esc(g?.farge || '#fff')}">${esc(g?.navn || '')}</div><div class="t2">${esc(h.tekst)}</div></div><div class="stort">${VIKTIG[h.type]}</div>`;
+  el.innerHTML = `<div class="stort">${h.type === 'fly' ? ({ tog: '🚆', buss: '🚌' }[h.reisemate] || '✈️') : l?.flagg || VIKTIG[h.type]}</div><div><div class="t1" style="color:${esc(g?.farge || '#fff')}">${esc(g?.navn || '')}</div><div class="t2">${esc(h.tekst)}</div></div><div class="stort">${VIKTIG[h.type]}</div>`;
   $('#klode').append(el);
   setTimeout(() => {
     el.remove(); klode?.velg(null); klode?.visReise(null, null); visesNaa = false;
@@ -201,7 +207,8 @@ function visNeste() {
 }
 
 $('#fullskjerm').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
-$('#rotering').onclick = () => { roter = !roter; klode?.autoRoter(roter); $('#rotering').textContent = roter ? '⏸ Stopp rotasjon' : '▶ Roter'; };
+if (PAKKE.kart.roterer) $('#rotering').onclick = () => { roter = !roter; klode?.autoRoter(roter); $('#rotering').textContent = roter ? '⏸ Stopp rotasjon' : '▶ Roter'; };
+else $('#rotering').style.display = 'none'; // kart som ikke roterer (Europa …)
 setInterval(() => spill && tegn(), 60000);
 
 // ---------- DUELL på storskjerm ----------
