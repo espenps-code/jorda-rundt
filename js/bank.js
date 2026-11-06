@@ -12,7 +12,7 @@ import { rettFlyquiz, kravFor, MAKS_SPORSMAL } from '../data/flyquiz.js';
 import { landKode, landInfo } from '#pakke/land.js';
 import {
   innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, landEtterId, formaterKr, nyId,
-  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O,
+  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER,
 } from './felles.js';
 
 const iArbeid = new Set();
@@ -127,10 +127,10 @@ function fly(spillId, gid, d, i, spill) {
       flight: `${tilbud.selskap.split(' ').map((o) => o[0]).join('').slice(0, 2).toUpperCase()}${100 + (parseInt(tilbud.id.replace(/\D/g, '').slice(-3) || '0', 10) % 900)}`,
     };
     const til = landEtterId[d.til];
-    const ikon = { fly: '✈️', tog: '🚆', buss: '🚌' }[type];
+    const ikon = { fly: '✈️', tog: '🚆', buss: '🚌', bat: '⛴️' }[type];
     return {
       melding: `God tur! Svar riktig på ${krav} spørsmål underveis for å komme fram til ${til.by}.`,
-      logg: { type: 'billett', belop: -pris, fra, til: d.til, reisemate: type, tekst: `${type === 'fly' ? 'tok av mot' : `tok ${type}et mot`} ${til.flagg} ${til.navn} ${ikon}` },
+      logg: { type: 'billett', belop: -pris, fra, til: d.til, reisemate: type, tekst: `${{ fly: 'tok av mot', tog: 'tok toget mot', buss: 'tok bussen mot', bat: 'tok båten mot' }[type] || 'reiste mot'} ${til.flagg} ${til.navn} ${ikon}` },
     };
   });
 }
@@ -158,24 +158,31 @@ function hotell(spillId, gid, d, i) {
     if (harHotellHer(g)) return { feil: 'Dere har allerede hotell her.' };
     const h = hoteller(g.posisjon).find((x) => x.id === d.hotellId);
     if (!h) return { feil: 'Fant ikke hotellet.' };
+    // Telt: gruppa må kunne allemannsretten (alle spørsmålene riktige)
+    if (h.telt) {
+      if (!rettTeltQuiz || !gyldigFro(d.fro)) return { feil: 'Svar på spørsmålene om allemannsretten først.' };
+      const res = rettTeltQuiz(d.fro, d.svar || []);
+      if (res.riktige < res.antall) return { feil: `Dere hadde ${res.riktige} av ${res.antall} riktige om allemannsretten. Les reglene og prøv igjen!` };
+    }
     const pris = h.prisNatt * 3;
     if ((g.saldo || 0) < pris) return { feil: `Dere har ikke råd. Tre netter koster ${formaterKr(pris)}.` };
     g.saldo -= pris;
-    g.hotell = { land: g.posisjon, navn: h.navn, stjerner: h.stjerner, pris, fasiliteter: h.fasiliteter };
+    g.hotell = { land: g.posisjon, navn: h.navn, stjerner: h.stjerner, pris, fasiliteter: h.fasiliteter, ...(h.telt ? { telt: true } : {}) };
     g.besokt = g.besokt || {}; g.besokt[g.posisjon] = true;
     const l = landEtterId[g.posisjon];
     // overraskelse på billige hoteller (bestemmes én gang per innsjekk)
     let hendelseTekst = '';
     if (!g.hotell.hendelse && Math.random() < (HENDELSE_SJANSE[h.stjerner] || 0)) {
-      const e = HOTELLHENDELSER[Math.floor(Math.random() * HOTELLHENDELSER.length)];
+      const liste = h.telt && TELTHENDELSER ? TELTHENDELSER : HOTELLHENDELSER;
+      const e = liste[Math.floor(Math.random() * liste.length)];
       const kr = e.kr ? Math.max(50, Math.round(Math.abs(e.kr) * Math.pow(l.prisniva, 0.8) / 10) * 10) * Math.sign(e.kr) : 0;
       g.hotell.hendelse = { tekst: e.tekst, kr, jobb: e.jobb || 0 };
       if (kr) g.saldo = Math.max(0, g.saldo + kr);
       hendelseTekst = ` ${e.tekst}${kr ? ` (${kr > 0 ? '+' : '−'}${formaterKr(Math.abs(kr))})` : ''}`;
     }
     return {
-      melding: `Velkommen til ${h.navn}! Tre netter er booket.${hendelseTekst}`,
-      logg: { type: 'hotell', belop: -pris + (g.hotell.hendelse?.kr || 0), pris, navn: h.navn, stjerner: h.stjerner, hendelse: g.hotell.hendelse || null, land: g.posisjon, tekst: `sjekker inn på ${h.navn} i ${l.by}${hendelseTekst ? ' –' + hendelseTekst : ''}` },
+      melding: h.telt ? `⛺ Teltet er slått opp! Husk allemannsretten: maks to netter på samme sted i lavlandet, og ta med all søpla.${hendelseTekst}` : `Velkommen til ${h.navn}! Tre netter er booket.${hendelseTekst}`,
+      logg: { type: 'hotell', belop: -pris + (g.hotell.hendelse?.kr || 0), pris, navn: h.navn, stjerner: h.stjerner, hendelse: g.hotell.hendelse || null, land: g.posisjon, tekst: `${h.telt ? `slår opp telt ved ${l.by} ⛺` : `sjekker inn på ${h.navn} i ${l.by}`}${hendelseTekst ? ' –' + hendelseTekst : ''}` },
     };
   });
 }

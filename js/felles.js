@@ -151,6 +151,10 @@ export function rettJobb(landId, fro, svar = []) {
 
 // ---------- geografiquiz (spørsmålene lages av spillpakken) ----------
 export const lagQuiz = REGLER.lagQuiz;
+// ---------- telt med allemannsretten (bare spillpakker som har det, f.eks. Norge rundt) ----------
+export const teltQuiz = REGLER.teltQuiz || null;
+export const rettTeltQuiz = REGLER.rettTeltQuiz || null;
+export const TELTHENDELSER = REGLER.TELTHENDELSER || null;
 export function rettQuiz(fro, svar = []) {
   const q = lagQuiz(fro);
   return { riktige: q.filter((s, i) => svar[i] === s.svar).length, antall: q.length };
