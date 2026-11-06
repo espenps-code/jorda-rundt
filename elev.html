@@ -171,6 +171,19 @@
   .billett { box-shadow: 0 3px 0 #E2D6BC, var(--skygge); }
   .hotell, .oppgavekort { box-shadow: 0 3px 0 #E2D6BC, var(--skygge); }
   .landliste button:hover, .landliste button:focus-visible { background: linear-gradient(90deg, var(--sol-lys), #fff); }
+  .utfordring { flex-shrink: 0; margin: .9rem 1.1rem 0; padding: .8rem 1rem; border-radius: 14px; background: var(--korall); color: #fff; display: flex; gap: .8rem; align-items: center;
+    box-shadow: 0 4px 0 #8E2019, 0 10px 20px rgba(142,32,25,.25); animation: utf-inn .5s ease-out; }
+  .utfordring .ikon { font-size: 2rem; line-height: 1; }
+  .utfordring b { font: 800 1.08rem var(--font-tittel); display: block; }
+  .utfordring p { margin: .1rem 0 0; font-size: .92rem; opacity: .95; }
+  .utfordring + .utfordring { margin-top: .5rem; }
+  @keyframes utf-inn { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .bekreft-bg { position: fixed; inset: 0; background: rgba(12,35,64,.55); display: grid; place-items: center; z-index: 60; padding: 1rem; }
+  .bekreft { background: var(--papir); border-radius: 18px; padding: 1.4rem 1.4rem 1.1rem; max-width: 420px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,.35); text-align: center; }
+  .bekreft .stor { font-size: 3rem; line-height: 1; }
+  .bekreft h3 { font: 800 1.35rem var(--font-tittel); color: var(--hav); margin: .4rem 0 .4rem; }
+  .bekreft p { color: var(--blekk-2); margin: 0 0 1rem; }
+  .bekreft .rad { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -205,6 +218,7 @@
       <div class="tegnforklaring"><span><i class="prikk" style="background:#EFE6D2"></i> ledig</span><span><i class="prikk" style="background:#9AA3AD"></i> stengt</span><span>sterk farge = låst 🔒</span><span>trykk på et land for å reise dit</span></div>
     </div>
     <div class="panel">
+      <div id="utfordringer"></div>
       <div class="neste" id="neste"></div>
       <nav class="faner" role="tablist">
         <button data-fane="reis" aria-selected="true"><span class="i">✈️</span>Reis</button>
@@ -241,6 +255,53 @@ let fane = 'reis', reiseMal = null, sokTekst = '', jobb = null, quiz = null, qui
 function varsle(tekst, type = '') {
   const el = document.createElement('div'); el.className = 'varsel ' + type; el.textContent = tekst;
   $('#varsler').append(el); setTimeout(() => el.remove(), 5000);
+}
+function bekreft(ikon, tittel, tekst, jaTekst) {
+  return new Promise((ok) => {
+    const bg = document.createElement('div'); bg.className = 'bekreft-bg';
+    bg.innerHTML = `<div class="bekreft" role="dialog" aria-modal="true"><div class="stor">${ikon}</div><h3>${esc(tittel)}</h3><p>${tekst}</p>
+      <div class="rad"><button class="knapp lys" data-v="0">Nei, vent litt</button><button class="knapp sol" data-v="1">${esc(jaTekst)}</button></div></div>`;
+    bg.addEventListener('click', (e) => { const v = e.target.closest('[data-v]')?.dataset.v; if (v !== undefined || e.target === bg) { bg.remove(); ok(v === '1'); } });
+    document.body.append(bg); bg.querySelector('[data-v="1"]').focus();
+  });
+}
+// Andre grupper som er på vei til å utfordre et av våre land
+function trusler() {
+  const i = innst(spill); const ut = [];
+  for (const [hid, h] of Object.entries(spill.grupper || {})) {
+    if (hid === gid) continue;
+    let land, fase;
+    if (h.iLufta?.til) { land = h.iLufta.til; fase = 'flyr'; }
+    else if (h.posisjon) {
+      land = h.posisjon;
+      const st = spill.reiselogger?.[hid]?.[land]?.status;
+      if (['godkjent', 'tapt', 'laast'].includes(st)) continue;
+      fase = st === 'duell' ? 'duell' : st === 'levert' ? 'levert' : 'landet';
+    }
+    const e = land && spill.eierskap?.[land];
+    if (!e || e.gruppe !== gid || (fase !== 'duell' && erLaast(e, i))) continue;
+    ut.push({ hid, navn: h.navn || 'En gruppe', land, fase });
+  }
+  return ut;
+}
+function tegnUtfordringer() {
+  const liste = trusler();
+  const TEKST = {
+    flyr: (t, l) => [`${esc(t.navn)} flyr til ${l.flagg} ${esc(l.navn)}!`, 'Landet er deres. Fullfører de reiseloggen der, blir det duell.'],
+    landet: (t, l) => [`${esc(t.navn)} har landet i ${l.flagg} ${esc(l.navn)}!`, 'De jobber med reiseloggen. Blir den godkjent, blir det duell om landet.'],
+    levert: (t, l) => [`${esc(t.navn)} har levert reiseloggen for ${l.flagg} ${esc(l.navn)}!`, 'Godkjenner læreren den, blir det duell. Gjør dere klare!'],
+    duell: (t, l) => [`Duell om ${l.flagg} ${esc(l.navn)} snart!`, `Dere møter ${esc(t.navn)}. Følg med på tavla – læreren starter duellen.`],
+  };
+  $('#utfordringer').innerHTML = liste.map((t) => {
+    const l = landEtterId[t.land]; const [tittel, under] = TEKST[t.fase](t, l);
+    return `<div class="utfordring"><span class="ikon">⚔️</span><div><b>${tittel}</b><p>${under}</p></div></div>`;
+  }).join('');
+  // lite sprettvarsel første gang vi ser en ny utfordring (og når duellen er klar)
+  for (const t of liste) {
+    const nokkel = `jr-utf-${spillId}-${gid}-${t.hid}-${t.land}-${t.fase === 'duell' ? 'duell' : 'start'}`;
+    let sett = false; try { sett = !!localStorage.getItem(nokkel); localStorage.setItem(nokkel, '1'); } catch {}
+    if (!sett) varsle(t.fase === 'duell' ? `⚔️ Duell om ${landEtterId[t.land].navn} snart – mot ${t.navn}!` : `⚔️ ${t.navn} er på vei for å utfordre dere om ${landEtterId[t.land].navn}!`, 'feil');
+  }
 }
 function feir(emoji = '🎉') { const el = document.createElement('div'); el.className = 'feiring'; el.textContent = emoji; document.body.append(el); setTimeout(() => el.remove(), 1700); }
 
@@ -281,7 +342,7 @@ async function startSpill(sid, gruppe) {
     spill = snap.val(); g = spill?.grupper?.[gid];
     if (!g) { varsle('Gruppa finnes ikke lenger.', 'feil'); return; }
     sjekkEndringer(forrige, g); sjekkNyeLand();
-    tegnTopp(); tegnNeste(); tegnFane(); klode?.oppdater(spill, gid); kanskjeVisVeiviser();
+    tegnTopp(); tegnUtfordringer(); tegnNeste(); tegnFane(); klode?.oppdater(spill, gid); kanskjeVisVeiviser();
   }, () => { lagre('jr-elev-spill', null); location.reload(); });
   try {
     klode = await lagKlode($('#klode'), { vedKlikk: (id) => { reiseMal = id; velgFane('reis'); } });
@@ -530,6 +591,12 @@ function tegnTilbud(el) {
   $('#tilbake').onclick = () => { reiseMal = null; tegnReis(); };
   $$('[data-kjop]').forEach((b) => b.onclick = async () => {
     const t = tilbud[Number(b.dataset.kjop)];
+    const eierE = spill.eierskap?.[reiseMal];
+    if (eierE && eierE.gruppe !== gid && !erLaast(eierE, innst(spill))) {
+      const motstander = spill.grupper[eierE.gruppe]?.navn || 'en annen gruppe';
+      const ok = await bekreft('⚔️', `Utfordre ${motstander}?`, `<b>${esc(mal.navn)}</b> eies av <b>${esc(motstander)}</b>. Fullfører dere reiseloggen der, blir det <b>duell</b> om landet – og ${esc(motstander)} får beskjed om at dere kommer.`, 'Ja, vi utfordrer!');
+      if (!ok) return;
+    }
     const res = await send('fly', { til: reiseMal, valg: Number(b.dataset.kjop), dato: idag(), pris: flyPrisMedRabatt(t.totalt, g.hotell, g.posisjon) });
     if (res.ok) { feir('✈️'); reiseMal = null; fane = 'hotell'; }
   });
