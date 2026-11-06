@@ -157,7 +157,7 @@ function tegn() {
     return `<div class="rad-g ${n === 0 && g.poeng > 0 ? 'forst' : ''}" style="--f:${esc(g.farge)}">
       <div class="nr">${n === 0 && g.poeng > 0 ? '👑' : n + 1}</div>
       <div style="min-width:0"><div class="navn">${esc(g.navn)}</div>
-        <div class="detaljer"><span>${g.iLufta ? `${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} på vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}` : `📍 ${her ? her.flagg + ' ' + esc(her.navn) : ''}`}</span>${PAKKE.modell === 'land' ? `<span>🏳️ ${g.land.length} land</span>
+        <div class="detaljer"><span>${g.iLufta ? `${{ tog: '🚆', buss: '🚌', bat: '⛴️' }[g.iLufta.type] || '✈️'} på vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}` : `📍 ${her ? her.flagg + ' ' + esc(her.navn) : ''}`}</span>${PAKKE.modell === 'land' ? `<span>🏳️ ${g.land.length} land</span>
         <span class="kont" title="Kontinenter">${KONTINENTER.map((k) => `<i class="${g.kontinenter.includes(k) ? 'har' : ''}" title="${k}">${{ Europa: 'EU', Asia: 'AS', Afrika: 'AF', 'Nord-Amerika': 'NA', 'Sør-Amerika': 'SA', Oseania: 'OS', Antarktis: 'AN' }[k]}</i>`).join('')}</span>` : `<span>🏙️ ${g.byer.length} ${g.byer.length === 1 ? ORD.sted : ORD.steder}</span>`}
         ${g.heleLand.length ? `<span title="Hele ${ORD.regioner}">🏆 ${g.heleLand.map((k) => landInfo[k]?.flagg || '').join(' ')}</span>` : ''}</div></div>
       <div class="penger">${formaterKr(g.saldo)}</div>
@@ -197,7 +197,7 @@ function visNeste() {
     klode.velg(landId); klode.fokus(landId, 1.6, 1600);
   }
   const el = document.createElement('div'); el.className = 'hendelse'; el.style.setProperty('--f', g?.farge || '#F59E0B');
-  el.innerHTML = `<div class="stort">${h.type === 'fly' ? ({ tog: '🚆', buss: '🚌' }[h.reisemate] || '✈️') : l?.flagg || VIKTIG[h.type]}</div><div><div class="t1" style="color:${esc(g?.farge || '#fff')}">${esc(g?.navn || '')}</div><div class="t2">${esc(h.tekst)}</div></div><div class="stort">${VIKTIG[h.type]}</div>`;
+  el.innerHTML = `<div class="stort">${h.type === 'fly' ? ({ tog: '🚆', buss: '🚌', bat: '⛴️' }[h.reisemate] || '✈️') : l?.flagg || VIKTIG[h.type]}</div><div><div class="t1" style="color:${esc(g?.farge || '#fff')}">${esc(g?.navn || '')}</div><div class="t2">${esc(h.tekst)}</div></div><div class="stort">${VIKTIG[h.type]}</div>`;
   $('#klode').append(el);
   setTimeout(() => {
     el.remove(); klode?.velg(null); klode?.visReise(null, null); visesNaa = false;

@@ -239,7 +239,7 @@
 <script type="module">
 import { auth, r, get, set, push, onValue, loggInnElev, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { flyTilbud, hoteller, formaterVarighet, iLokalValuta, avstandKm } from '#pakke/motor.js';
-import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, formaterKr, laasesVed, oppdaterNedtellinger, nedtelling, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER, landInfo, landKode, byerILand, heltLandBonus, PAKKE, ORD, stor, lagringsnokkel } from './js/felles.js';
+import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, formaterKr, laasesVed, oppdaterNedtellinger, nedtelling, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER, landInfo, landKode, byerILand, heltLandBonus, PAKKE, ORD, stor, lagringsnokkel, teltQuiz } from './js/felles.js';
 fyllPakkeTekster();
 document.title = PAKKE.navn;
 import { lagKlode } from '#pakke/klode.js';
@@ -255,7 +255,7 @@ const hent = (k) => { try { return localStorage.getItem(k); } catch { return nul
 
 let spillId = null, gid = null, spill = null, g = null, klode = null, stopp = null;
 let dk = { land: null, svar: [] };
-let fane = 'reis', reiseMal = null, sokTekst = '', jobb = null, quiz = null, quizSvar = [], venterPa = {};
+let teltValg = null, fane = 'reis', reiseMal = null, sokTekst = '', jobb = null, quiz = null, quizSvar = [], venterPa = {};
 
 function varsle(tekst, type = '') {
   const el = document.createElement('div'); el.className = 'varsel ' + type; el.textContent = tekst;
@@ -384,6 +384,15 @@ function veiviserSider() {
     { ikon: '💰', tittel: 'Tjen penger', tekst: `<div class="liste">${li('💼', '<b>Jobb</b> – løs regnestykker i landets valuta. Lønna følger prisnivået i landet.')}${li('🧭', `<b>Geografiquiz</b> – ${formaterKr(i.quizBelop)} per riktig svar, ${i.quizPerDag} quizer per dag.`)}${i.diktatBelopPerElev ? li('✍️', `<b>Parlør-diktat</b> – skriv parlørordene på landets språk. 5 av 5 riktige gir ${formaterKr(i.diktatBelopPerElev * (g.personer || 4))}. Be læreren åpne den når dere er klare.`) : ''}</div><p>Tips: Billige land er billige å bo i – men lønna er også lav. Dyre land betaler mer!</p>` },
     { ikon: '🔒', tittel: 'Forsvar landene deres', tekst: `<div class="liste">${i.laasDager ? li('⏳', `Et land kan utfordres av andre i <b>${i.laasDager} dager</b> – så blir det låst og trygt.`) : ''}${i.laasDager ? li('🕒', 'Under <b>Våre land</b> ser dere en nedtelling for hvert land: så lenge har andre på seg.') : ''}${li('⚔️', `Duellene er morsomme oppgaver i klasserommet. Vinneren får landet${i.duellPremie ? ` og ${formaterKr(i.duellPremie)}` : ''}.`)}</div>` },
     { ikon: '🌍', tittel: 'Klar for avreise!', tekst: `<p>Boksen <b>«Neste steg»</b> øverst forteller dere alltid hva dere skal gjøre nå.</p><p>Trykk <b>❓ Hjelp</b> oppe til høyre hvis dere vil se denne guiden igjen.</p><p style="font:800 1.3rem var(--font-tittel);color:var(--hav);text-align:center;margin-top:1.2rem">God tur! ✈️</p>` },
+  ] : PAKKE.id === 'norge' ? [
+    { ikon: '👋', tittel: `Velkommen, ${esc(g.navn)}!`, tekst: `<p>Dere er en reisegruppe på <b>${g.personer || 4}</b> med <b>${formaterKr(startbelop())}</b> i reisekassa.</p><p>Reisen starter i <b>${esc(l.navn)}, ${esc(l.landNavn)}</b>. Målet er å erobre flest mulig steder i Norge – og helst hele fylker – før de andre gruppene gjør det!${slutt}</p><p class="dempet">Bla deg gjennom denne korte guiden. Den tar to minutter.</p>` },
+    { ikon: '🏆', tittel: 'Slik får dere poeng', tekst: `<div class="liste">${li('📍', `<b>${i.poengBy} poeng</b> for hvert sted dere eier`)}${li('🗺️', `<b>Bonus</b> når dere eier <b>alle</b> stedene i et fylke: ${[1, 2, 3, 4, 5].map((n) => `${n} ${n === 1 ? 'sted' : 'steder'} = ${heltLandBonus(n, i)}`).join(' · ')}`)}${li('⚔️', 'Andre grupper kan «stjele» et sted i duell – og da ryker bonusen for hele fylket.')}</div><p>Små fylker er raske å fullføre. Store fylker gir mest – men er vanskeligere å holde på.</p>` },
+    { ikon: '⛺', tittel: 'Først: overnatting', tekst: `<p>På hvert nytt sted må dere først ordne overnatting for <b>tre netter</b>. Uten overnatting kan dere ikke gjøre noe der.</p><div class="liste">${li('⛺', '<b>Telt er gratis!</b> Men først må dere vise at dere kan <b>allemannsretten</b> – tre spørsmål, alle må være riktige. Telt går bare der naturen er nær, ikke i byene.')}${li('⭐', '<b>Billig overnatting</b> = dårlig søvn: færre jobber per dag og lavere lønn.')}${li('🌟', '<b>Fint hotell</b> = uthvilte: flere jobber og høyere lønn.')}${li('🎲', 'I telt og på de billigste stedene kan det skje overraskelser – gode og dårlige!')}</div>` },
+    { ikon: '📓', tittel: 'Reiseloggen gir dere stedet', tekst: `<div class="liste">${li('1️⃣', 'Fyll ut reiseloggen for stedet: fakta, severdigheter og en tegning.')}${li('2️⃣', 'Trykk <b>«Vi har levert reiseloggen»</b> under fanen Reiselogg.')}${li('3️⃣', 'Læreren godkjenner – og stedet blir deres! 🎉')}</div><p>Eier en annen gruppe stedet allerede? Da blir det <b>⚔️ duell</b> om det!</p>` },
+    { ikon: '🧭', tittel: 'Reis videre', tekst: `<p>Trykk på et sted på kartet, eller søk under <b>Reis</b>. Prisen gjelder for hele gruppa.</p><div class="liste">${li('✈️', '<b>Fly</b> er dyrt, men raskt: <b>2 riktige</b> svar underveis (direkte) eller <b>4</b> (med stopp). Bare mellom steder med flyplass.')}${li('🚆', '<b>Tog</b> går bare der det finnes jernbane. Billigere enn fly, men flere spørsmål.')}${li('🚌', '<b>Buss</b> går nesten overalt – billig, men tar tid og gir mange spørsmål.')}${li('⛴️', '<b>Båt</b> går mellom steder ved kysten. Billig og vakkert, men tregt!')}${li('🌪️', 'Underveis spinner dere et hjul og svarer på spørsmål. Feil svar gir et nytt spørsmål.')}</div>` },
+    { ikon: '💰', tittel: 'Tjen penger', tekst: `<div class="liste">${li('💼', '<b>Jobb</b> – løs regnestykker. Lønna er høyere der alt er dyrt.')}${li('🧭', `<b>Norgesquiz</b> – ${formaterKr(i.quizBelop)} per riktig svar, ${i.quizPerDag} quizer per dag.`)}${i.diktatBelopPerElev ? li('✍️', `<b>Parlør-diktat</b> – skriv parlørordene på <b>nynorsk</b> (i Troms og Finnmark: <b>nordsamisk</b>). 5 av 5 riktige gir ${formaterKr(i.diktatBelopPerElev * (g.personer || 4))} – én gang per fylke. Be læreren åpne den når dere er klare.`) : ''}</div>` },
+    { ikon: '🔒', tittel: 'Forsvar stedene deres', tekst: `<div class="liste">${i.laasDager ? li('⏳', `Et sted kan utfordres av andre i <b>${i.laasDager} dager</b> – så blir det låst og trygt.`) : ''}${i.laasDager ? li('🕒', 'Under <b>Våre steder</b> ser dere en nedtelling for hvert sted: så lenge har andre på seg.') : ''}${li('⚔️', `Duellene er morsomme oppgaver i klasserommet. Vinneren får stedet${i.duellPremie ? ` og ${formaterKr(i.duellPremie)}` : ''}.`)}</div>` },
+    { ikon: '🇳🇴', tittel: 'Klar for avreise!', tekst: `<p>Boksen <b>«Neste steg»</b> øverst forteller dere alltid hva dere skal gjøre nå.</p><p>Trykk <b>❓ Hjelp</b> oppe til høyre hvis dere vil se denne guiden igjen.</p><p style="font:800 1.3rem var(--font-tittel);color:var(--hav);text-align:center;margin-top:1.2rem">God tur! ⛺🚆⛴️</p>` },
   ] : [
     { ikon: '👋', tittel: `Velkommen, ${esc(g.navn)}!`, tekst: `<p>Dere er en reisegruppe på <b>${g.personer || 4}</b> med <b>${formaterKr(startbelop())}</b> i reisekassa.</p><p>Reisen starter i <b>${l.flagg} ${esc(l.navn)}, ${esc(l.landNavn)}</b>. Målet er å erobre flest mulig byer i Europa – og helst hele land – før de andre gruppene gjør det!${slutt}</p><p class="dempet">Bla deg gjennom denne korte guiden. Den tar to minutter.</p>` },
     { ikon: '🏆', tittel: 'Slik får dere poeng', tekst: `<div class="liste">${li('🏙️', `<b>${i.poengBy} poeng</b> for hver by dere eier`)}${li('🏳️', `<b>Bonus</b> når dere eier <b>alle</b> byene i et land: ${[1, 2, 3, 4, 5].map((n) => `${n} ${n === 1 ? 'by' : 'byer'} = ${heltLandBonus(n, i)}`).join(' · ')}`)}${li('⚔️', 'Andre grupper kan «stjele» en by i duell – og da ryker bonusen for hele landet.')}</div><p>Små land er raske å fullføre. Store land gir mest – men er vanskeligere å holde på.</p>` },
@@ -429,7 +438,7 @@ function kanskjeVisVeiviser() {
 function tegnTopp() {
   const l = landEtterId[g.posisjon];
   $('#gfarge').style.background = g.farge; $('#gnavn').textContent = g.navn;
-  $('#her').innerHTML = g.iLufta ? `${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} På vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].by)}` : `📍 ${l.flagg} ${esc(l.by)}, ${esc(l.landNavn)}`;
+  $('#her').innerHTML = g.iLufta ? `${{ tog: '🚆', buss: '🚌', bat: '⛴️' }[g.iLufta.type] || '✈️'} På vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].by)}` : `📍 ${l.flagg} ${esc(l.by)}, ${esc(l.landNavn)}`;
   $('#saldo').textContent = formaterKr(g.saldo);
   const tavle = poengtavle(spill); const meg = tavle.find((x) => x.gid === gid);
   $('#poeng').textContent = meg?.poeng ?? 0;
@@ -464,7 +473,7 @@ function lagreFq() { try { localStorage.setItem(lagringsnokkel('fly-') + fq.fro,
 function hentFq(fro) { try { return JSON.parse(localStorage.getItem(lagringsnokkel('fly-') + fro) || 'null'); } catch { return null; } }
 function tegnFly() {
   const f = g.iLufta; const fra = landEtterId[f.fra], til = landEtterId[f.til];
-  const bakke = f.type === 'tog' || f.type === 'buss'; const kjoretoy = { tog: '🚆', buss: '🚌' }[f.type] || '✈️';
+  const bakke = !!f.type && f.type !== 'fly'; const kjoretoy = { tog: '🚆', buss: '🚌', bat: '⛴️' }[f.type] || '✈️';
   if (!fq || fq.fro !== f.fro) { const lagret = hentFq(f.fro); fq = { fro: f.fro, svar: lagret?.svar || [], livlinerBrukt: lagret?.livlinerBrukt || 0, fase: 'spinn', liste: flySporsmal(f.fro) }; }
   flyVist = f.fro;
   $('.panel').classList.add('flyr');
@@ -597,8 +606,8 @@ function tegnTilbud(el) {
     ${harHotell() && !kanReise() ? `<div class="infoboks sol">🔒 Dere kan se på reisene, men ikke kjøpe før læreren har godkjent reiseloggen for ${esc(her.navn)}.</div>` : ''}
     ${tilbud.length ? `<h3>Reiser i dag for ${g.personer || 4} personer</h3>` : ''}${!stengt && (mal.oy || her.oy) ? '<p class="liten dempet">🏝️ Det går ikke tog eller buss hit – bare fly.</p>' : ''}
     ${tilbud.map((t, n) => {
-      const ikon = { tog: '🚆', buss: '🚌' }[t.type] || '✈️';
-      const via = t.type === 'tog' ? `🚆 Tog · ${t.krav} spørsmål underveis` : t.type === 'buss' ? `🚌 Buss · ${t.krav} spørsmål underveis` : `✈️ ${t.via.length ? `${t.stopp} stopp via ${t.via.map((v) => esc(v.by)).join(' og ')}` : 'Direktefly'} · ${t.krav} spørsmål`;
+      const ikon = { tog: '🚆', buss: '🚌', bat: '⛴️' }[t.type] || '✈️';
+      const via = t.type === 'tog' ? `🚆 Tog · ${t.krav} spørsmål underveis` : t.type === 'buss' ? `🚌 Buss · ${t.krav} spørsmål underveis` : t.type === 'bat' ? `⛴️ Båt · ${t.krav} spørsmål underveis` : `✈️ ${t.via.length ? `${t.stopp} stopp via ${t.via.map((v) => esc(v.by)).join(' og ')}` : 'Direktefly'} · ${t.krav} spørsmål`;
       const pris = flyPrisMedRabatt(t.totalt, g.hotell, g.posisjon, t.type); const rabatt = pris !== t.totalt;
       const rad = (g.saldo || 0) >= pris;
       return `<div class="billett ${rad ? '' : 'dyr'}"><div class="venstre"><div class="selskap">${ikon} ${esc(t.selskap)}</div>
@@ -619,7 +628,7 @@ function tegnTilbud(el) {
       if (!ok) return;
     }
     const res = await send('fly', { til: reiseMal, valg: Number(b.dataset.kjop), dato: idag(), pris: flyPrisMedRabatt(t.totalt, g.hotell, g.posisjon, t.type) });
-    if (res.ok) { feir({ tog: '🚆', buss: '🚌' }[t.type] || '✈️'); reiseMal = null; fane = 'hotell'; }
+    if (res.ok) { feir({ tog: '🚆', buss: '🚌', bat: '⛴️' }[t.type] || '✈️'); reiseMal = null; fane = 'hotell'; }
   });
 }
 
@@ -629,7 +638,7 @@ function tegnHotell() {
   if (harHotell()) {
     const eff = hotellEffekt(g.hotell, innst(spill));
     const fas = (g.hotell.fasiliteter || []).filter((f) => FASILITET_EFFEKT[f]);
-    el.innerHTML = `<div class="infoboks gress">🏨 Dere bor på <b>${esc(g.hotell.navn)}</b> ${'★'.repeat(g.hotell.stjerner)} i ${esc(l.by)}. Tre netter er betalt (${formaterKr(g.hotell.pris)}).</div>
+    el.innerHTML = `<div class="infoboks gress">${g.hotell.telt ? `⛺ Dere telter i naturen ved <b>${esc(l.by)}</b>. Det er gratis – takket være allemannsretten!` : `🏨 Dere bor på <b>${esc(g.hotell.navn)}</b> ${'★'.repeat(g.hotell.stjerner)} i ${esc(l.by)}. Tre netter er betalt (${formaterKr(g.hotell.pris)}).`}</div>
       ${g.hotell.hendelse ? `<div class="infoboks ${g.hotell.hendelse.kr > 0 || g.hotell.hendelse.jobb > 0 ? 'hav' : 'korall'}"><b>Overraskelse ved innsjekk:</b> ${esc(g.hotell.hendelse.tekst)}${g.hotell.hendelse.kr ? ` (${g.hotell.hendelse.kr > 0 ? '+' : '−'}${formaterKr(Math.abs(g.hotell.hendelse.kr))})` : ''}</div>` : ''}
       <div class="kort" style="padding:.8rem 1rem"><b>Slik påvirker hotellet dere</b>
         <div style="margin-top:.4rem">💼 <b>${eff.jobber}</b> ${eff.jobber === 1 ? 'jobb' : 'jobber'} per dag${eff.lonn !== 1 ? ` · lønn <b>${eff.lonn > 1 ? '+' : '−'}${Math.round(Math.abs(eff.lonn - 1) * 100)} %</b>` : ''}</div>
@@ -640,6 +649,21 @@ function tegnHotell() {
     return;
   }
   const liste = hoteller(g.posisjon); const i = innst(spill);
+  // ⛺ Telt: først tre spørsmål om allemannsretten
+  if (teltValg && teltValg.sted === g.posisjon && teltQuiz) {
+    const h = liste.find((x) => x.telt); const q = teltQuiz(teltValg.fro);
+    const alle = q.every((_, n) => teltValg.svar[n]);
+    el.innerHTML = `<h2>⛺ Telt ved ${esc(l.by)}</h2><div class="infoboks hav">Med <b>allemannsretten</b> kan alle telte gratis i naturen – hvis man følger reglene. Svar riktig på alle tre spørsmålene for å sette opp teltet.</div>
+      ${q.map((s, n) => `<div class="oppgavekort"><div class="spm">${n + 1}. ${esc(s.tekst)}</div><div class="svarvalg">${s.valg.map((v) => `<button data-tq="${n}" data-v="${esc(v)}" aria-pressed="${teltValg.svar[n] === v}">${esc(v)}</button>`).join('')}</div></div>`).join('')}
+      <div class="rad"><button class="knapp lys" id="teltavbryt">← Tilbake til hotellene</button><button class="knapp sol" id="teltlever" ${!alle || venterPa.hotell ? 'disabled' : ''}>${venterPa.hotell ? '<span class="venter">Sender</span>' : alle ? '⛺ Sett opp teltet' : 'Svar på alle først'}</button></div>`;
+    $$('[data-tq]').forEach((b) => b.onclick = () => { teltValg.svar[Number(b.dataset.tq)] = b.dataset.v; tegnHotell(); });
+    $('#teltavbryt').onclick = () => { teltValg = null; tegnHotell(); };
+    $('#teltlever').onclick = async () => {
+      const res = await send('hotell', { hotellId: h.id, fro: teltValg.fro, svar: q.map((_, n) => teltValg.svar[n]) });
+      if (res.ok) { teltValg = null; feir('⛺'); tegnNeste(); } else { teltValg = { sted: g.posisjon, fro: nyId(10), svar: [] }; tegnHotell(); }
+    };
+    return;
+  }
   const hotellLinje = (h) => {
     const e = hotellEffekt({ stjerner: h.stjerner, fasiliteter: h.fasiliteter }, i);
     const deler = [`💼 ${e.jobber} ${e.jobber === 1 ? 'jobb' : 'jobber'}/dag`];
@@ -648,16 +672,19 @@ function tegnHotell() {
     if (HENDELSE_SJANSE[h.stjerner]) deler.push('🎲 overraskelser kan skje');
     return deler.join(' · ');
   };
-  el.innerHTML = `<h2>Hoteller i ${esc(l.by)}</h2><p class="liten dempet">Prisen er per natt for hele gruppa. Dere må bo tre netter. Et bedre hotell gir bedre søvn – og mer energi til å jobbe.</p>
+  el.innerHTML = `<h2>${PAKKE.telt ? 'Overnatting' : 'Hoteller'} i ${esc(l.by)}</h2>${liste.some((h) => h.telt) ? '<div class="infoboks hav">⛺ Her kan dere telte <b>gratis</b> med allemannsretten – hvis dere kan reglene!</div>' : ''}<p class="liten dempet">Prisen er per natt for hele gruppa. Dere må bo tre netter. Et bedre hotell gir bedre søvn – og mer energi til å jobbe.</p>
     ${liste.map((h) => {
       const tot = h.prisNatt * 3; const rad = (g.saldo || 0) >= tot; const lok = iLokalValuta(h.prisNatt, l);
       return `<div class="hotell"><div><h4>${esc(h.navn)}</h4><div><span class="stjerner">${'★'.repeat(h.stjerner)}</span> <span class="vurdering">${h.vurdering.toLocaleString('nb-NO')}</span> <span class="liten dempet">${h.sentrumKm.toLocaleString('nb-NO')} km fra sentrum</span></div>
         <div class="liten" style="margin-top:.3rem">${hotellLinje(h)}</div>
         <div class="liten dempet" style="margin-top:.2rem">${h.fasiliteter.map((f) => FASILITET_EFFEKT[f] ? `<b style="color:var(--hav)">${FASILITET_EFFEKT[f].ikon} ${esc(f)}</b>` : esc(f)).join(' · ')}</div></div>
         <div class="pris"><span class="liten dempet">${formaterKr(h.prisNatt)} / natt${lok ? `<br>(${lok})` : ''}</span><b>${formaterKr(tot)}</b>
-        <button class="knapp mini ${rad ? 'gress' : ''}" data-book="${h.id}" ${!rad || venterPa.hotell ? 'disabled' : ''}>${rad ? 'Book 3 netter' : 'Ikke råd'}</button></div></div>`;
+        <button class="knapp mini ${rad ? 'gress' : ''}" data-book="${h.id}" ${h.telt ? 'data-telt="1"' : ''} ${!rad || venterPa.hotell ? 'disabled' : ''}>${h.telt ? '⛺ Sett opp telt' : rad ? 'Book 3 netter' : 'Ikke råd'}</button></div></div>`;
     }).join('')}`;
-  $$('[data-book]').forEach((b) => b.onclick = async () => { const res = await send('hotell', { hotellId: b.dataset.book }); if (res.ok) { feir('🏨'); tegnNeste(); } });
+  $$('[data-book]').forEach((b) => b.onclick = async () => {
+    if (b.dataset.telt) { teltValg = { sted: g.posisjon, fro: nyId(10), svar: [] }; tegnHotell(); return; }
+    const res = await send('hotell', { hotellId: b.dataset.book }); if (res.ok) { feir('🏨'); tegnNeste(); }
+  });
 }
 
 // ---------- REISELOGG ----------
@@ -702,12 +729,12 @@ function tegnLogg() {
     <div class="rad" style="margin-bottom:.4rem">${KONTINENTER.map((k) => `<span class="merke ${kont.has(k) ? 'gress' : ''}">${kont.has(k) ? '✓' : '○'} ${k}</span>`).join('')}</div>
     ${mineLand.length ? mineLand.map(([id, e]) => { const x = landEtterId[id]; return `<div class="landrad"><span class="f">${x.flagg}</span><div class="vokser"><b>${esc(x.navn)}</b><br><span class="liten dempet">${x.kontinent}</span></div><span class="merke ${erLaast(e, i) ? 'gress' : 'sol'}">${erLaast(e, i) ? '🔒 Trygg' : laasesVed(e, i) ? nedtell(e, i, '⏳ Trygg om ', '🔒 Trygg') : 'Kan utfordres'}</span></div>`; }).join('') : '<p class="tom">Ingen land ennå – fullfør en reiselogg!</p>'}
     <p class="liten dempet" style="margin-top:1rem">Dere får ${i.poengLand} poeng per land og ${i.poengKontinent} poeng per kontinent dere har et land på.</p>` : `
-    <h3 style="margin-top:1.4rem">Våre byer (${mineLand.length}) · ${meg?.poeng || 0} poeng</h3>
+    <h3 style="margin-top:1.4rem">Våre ${ORD.steder} (${mineLand.length}) · ${meg?.poeng || 0} poeng</h3>
     ${Object.keys(perLand).length ? Object.entries(perLand).map(([lk, liste]) => { const land = landInfo[lk]; const alle = byerILand(lk); const hel = meg?.heleLand.includes(lk);
-      return `<div class="kort" style="padding:.6rem .9rem;margin-bottom:.6rem"><div class="rad" style="justify-content:space-between"><b>${land.flagg} ${esc(land.navn)}</b><span class="merke ${hel ? 'gress' : ''}">${hel ? `🏆 Hele landet! +${heltLandBonus(alle.length, i)}` : `${liste.length} av ${alle.length} byer`}</span></div>
+      return `<div class="kort" style="padding:.6rem .9rem;margin-bottom:.6rem"><div class="rad" style="justify-content:space-between"><b>${land.flagg} ${esc(land.navn)}</b><span class="merke ${hel ? 'gress' : ''}">${hel ? `🏆 Hele ${ORD.regionen}! +${heltLandBonus(alle.length, i)}` : `${liste.length} av ${alle.length} ${ORD.steder}`}</span></div>
         ${liste.map(([id, e]) => `<div class="landrad"><span class="f">🏙️</span><div class="vokser"><b>${esc(landEtterId[id].navn)}</b></div><span class="merke ${erLaast(e, i) ? 'gress' : 'sol'}">${erLaast(e, i) ? '🔒 Trygg' : laasesVed(e, i) ? nedtell(e, i, '⏳ Trygg om ', '🔒 Trygg') : 'Kan utfordres'}</span></div>`).join('')}
-        ${!hel ? `<div class="liten dempet">Mangler: ${alle.filter((b) => !liste.some(([id]) => id === b.id)).map((b) => esc(b.navn)).join(', ')}</div>` : ''}</div>`; }).join('') : '<p class="tom">Ingen byer ennå – fullfør en reiselogg!</p>'}
-    <p class="liten dempet" style="margin-top:1rem">Dere får ${i.poengBy} poeng per by. Eier dere alle byene i et land, får dere bonus: ${[1, 2, 3, 4, 5].map((n) => `${n} ${n === 1 ? 'by' : 'byer'} = +${heltLandBonus(n, i)}`).join(' · ')}.</p>`}`;
+        ${!hel ? `<div class="liten dempet">Mangler: ${alle.filter((b) => !liste.some(([id]) => id === b.id)).map((b) => esc(b.navn)).join(', ')}</div>` : ''}</div>`; }).join('') : `<p class="tom">Ingen ${ORD.steder} ennå – fullfør en reiselogg!</p>`}
+    <p class="liten dempet" style="margin-top:1rem">Dere får ${i.poengBy} poeng per ${ORD.sted}. Eier dere alle ${ORD.stedene} i ${ORD.etSted === 'et sted' ? 'et fylke' : 'et land'}, får dere bonus: ${[1, 2, 3, 4, 5].map((n) => `${n} ${n === 1 ? ORD.sted : ORD.steder} = +${heltLandBonus(n, i)}`).join(' · ')}.</p>`}`;
   $('#lever')?.addEventListener('click', async () => { const res = await send('reiselogg', {}); if (res.ok) feir('📓'); });
   $$('[data-dk]').forEach((inp) => inp.oninput = () => { dk.svar[Number(inp.dataset.dk)] = inp.value; });
   $('#bedk')?.addEventListener('click', () => send('diktatbe', {}));

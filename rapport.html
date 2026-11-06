@@ -113,7 +113,8 @@ import { r, get, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator
 import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER, LAND, LANDENE, landInfo, landKode, PAKKE, ORD, stor } from './js/felles.js';
 document.title = `Reisedagbøker – ${PAKKE.navn}`;
 import { avstandKm } from '#pakke/motor.js';
-import { KART_URL, kartSvg as lagKart } from '#pakke/rapportkart.js';
+import * as RAPPORTKART from '#pakke/rapportkart.js';
+const { KART_URL, kartSvg: lagKart } = RAPPORTKART;
 
 const $ = (s) => document.querySelector(s);
 const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -133,8 +134,9 @@ vedInnlogging(async (u) => {
     if (!spill) throw new Error('fant ikke');
   } catch { $('#status').textContent = 'Fant ikke spillet, eller du har ikke tilgang.'; return; }
   try {
-    const kart = await (await fetch(KART_URL)).json();
-    verden = window.topojson.feature(kart, kart.objects.countries).features;
+    // spillpakken kan laste kartet selv (Norge: fylker), ellers verdenskartet
+    if (RAPPORTKART.lastKart) verden = await RAPPORTKART.lastKart();
+    else { const kart = await (await fetch(KART_URL)).json(); verden = window.topojson.feature(kart, kart.objects.countries).features; }
   } catch { verden = []; }
   $('#velg').innerHTML = '<option value="alle">Alle grupper</option>' + poengtavle(spill).map((g) => `<option value="${g.gid}">${esc(g.navn)}</option>`).join('');
   $('#velg').onchange = tegn;
@@ -250,7 +252,7 @@ function rapport(gid) {
     if (s.hotell) linjer.push(`🏨 ${esc(s.hotell.navn)} ${s.hotell.stjerner ? '★'.repeat(s.hotell.stjerner) : ''} – ${formaterKr(s.hotell.pris)} for tre netter`);
     linjer.push(...s.hendelser.map(esc));
     return `<div class="stopp" data-nr="${n === 0 ? 'S' : n}"><div class="topp"><span class="land">${l.flagg} ${esc(l.by)}, ${esc(l.landNavn)}</span><span class="dato">${s.tid ? new Date(s.tid).toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' }) : ''}</span></div>
-      ${!s.start && s.km ? `<div class="fly">${{ tog: '🚆', buss: '🚌' }[s.reisemate] || '✈️'} ${s.km.toLocaleString('nb-NO')} km${s.reisemate === 'tog' ? ' · tog' : s.reisemate === 'buss' ? ' · buss' : s.stoppPaaVei != null ? ` · ${s.stoppPaaVei ? s.stoppPaaVei + ' mellomlanding' + (s.stoppPaaVei > 1 ? 'er' : '') : 'direktefly'}` : ''}${s.turbulens ? ` · ${s.turbulens} turbulens` : ''}</div>` : s.start ? '<div class="fly">🎒 Startsted</div>' : ''}
+      ${!s.start && s.km ? `<div class="fly">${{ tog: '🚆', buss: '🚌', bat: '⛴️' }[s.reisemate] || '✈️'} ${s.km.toLocaleString('nb-NO')} km${s.reisemate === 'tog' ? ' · tog' : s.reisemate === 'buss' ? ' · buss' : s.reisemate === 'bat' ? ' · båt' : s.stoppPaaVei != null ? ` · ${s.stoppPaaVei ? s.stoppPaaVei + ' mellomlanding' + (s.stoppPaaVei > 1 ? 'er' : '') : 'direktefly'}` : ''}${s.turbulens ? ` · ${s.turbulens} turbulens` : ''}</div>` : s.start ? '<div class="fly">🎒 Startsted</div>' : ''}
       ${linjer.length ? `<div class="linjer">${linjer.map((x) => `<div>${x}</div>`).join('')}</div>` : ''}</div>`;
   }).join('');
 

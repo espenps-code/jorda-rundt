@@ -1,7 +1,7 @@
 
 # Jorda rundt-motoren – prosjektnotater
 
-Én felles motor driver flere spill («spillpakker»): **Jorda rundt** (verden) og **Europa rundt** (europa).
+Én felles motor driver flere spill («spillpakker»): **Jorda rundt** (verden), **Europa rundt** (europa) og **Norge rundt** (norge).
 En rettelse i motoren gjelder alle spillene med en gang.
 
 ## Firebase
@@ -55,7 +55,19 @@ En rettelse i motoren gjelder alle spillene med en gang.
 - `database.rules.json`: reglene til Jorda rundt øverst er malen. `node verktoy/lag-regler.mjs` lager
   en kopi for hver spillpakke som har egen plass i databasen (gjøres automatisk av publiser.bat).
 
-## Ny spillpakke (f.eks. Norge rundt)
+## Norge rundt (pakker/norge)
+- 54 steder i 15 fylker (steder.js). Fylkene er «regionene»: landId = fylkesnummer (f.eks. 46 = Vestland).
+- Poeng per sted + bonus for hele fylker. Geografiquiz om fylker, administrasjonssentre og landsdeler.
+- Reiser: fly (flyplasser), tog (bare der jernbanen henger sammen – Narvik er utenfor), buss, båt (kyststeder).
+- Telt med allemannsretten: gratis, men tre riktige svar om allemannsretten kreves (regler.js). Egne telt-overraskelser.
+- Diktat: nynorsk, i Troms og Finnmark nordsamisk (parlor.js).
+- Kart: fylker.json er en forenklet utgave av Kartverkets fylkesgrenser (CC BY 4.0, via github.com/robhop/fylker-og-kommuner).
+  Ytterkantene går med klokka (det krever globe.gl).
+
+## Spillvelger
+- `js/pakkeliste.js` lister spillene. Lærersiden har en meny øverst og spillvalg-kort når man lager nytt spill.
+
+## Ny spillpakke
 1. Lag `pakker/norge/` med de samme filene som de andre pakkene.
 2. Gi den en egen `rot` i `pakke.js` (f.eks. `'norge'`).
 3. Kjør publiser.bat – banken `norgebank` og databasereglene lages automatisk.
