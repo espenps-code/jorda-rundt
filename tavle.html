@@ -105,7 +105,6 @@
 <script type="module">
 import { monterInnlogging } from './js/laererinn.js';
 import { r, get, onValue, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator } from './js/fb.js';
-import { startBank } from './js/bank.js';
 import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER } from './js/felles.js';
 import { lagKlode } from './js/klode.js';
 import { DUELLER } from './data/dueller.js';
@@ -131,7 +130,6 @@ vedInnlogging(async (u) => {
     tegn(); klode?.oppdater(spill);
     nyeHendelser(); tegnDuell();
   }, (e) => { $('#scene').classList.add('skjult'); $('#innlogging').classList.remove('skjult'); $('#melding').textContent = 'Du har ikke tilgang til dette spillet.'; });
-  startBank(spillId);
 });
 
 function tegn() {

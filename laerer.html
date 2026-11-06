@@ -91,7 +91,7 @@
 <header class="topp">
   <h1>🌍 Jorda rundt <span class="rolle">LÆRER</span></h1>
   <select id="spillvelger" class="skjult" aria-label="Velg spill"></select>
-  <div class="bankstatus skjult" id="bankstatus" title="Banken behandler kjøp fra elevene så lenge denne siden er åpen"><span class="lampe"></span> Banken er åpen</div>
+  <div class="bankstatus skjult" id="bankstatus" title="Banken kjører i skyen og behandler elevenes kjøp døgnet rundt – også når denne siden er lukket"><span class="lampe"></span> Banken er åpen</div>
   <span class="vokser"></span>
   <a href="index.html#veiledning" target="_blank" class="knapp lys mini">❓ Veiledning</a>
   <a id="rapportlenke" class="knapp lys mini skjult" target="_blank" title="Reisedagbok for hver gruppe – til utskrift">📔 Rapporter</a>
@@ -215,14 +215,13 @@
             <div class="felt"><label>Startbeløp per elev (kr)</label><input type="number" name="startbelopPerElev" min="0" step="1000"><div class="hjelp">En gruppe på 4 får 4 × beløpet. Gjelder nye grupper og nullstilling.</div></div>
             <div class="felt"><label>Poeng per land</label><input type="number" name="poengLand" min="0"></div>
             <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>
-            <div class="felt"><label>Land låses etter (dager)</label><input type="number" name="laasDager" min="0"><div class="hjelp">0 = aldri automatisk. Du kan alltid låse manuelt.</div></div>
+            <div class="felt"><label>Land er åpne for duell i (dager)</label><input type="number" name="laasDager" min="0"><div class="hjelp">Etter erobring kan andre utfordre i så mange dager – så blir landet låst. Elevene ser en nedtelling. Standard 5. 0 = aldri automatisk.</div></div>
             <div class="felt"><label>Jobber per dag</label><input type="number" name="jobberPerDag" min="0"></div>
             <div class="felt"><label>Geografiquizer per dag</label><input type="number" name="quizPerDag" min="0"></div>
             <div class="felt"><label>Kr per riktig quizsvar</label><input type="number" name="quizBelop" min="0" step="50"></div>
             <div class="felt"><label>Duellpremie (kr)</label><input type="number" name="duellPremie" min="0" step="500"></div>
             <div class="felt"><label>Parlør-diktat: minutter</label><input type="number" name="diktatMinutter" min="0" max="30"><div class="hjelp">Tid elevene har etter at du åpner diktaten. 0 = ingen grense.</div></div>
             <div class="felt"><label>Parlør-diktat: kr per elev</label><input type="number" name="diktatBelopPerElev" min="0" step="500"><div class="hjelp">Gis for 5 av 5 riktige, én gang per land. Gruppe på 4 får 4 × beløpet. 0 = av.</div></div>
-            <div class="felt"><label>Landquiz: riktige av 5 for å låse</label><input type="number" name="landquizKrav" min="0" max="5"><div class="hjelp">Gruppa kan låse et eget land med landquiz. 0 = av. Ett forsøk per land per dag.</div></div>
           </div>
           <div class="felt rad" style="gap:.5rem"><input type="checkbox" name="pause" id="pause" style="width:1.2em;height:1.2em"><label for="pause" style="margin:0">Pause – ingen kan kjøpe noe akkurat nå</label></div>
           <button class="knapp">Lagre regler</button>
@@ -255,9 +254,9 @@
 <script type="module">
 import { monterInnlogging } from './js/laererinn.js';
 import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
-import { startBank, godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
+import { godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
-import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId } from './js/felles.js';
 import { tilfeldigStart } from './data/motor.js';
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -355,9 +354,7 @@ function velgSpill(id) {
   stoppSpill = onValue(r(`spill/${id}`), (snap) => { spill = snap.val(); if (spill) tegnAlt(); }, () => mistetTilgang(id));
   stoppLaerere = onValue(r(`laerere/${id}`), (snap) => { laerere = snap.val() || {}; if (spill) tegnLaerere(); }, () => {});
   stoppPins = onValue(r(`pins/${id}`), (snap) => { pins = snap.val() || {}; if (spill) tegnGrupper(); });
-  stoppBank = startBank(id, {
-    vedBehandlet: (res) => { if (res && !res.ok) console.info('Avvist:', res.melding); },
-  });
+  // Banken kjører nå i skyen (Cloud Functions) – lærersiden trenger ikke være åpen.
   $('#bankstatus').classList.remove('skjult');
 }
 
@@ -623,7 +620,7 @@ function tegnLand() {
     let status = '';
     if (e) {
       if (erLaast(e, i)) status = '<span class="merke">🔒 låst</span>';
-      else { const ms = laasesOm(e, i); status = `<span class="merke sol">åpen for utfordring${ms != null ? ' · låses om ' + Math.ceil(ms / 86400000) + ' d' : ''}</span>`; }
+      else { const ms = laasesOm(e, i); status = `<span class="merke sol">åpen for utfordring${ms != null ? ' · låses om ' + nedtelling(ms) : ''}</span>`; }
     }
     return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td><td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>
       <td>${e ? `<span class="gruppenavn">${prikk(e.gruppe)} ${esc(gnavn(e.gruppe))}</span>` : '<span class="dempet">–</span>'}</td>
@@ -649,7 +646,7 @@ function tegnInnstillinger() {
   if (innstRedigeres) return;
   const i = innst(spill); const f = $('#innstskjema');
   f.navn.value = spill.info?.navn || '';
-  for (const k of ['startdato', 'sluttdato', 'startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav', 'diktatBelopPerElev', 'diktatMinutter']) f[k].value = i[k] ?? '';
+  for (const k of ['startdato', 'sluttdato', 'startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'diktatBelopPerElev', 'diktatMinutter']) f[k].value = i[k] ?? '';
   f.pause.checked = !!i.pause;
 }
 $('#innstskjema').onsubmit = async (e) => {
@@ -660,7 +657,7 @@ $('#innstskjema').onsubmit = async (e) => {
     [`mineSpill/${bruker.uid}/${spillId}`]: f.navn.value.trim() || 'Jorda rundt',
     [`spill/${spillId}/innstillinger/startdato`]: f.startdato.value,
     [`spill/${spillId}/innstillinger/sluttdato`]: f.sluttdato.value,
-    ...Object.fromEntries(['startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'landquizKrav', 'diktatBelopPerElev', 'diktatMinutter'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
+    ...Object.fromEntries(['startbelopPerElev', 'poengLand', 'poengKontinent', 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'diktatBelopPerElev', 'diktatMinutter'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
     [`spill/${spillId}/innstillinger/pause`]: f.pause.checked,
   });
   innstRedigeres = false; varsle('Reglene er lagret.', 'ok');

@@ -184,6 +184,7 @@
   .bekreft h3 { font: 800 1.35rem var(--font-tittel); color: var(--hav); margin: .4rem 0 .4rem; }
   .bekreft p { color: var(--blekk-2); margin: 0 0 1rem; }
   .bekreft .rad { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
+.nedtelling { font-variant-numeric: tabular-nums; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -237,7 +238,7 @@
 <script type="module">
 import { auth, r, get, set, push, onValue, loggInnElev, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { flyTilbud, hoteller, formaterVarighet, iLokalValuta, avstandKm } from './data/motor.js';
-import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, lagLandquiz, formaterKr, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER } from './js/felles.js';
+import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, formaterKr, laasesVed, oppdaterNedtellinger, nedtelling, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER } from './js/felles.js';
 import { lagKlode } from './js/klode.js';
 import { ORD as PARLOR_ORD, SPRAK, sprakFor } from './data/parlor.js';
 import { KATEGORIER, flySporsmal } from './data/flyquiz.js';
@@ -249,7 +250,7 @@ const lagre = (k, v) => { try { v == null ? localStorage.removeItem(k) : localSt
 const hent = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
 
 let spillId = null, gid = null, spill = null, g = null, klode = null, stopp = null;
-let lq = null, dk = { land: null, svar: [] };
+let dk = { land: null, svar: [] };
 let fane = 'reis', reiseMal = null, sokTekst = '', jobb = null, quiz = null, quizSvar = [], venterPa = {};
 
 function varsle(tekst, type = '') {
@@ -294,7 +295,8 @@ function tegnUtfordringer() {
   };
   $('#utfordringer').innerHTML = liste.map((t) => {
     const l = landEtterId[t.land]; const [tittel, under] = TEKST[t.fase](t, l);
-    return `<div class="utfordring"><span class="ikon">⚔️</span><div><b>${tittel}</b><p>${under}</p></div></div>`;
+    const e = spill.eierskap?.[t.land]; const igjen = t.fase !== 'duell' ? nedtell(e, innst(spill)) : '';
+    return `<div class="utfordring"><span class="ikon">⚔️</span><div><b>${tittel}</b><p>${under}${igjen ? ` Landet blir trygt om <b>${igjen}</b>.` : ''}</p></div></div>`;
   }).join('');
   // lite sprettvarsel første gang vi ser en ny utfordring (og når duellen er klar)
   for (const t of liste) {
@@ -375,7 +377,7 @@ function veiviserSider() {
     { ikon: '📓', tittel: 'Reiseloggen gir dere landet', tekst: `<div class="liste">${li('1️⃣', 'Fyll ut den fysiske reiseloggen: fakta, kultur og et bildecollage.')}${li('2️⃣', 'Trykk <b>«Vi har levert reiseloggen»</b> under fanen Reiselogg.')}${li('3️⃣', 'Læreren godkjenner – og landet blir deres! 🎉')}</div><p>Eier en annen gruppe landet allerede? Da blir det <b>⚔️ duell</b> om det!</p>` },
     { ikon: '✈️', tittel: 'Reis videre', tekst: `<p>Trykk på et land på jordkloden, eller søk under <b>Reis</b>. Prisen gjelder for hele gruppa.</p><div class="liste">${li('💸', '<b>Direktefly</b> er dyrt, men raskt.')}${li('🪙', '<b>Billigfly</b> har mellomlandinger – og mer å gjøre om bord.')}${li('🎰', 'Under flyturen spinner dere et hjul og svarer på spørsmål. Dere må ha <b>2 riktige</b> (direkte), <b>4</b> (1 stopp) eller <b>6</b> (2 stopp) før dere lander.')}${li('🌪️', 'Feil svar gir turbulens – og et nytt spørsmål.')}</div>` },
     { ikon: '💰', tittel: 'Tjen penger', tekst: `<div class="liste">${li('💼', '<b>Jobb</b> – løs regnestykker i landets valuta. Lønna følger prisnivået i landet.')}${li('🧭', `<b>Geografiquiz</b> – ${formaterKr(i.quizBelop)} per riktig svar, ${i.quizPerDag} quizer per dag.`)}${i.diktatBelopPerElev ? li('✍️', `<b>Parlør-diktat</b> – skriv parlørordene på landets språk. 5 av 5 riktige gir ${formaterKr(i.diktatBelopPerElev * (g.personer || 4))}. Be læreren åpne den når dere er klare.`) : ''}</div><p>Tips: Billige land er billige å bo i – men lønna er også lav. Dyre land betaler mer!</p>` },
-    { ikon: '🔒', tittel: 'Forsvar landene deres', tekst: `<div class="liste">${i.laasDager ? li('⏳', `Et land kan utfordres av andre i <b>${i.laasDager} dager</b> – så blir det låst og trygt.`) : ''}${i.landquizKrav ? li('🧠', `Lås et land med en gang: ta <b>landquizen</b> og få ${i.landquizKrav} av 5 riktige.`) : ''}${li('⚔️', `Duellene er morsomme oppgaver i klasserommet. Vinneren får landet${i.duellPremie ? ` og ${formaterKr(i.duellPremie)}` : ''}.`)}</div>` },
+    { ikon: '🔒', tittel: 'Forsvar landene deres', tekst: `<div class="liste">${i.laasDager ? li('⏳', `Et land kan utfordres av andre i <b>${i.laasDager} dager</b> – så blir det låst og trygt.`) : ''}${i.laasDager ? li('🕒', 'Under <b>Våre land</b> ser dere en nedtelling for hvert land: så lenge har andre på seg.') : ''}${li('⚔️', `Duellene er morsomme oppgaver i klasserommet. Vinneren får landet${i.duellPremie ? ` og ${formaterKr(i.duellPremie)}` : ''}.`)}</div>` },
     { ikon: '🌍', tittel: 'Klar for avreise!', tekst: `<p>Boksen <b>«Neste steg»</b> øverst forteller dere alltid hva dere skal gjøre nå.</p><p>Trykk <b>❓ Hjelp</b> oppe til høyre hvis dere vil se denne guiden igjen.</p><p style="font:800 1.3rem var(--font-tittel);color:var(--hav);text-align:center;margin-top:1.2rem">God tur! ✈️</p>` },
   ];
 }
@@ -513,7 +515,7 @@ function send(type, data) {
     if (venterPa[type]) return;
     venterPa[type] = true; tegnFane();
     const fRef = push(r(`spill/${spillId}/foresporsler/${gid}`));
-    let tregt = setTimeout(() => varsle('Banken svarer ikke … Læreren må ha lærersiden eller tavla åpen.', 'feil'), 9000);
+    let tregt = setTimeout(() => varsle('Banken bruker lang tid … Vent litt, eller prøv igjen om et øyeblikk.', 'feil'), 15000);
     const av = onValue(fRef, (snap) => {
       const f = snap.val();
       if (f && f.status !== 'venter' && f.status !== 'behandles') {
@@ -528,6 +530,9 @@ function send(type, data) {
 }
 
 // ---------- REIS ----------
+// levende nedtelling til et land låses (oppdateres hvert 20. sekund)
+const nedtell = (e, i, forTekst = '', ferdigTekst = 'Låst') => { const ved = laasesVed(e, i); if (!ved) return ''; const ms = ved - Date.now(); return `<span class="nedtelling" data-laas-ved="${ved}" data-for-tekst="${forTekst}" data-ferdig-tekst="${ferdigTekst}">${ms > 0 ? forTekst + nedtelling(ms) : ferdigTekst}</span>`; };
+setInterval(() => oppdaterNedtellinger(), 20000);
 function landStatus(id) {
   const i = innst(spill);
   if (erStengt(id, i)) return { tekst: 'Stengt', klasse: 'korall' };
@@ -535,7 +540,7 @@ function landStatus(id) {
   if (!e) return { tekst: 'Ledig', klasse: 'gress' };
   if (e.gruppe === gid) return { tekst: 'Deres land', klasse: '' };
   if (erLaast(e, i)) return { tekst: '🔒 Låst', klasse: '' };
-  return { tekst: `⚔️ ${spill.grupper[e.gruppe]?.navn || ''}`, klasse: 'sol' };
+  return { tekst: `⚔️ ${spill.grupper[e.gruppe]?.navn || ''} · ${nedtell(e, i, '⏳ ', '🔒 låst')}`, klasse: 'sol' };
 }
 function tegnReis() {
   const el = $('#innhold');
@@ -564,7 +569,7 @@ function tegnTilbud(el) {
   const e = spill.eierskap?.[reiseMal];
   let advarsel = '';
   if (stengt) advarsel = `<div class="infoboks korall">⛔ ${esc(mal.navn)} er stengt for reiser i spillet${mal.stengt ? ` (${esc(mal.stengt)})` : ''}.</div>`;
-  else if (e && e.gruppe !== gid && !erLaast(e, i)) advarsel = `<div class="infoboks sol">⚔️ <b>${esc(spill.grupper[e.gruppe]?.navn)}</b> eier dette landet. Fullfører dere reiseloggen her, blir det <b>duell</b> om landet!${laasesOm(e, i) != null ? ` (Landet låses om ${Math.ceil(laasesOm(e, i) / 86400000)} dager.)` : ''}</div>`;
+  else if (e && e.gruppe !== gid && !erLaast(e, i)) advarsel = `<div class="infoboks sol">⚔️ <b>${esc(spill.grupper[e.gruppe]?.navn)}</b> eier dette landet. Fullfører dere reiseloggen her, blir det <b>duell</b> om landet!${laasesVed(e, i) ? `<br>⏳ Landet låses om <b>${nedtell(e, i)}</b>. Rekker dere ikke å få reiseloggen godkjent før det, er landet trygt for dem.` : ''}</div>`;
   else if (e && e.gruppe !== gid) advarsel = `<div class="infoboks">🔒 Landet er låst av ${esc(spill.grupper[e.gruppe]?.navn)}. Dere kan reise hit, men ikke ta landet.</div>`;
   else if (e) advarsel = '<div class="infoboks gress">Dette er allerede deres land.</div>';
   else if (mal.spesial === 'antarktis') advarsel = '<div class="infoboks hav">🐧 Til Antarktis går det bare fly fra Chile. Det er dyrt – men gir et helt nytt kontinent!</div>';
@@ -640,29 +645,6 @@ function tegnHotell() {
 }
 
 // ---------- REISELOGG ----------
-function tegnLandquiz(el) {
-  const i = innst(spill); const l = landEtterId[lq.land];
-  const q = lagLandquiz(lq.land, lq.fro);
-  if (lq.ferdig) {
-    el.innerHTML = `<h2>🔒 Landquiz: ${l.flagg} ${esc(l.navn)}</h2>${q.map((s, n) => `<div class="oppgavekort"><div class="spm">${n + 1}. ${esc(s.tekst)}</div><div class="svarvalg">${s.valg.map((v) => `<button disabled class="${v === s.svar ? 'riktig' : lq.svar[n] === v ? 'feil' : ''}" ${s.flagg ? 'style="font-size:2.2rem"' : ''}>${esc(v)}</button>`).join('')}</div></div>`).join('')}
-      <button class="knapp" id="lqtilbake">← Tilbake til reiseloggen</button>`;
-    $('#lqtilbake').onclick = () => { lq = null; tegnLogg(); };
-    return;
-  }
-  const alle = q.every((_, n) => lq.svar[n]);
-  el.innerHTML = `<button class="knapp lys mini" id="lqavbryt">← Avbryt</button>
-    <h2 style="margin-top:.8rem">🔒 Lås ${l.flagg} ${esc(l.navn)}</h2>
-    <div class="infoboks hav">Får dere minst <b>${i.landquizKrav} av ${q.length}</b> riktige, blir landet låst – da kan ingen utfordre dere om det. Dere har <b>ett forsøk per land per dag</b>, så tenk dere godt om!</div>
-    ${q.map((s, n) => `<div class="oppgavekort"><div class="spm">${n + 1}. ${esc(s.tekst)}</div><div class="svarvalg">${s.valg.map((v) => `<button data-lq="${n}" data-v="${esc(v)}" aria-pressed="${lq.svar[n] === v}" ${s.flagg ? 'style="font-size:2.2rem"' : ''}>${esc(v)}</button>`).join('')}</div></div>`).join('')}
-    <button class="knapp sol" id="leverlq" ${!alle || venterPa.landquiz ? 'disabled' : ''}>${venterPa.landquiz ? '<span class="venter">Sender</span>' : alle ? 'Lever landquizen' : 'Svar på alle først'}</button>`;
-  $('#lqavbryt').onclick = () => { lq = null; tegnLogg(); };
-  $$('[data-lq]').forEach((b) => b.onclick = () => { lq.svar[Number(b.dataset.lq)] = b.dataset.v; const y = el.parentElement.scrollTop; tegnLogg(); el.parentElement.scrollTop = y; });
-  $('#leverlq').onclick = async () => {
-    const res = await send('landquiz', { land: lq.land, fro: lq.fro, svar: q.map((_, n) => lq.svar[n]) });
-    if (lq) { lq.ferdig = true; if (res.ok && /låst/.test(res.svar || '')) feir('🔒'); tegnLogg(); }
-  };
-}
-
 function diktatHtml(st, i, l) {
   if (!i.diktatBelopPerElev) return '';
   const levert = ['levert', 'godkjent', 'duell', 'laast', 'tapt'].includes(st);
@@ -687,7 +669,6 @@ function diktatHtml(st, i, l) {
 
 function tegnLogg() {
   const el = $('#innhold'); const i = innst(spill); const l = landEtterId[g.posisjon];
-  if (lq) return tegnLandquiz(el);
   const st = reiseloggStatus();
   const tekster = { levert: '⏳ Levert – venter på læreren', godkjent: '✅ Godkjent', avvist: '↩️ Ikke godkjent – gjør den på nytt', duell: '⚔️ Duell', laast: '🔒 Landet var låst', tapt: '❌ Tapte duellen' };
   const kanLevere = harHotell() && (!st || st === 'avvist');
@@ -699,7 +680,7 @@ function tegnLogg() {
     ${diktatHtml(st, i, l)}
     <h3 style="margin-top:1.4rem">Våre land (${mineLand.length})</h3>
     <div class="rad" style="margin-bottom:.4rem">${KONTINENTER.map((k) => `<span class="merke ${kont.has(k) ? 'gress' : ''}">${kont.has(k) ? '✓' : '○'} ${k}</span>`).join('')}</div>
-    ${mineLand.length ? mineLand.map(([id, e]) => { const x = landEtterId[id]; const ms = laasesOm(e, i); const provd = g.landquiz?.[idag()]?.[id]; const kanQuiz = !erLaast(e, i) && i.landquizKrav > 0; return `<div class="landrad"><span class="f">${x.flagg}</span><div class="vokser"><b>${esc(x.navn)}</b><br><span class="liten dempet">${x.kontinent}</span></div><span class="merke ${erLaast(e, i) ? 'gress' : 'sol'}">${erLaast(e, i) ? '🔒 Trygg' : ms != null ? `Kan utfordres i ${Math.ceil(ms / 86400000)} d` : 'Kan utfordres'}</span>${kanQuiz ? ` <button class="knapp mini" data-laas="${id}" ${provd ? 'disabled title="Prøv igjen i morgen"' : ''}>${provd ? 'Prøvd i dag' : '🔒 Lås med quiz'}</button>` : ''}</div>`; }).join('') : '<p class="tom">Ingen land ennå – fullfør en reiselogg!</p>'}
+    ${mineLand.length ? mineLand.map(([id, e]) => { const x = landEtterId[id]; return `<div class="landrad"><span class="f">${x.flagg}</span><div class="vokser"><b>${esc(x.navn)}</b><br><span class="liten dempet">${x.kontinent}</span></div><span class="merke ${erLaast(e, i) ? 'gress' : 'sol'}">${erLaast(e, i) ? '🔒 Trygg' : laasesVed(e, i) ? nedtell(e, i, '⏳ Trygg om ', '🔒 Trygg') : 'Kan utfordres'}</span></div>`; }).join('') : '<p class="tom">Ingen land ennå – fullfør en reiselogg!</p>'}
     <p class="liten dempet" style="margin-top:1rem">Dere får ${i.poengLand} poeng per land og ${i.poengKontinent} poeng per kontinent dere har et land på.</p>`;
   $('#lever')?.addEventListener('click', async () => { const res = await send('reiselogg', {}); if (res.ok) feir('📓'); });
   $$('[data-dk]').forEach((inp) => inp.oninput = () => { dk.svar[Number(inp.dataset.dk)] = inp.value; });
@@ -709,7 +690,6 @@ function tegnLogg() {
     const res = await send('diktat', { land: dk.land, svar: PARLOR_ORD.map((_, n) => dk.svar[n] || '') });
     if (res.ok && /5 av 5/.test(res.svar || '')) feir('✍️');
   });
-  $$('[data-laas]').forEach((b) => b.onclick = () => { lq = { land: b.dataset.laas, fro: nyId(10), svar: [] }; tegnLogg(); $('.panel').scrollTop = 0; });
 }
 
 // ---------- JOBB ----------

@@ -1,13 +1,15 @@
 // Jorda rundt – BANKEN.
-// Kjører i nettleseren til læreren (lærersiden og tavla). Elevene sender bare forespørsler;
-// banken regner ut prisen på nytt, sjekker saldo og regler, og gjennomfører – eller avviser.
+// Elevforespørslene behandles i SKYEN (functions/index.js kaller behandle() under).
+// Elevene sender bare forespørsler; banken regner ut prisen på nytt, sjekker saldo og regler,
+// og gjennomfører – eller avviser. Lærerhandlingene nederst kjøres fortsatt fra lærersiden.
+// startBank() brukes ikke lenger, men er beholdt i tilfelle man vil teste uten skyen.
 import { r, get, update, push, remove, onValue, runTransaction } from './fb.js';
 import { flyTilbud, hoteller } from '../data/motor.js';
 import { DUELLER } from '../data/dueller.js';
 import { rettDiktat, ORD } from '../data/parlor.js';
 import { rettFlyquiz, kravFor, MAKS_SPORSMAL } from '../data/flyquiz.js';
 import {
-  innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, rettLandquiz, landEtterId, formaterKr, nyId,
+  innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, landEtterId, formaterKr, nyId,
   hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE,
 } from './felles.js';
 
@@ -31,10 +33,12 @@ export function startBank(spillId, { vedBehandlet } = {}) {
   return stopp;
 }
 
-async function behandle(spillId, gid, fid, f) {
+export async function behandle(spillId, gid, fid, f) {
   const fSti = `spill/${spillId}/foresporsler/${gid}/${fid}`;
   // 1) Gjør krav på forespørselen, så to åpne lærerfaner ikke behandler den samtidig
-  const krav = await runTransaction(r(`${fSti}/status`), (s) => (s === 'venter' ? 'behandles' : undefined));
+  // (null = ingen lokal kopi ennå – da venter vi på ekte data fra serveren i stedet for å gi opp)
+  const krav = await runTransaction(r(`${fSti}/status`), (s) => (s === 'venter' ? 'behandles' : s === null ? null : undefined));
+  if (krav.snapshot?.val() !== 'behandles') return null;
   if (!krav.committed) return null;
 
   const spill = (await get(r(`spill/${spillId}`))).val() || {};
@@ -53,7 +57,7 @@ async function behandle(spillId, gid, fid, f) {
     else if (f.type === 'reiselogg') resultat = await reiselogg(spillId, gid, spill);
     else if (f.type === 'diktat') resultat = await diktat(spillId, gid, f.data || {}, i, spill);
     else if (f.type === 'diktatbe') resultat = await diktatBe(spillId, gid, i, spill);
-    else if (f.type === 'landquiz') resultat = await landquiz(spillId, gid, f.data || {}, i, spill);
+    else if (f.type === 'landquiz') resultat = { ok: false, melding: 'Landquiz finnes ikke lenger. Land låses automatisk etter noen dager.' };
   } catch (e) {
     console.error(e);
     resultat = { ok: false, melding: 'Noe gikk galt i banken. Prøv igjen.' };
@@ -288,30 +292,6 @@ export async function godkjennDiktatManuelt(spillId, gid, landId) {
   await runTransaction(r(`spill/${spillId}/grupper/${gid}/saldo`), (s) => (s || 0) + belop);
   await logg(spillId, { gruppe: gid, type: 'diktat', belop, land: landId, tekst: `fikk parlør-diktaten for ${l.flagg} ${l.navn} godkjent av læreren ✍️` });
   return `${g.navn} fikk ${formaterKr(belop)} for diktaten i ${l.navn}.`;
-}
-
-async function landquiz(spillId, gid, d, i, spill) {
-  if (!i.landquizKrav) return { ok: false, melding: 'Landquiz er slått av av læreren.' };
-  const l = landEtterId[d.land];
-  const e = spill.eierskap?.[d.land];
-  if (!l || !e || e.gruppe !== gid) return { ok: false, melding: 'Dere kan bare ta landquiz om land dere eier.' };
-  if (erLaast(e, i)) return { ok: false, melding: `${l.navn} er allerede låst.` };
-  const dag = idag();
-  let bestatt = false, res = null;
-  const svar = await medGruppe(spillId, gid, (g) => {
-    if (g.landquiz?.[dag]?.[d.land]) return { feil: `Dere har allerede prøvd landquizen for ${l.navn} i dag. Prøv igjen i morgen!` };
-    if (!gyldigFro(d.fro)) return { feil: 'Ugyldig quiz. Last inn siden på nytt.' };
-    if (g.brukteFro?.[d.fro]) return { feil: 'Denne quizen er allerede levert.' };
-    res = rettLandquiz(d.land, d.fro, d.svar);
-    bestatt = res.riktige >= i.landquizKrav;
-    g.landquiz = { [dag]: { ...(g.landquiz?.[dag] || {}), [d.land]: true } };
-    g.brukteFro = { ...(g.brukteFro || {}), [d.fro]: true };
-    return bestatt
-      ? { melding: `${res.riktige} av ${res.antall} riktige! ${l.navn} er nå låst og trygt. 🔒`, logg: { type: 'laas', land: d.land, tekst: `låste ${l.flagg} ${l.navn} med landquiz (${res.riktige}/${res.antall}) 🔒` } }
-      : { melding: `${res.riktige} av ${res.antall} riktige. Dere trenger ${i.landquizKrav}. Prøv igjen i morgen!`, logg: { type: 'landquiz', land: d.land, tekst: `prøvde landquiz for ${l.flagg} ${l.navn} (${res.riktige}/${res.antall})` } };
-  });
-  if (svar.ok && bestatt) await update(r(`spill/${spillId}/eierskap/${d.land}`), { laast: true });
-  return svar;
 }
 
 // =====================================================================

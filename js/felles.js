@@ -6,14 +6,13 @@ export const STANDARD_INNSTILLINGER = {
   startbelopPerElev: 50000, // kr per gruppemedlem ved start (gruppe på 4 = 200 000 kr)
   poengLand: 5,           // poeng per land gruppa eier
   poengKontinent: 10,     // poeng per kontinent gruppa har minst ett land på
-  laasDager: 5,           // land blir låst (kan ikke utfordres) så mange dager etter erobring. 0 = aldri automatisk
+  laasDager: 5,           // land er åpne for duell så mange dager etter erobring, så blir de låst. 0 = aldri automatisk
   jobberPerDag: 2,        // hvor mange jobber en gruppe kan ta per dag
   quizPerDag: 3,          // hvor mange geografiquizer per dag
   quizBelop: 300,         // kr per riktig svar i geografiquiz
   duellPremie: 5000,      // kr til vinneren av en duell
   diktatMinutter: 3,      // tid elevene har på diktaten etter at læreren har åpnet den. 0 = ingen grense
   diktatBelopPerElev: 2000, // kr per gruppemedlem for 100 % på parlør-diktat (én gang per land). 0 = av
-  landquizKrav: 4,        // riktige av 5 i landquiz for å låse eget land. 0 = av
   startdato: '',          // "2026-11-10"
   sluttdato: '',          // "2026-11-28" – vises som nedtelling
   pause: false,           // når true kan ingen kjøpe noe (banken avviser)
@@ -65,6 +64,27 @@ export function laasesOm(eierskap, innstillinger, naa = Date.now()) {
   const d = innstillinger?.laasDager ?? STANDARD_INNSTILLINGER.laasDager;
   if (!eierskap || eierskap.laast || d <= 0) return null;
   return Math.max(0, (eierskap.siden || 0) + d * 86400000 - naa);
+}
+/** Nedtelling som tekst: «4 d 13 t», «5 t 12 min», «42 min». */
+export function nedtelling(ms) {
+  const min = Math.max(0, Math.ceil(ms / 60000));
+  const d = Math.floor(min / 1440), t = Math.floor((min % 1440) / 60), m = min % 60;
+  if (d) return `${d} d ${t} t`;
+  if (t) return `${t} t ${m} min`;
+  return `${m} min`;
+}
+/** Tidspunkt (ms) når et land låses, eller null. Brukes som data-laas-ved for levende nedtelling. */
+export function laasesVed(eierskap, innstillinger) {
+  const d = innstillinger?.laasDager ?? STANDARD_INNSTILLINGER.laasDager;
+  if (!eierskap || eierskap.laast || d <= 0) return null;
+  return (eierskap.siden || 0) + d * 86400000;
+}
+/** Oppdaterer alle [data-laas-ved]-elementer på siden. */
+export function oppdaterNedtellinger(rot = document) {
+  for (const el of rot.querySelectorAll('[data-laas-ved]')) {
+    const ms = Number(el.dataset.laasVed) - Date.now();
+    el.textContent = ms > 0 ? (el.dataset.forTekst || '') + nedtelling(ms) : (el.dataset.ferdigTekst || 'Låst');
+  }
 }
 
 /** Poengtavle: liste over grupper med land, kontinenter og poeng, sortert. */
@@ -162,46 +182,6 @@ export function lagQuiz(fro, antall = 5) {
 }
 export function rettQuiz(fro, svar = []) {
   const q = lagQuiz(fro);
-  return { riktige: q.filter((s, i) => svar[i] === s.svar).length, antall: q.length };
-}
-
-// ---------- landquiz (låser et land gruppa eier) ----------
-function avstand(a, b) { const r = Math.PI / 180; const x = Math.sin((b.lat - a.lat) * r / 2) ** 2 + Math.cos(a.lat * r) * Math.cos(b.lat * r) * Math.sin((b.lng - a.lng) * r / 2) ** 2; return 12742 * Math.asin(Math.sqrt(x)); }
-export function lagLandquiz(landId, fro) {
-  const l = landEtterId[landId];
-  const r = rng(`landquiz-${landId}-${fro}`);
-  const andre = QUIZLAND.filter((x) => x.id !== landId);
-  const samme = stokk(r, andre.filter((x) => x.kontinent === l.kontinent));
-  const tre = (liste) => stokk(r, liste.length >= 3 ? liste : [...liste, ...stokk(r, andre)]).slice(0, 3);
-  const spm = [];
-  if (l.spesial === 'antarktis') {
-    spm.push({ tekst: 'Hvilket dyr lever IKKE naturlig i Antarktis?', valg: stokk(r, ['Isbjørn', 'Keiserpingvin', 'Leopardsel', 'Blåhval']), svar: 'Isbjørn' });
-    spm.push({ tekst: 'Hva er det meste av Antarktis dekket av?', valg: stokk(r, ['Is', 'Sand', 'Skog', 'Gress']), svar: 'Is' });
-    spm.push({ tekst: 'Hvem kom først til Sørpolen i 1911?', valg: stokk(r, ['Roald Amundsen', 'Fridtjof Nansen', 'Thor Heyerdahl', 'Christopher Columbus']), svar: 'Roald Amundsen' });
-  } else {
-  spm.push({ tekst: `Hva er hovedstaden i ${l.navn}?`, valg: stokk(r, [l.by, ...tre(samme).map((x) => x.by)]), svar: l.by });
-  spm.push({ tekst: `Hvilket flagg er flagget til ${l.navn}?`, flagg: true, valg: stokk(r, [l.flagg, ...tre(samme).map((x) => x.flagg)]), svar: l.flagg });
-  const k = KONTINENTER.filter((x) => x !== 'Antarktis' && x !== l.kontinent);
-  if (l.spesial !== 'antarktis') spm.push({ tekst: `Hvilket kontinent ligger ${l.navn} i?`, valg: stokk(r, [l.kontinent, ...stokk(r, k).slice(0, 3)]), svar: l.kontinent });
-  if (l.valutaNavn && l.valutaNavn !== l.valuta) {
-    const valutaer = [...new Set(QUIZLAND.filter((x) => x.valutaNavn && x.valutaNavn !== x.valuta && x.valutaNavn !== l.valutaNavn).map((x) => x.valutaNavn))];
-    spm.push({ tekst: `Hvilken valuta bruker de i ${l.navn}?`, valg: stokk(r, [l.valutaNavn, ...stokk(r, valutaer).slice(0, 3)]), svar: l.valutaNavn });
-  }
-  }
-  const sortert = andre.map((x) => ({ x, d: avstand(l, x) })).sort((a, b) => a.d - b.d);
-  const naer = sortert[Math.floor(r() * 3)].x;
-  const fjerne = stokk(r, sortert.slice(15, 80)).slice(0, 3).map((o) => o.x);
-  spm.push({ tekst: `Hvilket av disse landene ligger nærmest ${l.navn}?`, valg: stokk(r, [naer, ...fjerne].map((x) => x.navn)), svar: naer.navn });
-  const oslo = landEtterId.NO;
-  if (spm.length < 5 && landId !== 'NO') {
-    const km = Math.round(avstand(oslo, l) / 500) * 500;
-    const alt = [km, km + 1500, Math.max(500, km - 1500), km + 3500].map((v) => `ca. ${v.toLocaleString('nb-NO')} km`);
-    spm.push({ tekst: `Omtrent hvor langt er det i luftlinje fra Oslo til ${l.by}?`, valg: stokk(r, [...new Set(alt)]), svar: alt[0] });
-  }
-  return spm.slice(0, 5);
-}
-export function rettLandquiz(landId, fro, svar = []) {
-  const q = lagLandquiz(landId, fro);
   return { riktige: q.filter((s, i) => svar[i] === s.svar).length, antall: q.length };
 }
 
