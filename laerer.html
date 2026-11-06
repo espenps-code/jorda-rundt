@@ -668,5 +668,6 @@ function tegnLogg() {
 setInterval(() => { if (spill) { tegnLand(); } }, 60000);
 setInterval(() => { for (const el of $$('[data-slutt]')) { const t = Math.max(0, Math.ceil((Number(el.dataset.slutt) - Date.now()) / 1000)); el.textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; } }, 1000);
 </script>
+<script type="module" src="js/ikoner.js"></script>
 </body>
 </html>
