@@ -39,13 +39,13 @@ export async function lagKlode(el, valg = {}) {
     .backgroundColor('rgba(0,0,0,0)')
     .showAtmosphere(true).atmosphereColor('#9fd3ef').atmosphereAltitude(0.12)
     .polygonsData(former)
-    .polygonAltitude((f) => (!f.landId ? 0.001 : f.landId === hoverId ? 0.006 : heltEid(f.landId) ? 0.004 : 0.002))
-    .polygonCapColor((f) => fyllfarge(f.landId))
+    .polygonAltitude((f) => (!f.landId ? 0.001 : heltEid(f.landId) ? 0.003 : 0.002))  // løftes ikke ved hover (da skjulte fylket byene)
+    .polygonCapColor((f) => (f.landId && f.landId === hoverId ? 'rgba(255,226,140,.95)' : fyllfarge(f.landId)))  // hover = lys gul
     .polygonSideColor(() => 'rgba(11,58,83,.25)')
     .polygonStrokeColor(() => FARGER.kant)
     .polygonLabel((f) => (f.landId ? landEtikett(f.landId) : ''))
     .polygonsTransitionDuration(300)
-    .onPolygonHover((f) => { hoverId = f?.landId || null; el.style.cursor = f?.landId ? 'pointer' : 'grab'; globe.polygonAltitude(globe.polygonAltitude()); })
+    .onPolygonHover((f) => { hoverId = f?.landId || null; el.style.cursor = f?.landId ? 'pointer' : 'grab'; globe.polygonCapColor(globe.polygonCapColor()); })
     .onPolygonClick((f) => f?.landId && valg.vedKlikk?.(HOVEDSTAD[f.landId]))
     // byene som punkter
     .pointsData([])
