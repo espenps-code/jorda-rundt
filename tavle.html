@@ -55,12 +55,13 @@
   .duell-kort b { font-family: var(--font-tittel); font-size: clamp(1rem, 1.5vw, 1.5rem); }
   @keyframes pulser { 50% { box-shadow: 0 0 0 6px rgba(245,158,11,.25); } }
   #duellscene { position: fixed; inset: 0; z-index: 20; background: radial-gradient(circle at 50% 40%, rgba(245,158,11,.25), transparent 60%), rgba(8,26,48,.95); display: grid; place-items: center; padding: 4vh 4vw; text-align: center; }
-  #duellscene .overskrift { font: 500 clamp(1.2rem, 2.4vw, 2.4rem) var(--font-mono); color: var(--sol); letter-spacing: .3em; text-transform: uppercase; }
+  #duellscene .overskrift { font: 500 clamp(1.2rem, 2.4vw, 2.4rem) var(--font-mono); color: var(--sol); letter-spacing: .3em; padding-left: .3em; text-transform: uppercase; }
   #duellscene .landet { font: 800 clamp(1.6rem, 3.6vw, 3.8rem) var(--font-tittel); color: #fff; margin: .2em 0 .6em; }
-  #duellscene .lag { display: flex; align-items: center; justify-content: center; gap: 3vw; margin-bottom: 3vh; }
+  #duellscene .lag { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 3vw; margin-bottom: 3vh; }
   #duellscene .lagnavn { font: 800 clamp(1.6rem, 3.4vw, 3.6rem) var(--font-tittel); padding: .2em .8em; border-radius: 999px; color: #fff; border: 4px solid #fff; }
   #duellscene .vs { font: 500 clamp(1.6rem, 3vw, 3rem) var(--font-mono); color: var(--lys-tekst); }
-  #duellscene .oppgave { background: var(--papir); color: var(--blekk); border-radius: 26px; padding: 3vh 3vw; max-width: 1100px; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+  #duellscene .duellinnhold { width: min(1100px, 100%); margin: 0 auto; display: flex; flex-direction: column; align-items: center; }
+  #duellscene .oppgave { background: var(--papir); color: var(--blekk); border-radius: 26px; padding: 3vh 3vw; width: 100%; box-sizing: border-box; margin: 0 auto; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
   #duellscene .otittel { font: 800 clamp(2rem, 4.4vw, 4.6rem) var(--font-tittel); color: var(--hav); line-height: 1; margin-bottom: .3em; }
   #duellscene .otekst { font-size: clamp(1.2rem, 2.2vw, 2.3rem); line-height: 1.3; }
   #duellscene .ovinner { font-size: clamp(.95rem, 1.5vw, 1.5rem); margin-top: 1.2em; color: var(--blekk-2); }
@@ -216,7 +217,7 @@ function tegnDuell() {
   const o = DUELLER[d.oppgave];
   el.classList.remove('skjult');
   const nyTrekning = visteTrekk !== `${id}-${d.trukket}`;
-  el.innerHTML = `<div><div class="overskrift">⚔️ DUELL ⚔️</div><div class="landet">${l.flagg} ${esc(l.navn)}</div>
+  el.innerHTML = `<div class="duellinnhold"><div class="overskrift">⚔️ DUELL ⚔️</div><div class="landet">${l.flagg} ${esc(l.navn)}</div>
     <div class="lag"><span class="lagnavn" style="background:${esc(a?.farge)}">${esc(a?.navn)}</span><span class="vs">mot</span><span class="lagnavn" style="background:${esc(b?.farge)}">${esc(b?.navn)}</span></div>
     <div class="oppgave"><div class="otittel" id="otittel">${esc(o.tittel)}</div><div id="orest"><div class="otekst">${esc(o.tekst)}</div><div class="ovinner"><b>Vinner:</b> ${esc(o.vinner)} &nbsp;·&nbsp; <b>Utstyr:</b> ${esc(o.utstyr)}</div></div></div>
     <div class="klokke" id="klokke"></div></div>`;
