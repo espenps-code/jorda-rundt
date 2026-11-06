@@ -85,6 +85,20 @@
   .laererrad .hvem { flex: 1; min-width: 0; } .laererrad .hvem small { display: block; color: var(--blekk-2); overflow: hidden; text-overflow: ellipsis; }
   .invboks { border: 2px dashed var(--sol); background: var(--sol-lys); border-radius: 14px; padding: .9rem 1rem; margin-bottom: 1rem; }
   .invboks .lenke { font-family: var(--font-mono); font-size: .85rem; word-break: break-all; background: #fff; border-radius: 8px; padding: .5rem .7rem; margin: .5rem 0; display: block; }
+  /* ---------- TAVLEMODUS ---------- */
+  nav.faner button.tavleknapp { margin-left: auto; background: linear-gradient(180deg, #F7C25A, var(--sol)); color: var(--blekk); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 3px 0 #B9801C; }
+  #tavlelag { position: fixed; inset: 0; z-index: 500; background: #081A30; }
+  #tavlelag iframe { border: 0; width: 100%; height: 100%; display: block; }
+  .tavle-knapper { position: absolute; left: 14px; bottom: 14px; display: flex; gap: 8px; z-index: 3; }
+  .tavle-knapper button { background: rgba(8,26,48,.88); border: 1.5px solid rgba(255,255,255,.25); color: #fff; border-radius: 999px; padding: .55em 1.1em; min-height: 44px; font: 700 1rem var(--font); cursor: pointer; backdrop-filter: blur(6px); }
+  .tavle-knapper button:hover { background: #17457A; }
+  #skuffknapp.har { background: var(--korall, #E5484D); animation: skuffpuls 2s ease-in-out infinite; }
+  @keyframes skuffpuls { 50% { box-shadow: 0 0 0 8px rgba(229,72,77,.3); } }
+  #skuff { position: absolute; top: 0; left: 0; bottom: 0; width: min(480px, 92vw); background: var(--papir); color: var(--blekk); overflow-y: auto; padding: 1rem 1rem 5.5rem; box-shadow: 20px 0 60px rgba(0,0,0,.5); transform: translateX(-105%); transition: transform .3s ease; z-index: 2; }
+  #skuff.apen { transform: none; }
+  #skuff .skuff-topp { display: flex; justify-content: flex-end; margin-bottom: .6rem; }
+  #skuff .venter-rutenett { grid-template-columns: 1fr; }
+  #skuff .oppgave { flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -95,7 +109,7 @@
   <span class="vokser"></span>
   <a href="index.html#veiledning" target="_blank" class="knapp lys mini">❓ Veiledning</a>
   <a id="rapportlenke" class="knapp lys mini skjult" target="_blank" title="Reisedagbok for hver gruppe – til utskrift">📔 Rapporter</a>
-  <a id="tavlelenke" class="knapp sol mini skjult" target="_blank">📺 Åpne tavla</a>
+  <a id="tavlelenke" class="knapp lys mini skjult" target="_blank" title="Åpner tavla i en egen fane – nyttig hvis du har to skjermer">↗ Tavle i eget vindu</a>
   <button id="loggut" class="knapp lys mini skjult">Logg ut</button>
 </header>
 
@@ -129,6 +143,7 @@
     <button role="tab" data-fane="land">Land</button>
     <button role="tab" data-fane="innstillinger">Innstillinger</button>
     <button role="tab" data-fane="logg">Logg</button>
+    <button id="tavlemodus" class="tavleknapp" title="Vis tavla i fullskjerm – med skuff for reiselogger, dueller og diktater">📺 Tavle</button>
   </nav>
   <main>
     <!-- OVERSIKT -->
@@ -246,6 +261,19 @@
       <div class="kort"><h2>Logg</h2><div style="overflow-x:auto"><table><thead><tr><th>Tid</th><th>Gruppe</th><th>Hendelse</th><th style="text-align:right">Beløp</th></tr></thead><tbody id="loggrader"></tbody></table></div></div>
     </section>
   </main>
+</div>
+
+<!-- TAVLEMODUS: tavla i fullskjerm, med skuff for det som venter på læreren -->
+<div id="tavlelag" class="skjult">
+  <iframe id="tavleramme" title="Tavla" allow="fullscreen"></iframe>
+  <aside id="skuff" aria-label="Venter på deg">
+    <div class="skuff-topp"><button class="knapp lys mini" id="lukkskuff">✕ Lukk skuffen</button></div>
+    <div id="skuffinnhold"></div>
+  </aside>
+  <div class="tavle-knapper">
+    <button id="skuffknapp" title="Reiselogger, dueller og diktater">🔔 <span id="skufftekst">Ingenting venter</span></button>
+    <button id="lukktavle" title="Tilbake til lærerportalen">✕ Lukk tavla</button>
+  </div>
 </div>
 
 <div id="utskrift"></div>
@@ -375,9 +403,37 @@ $('#storqr').onclick = () => {
   document.body.append(bg);
 };
 
+// ---------- TAVLEMODUS ----------
+// Tavla (tavle.html) vises inni lærerportalen. «Venter på deg»-boksen flyttes inn i en skuff
+// mens tavla er åpen, og tilbake til Oversikt når den lukkes – samme knapper, samme funksjoner.
+function aapneTavle() {
+  if (!spillId) return;
+  $('#tavleramme').src = `tavle.html?spill=${encodeURIComponent(spillId)}&innebygd${brukerEmulator ? '&emulator' : ''}`;
+  $('#skuffinnhold').append($('#venterpanel'));
+  $('#tavlelag').classList.remove('skjult');
+  document.body.style.overflow = 'hidden';
+  document.documentElement.requestFullscreen?.().catch(() => {});
+}
+function lukkTavle() {
+  $('#skuff').classList.remove('apen');
+  $('[data-panel="oversikt"]').prepend($('#venterpanel'));
+  $('#tavlelag').classList.add('skjult');
+  $('#tavleramme').src = 'about:blank';           // slår av kloden, så maskinen ikke jobber unødig
+  document.body.style.overflow = '';
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+function oppdaterSkuffknapp(antall) {
+  $('#skufftekst').textContent = antall ? `${antall} venter` : 'Ingenting venter';
+  $('#skuffknapp').classList.toggle('har', !!antall);
+}
+$('#tavlemodus').onclick = aapneTavle;
+$('#lukktavle').onclick = lukkTavle;
+$('#skuffknapp').onclick = () => $('#skuff').classList.toggle('apen');
+$('#lukkskuff').onclick = () => $('#skuff').classList.remove('apen');
+
 // ---------- faner ----------
-$$('nav.faner button').forEach((b) => b.onclick = () => {
-  $$('nav.faner button').forEach((x) => x.setAttribute('aria-selected', x === b));
+$$('nav.faner button[data-fane]').forEach((b) => b.onclick = () => {
+  $$('nav.faner button[data-fane]').forEach((x) => x.setAttribute('aria-selected', x === b));
   $$('[data-panel]').forEach((p) => p.classList.toggle('skjult', p.dataset.panel !== b.dataset.fane));
 });
 
@@ -453,6 +509,7 @@ function tegnOversikt() {
   $('#badgeOppgaver').textContent = antall; $('#badgeOppgaver').classList.toggle('skjult', !antall);
   $('#venterTeller').textContent = antall; $('#venterpanel').classList.toggle('aktiv', !!antall);
   document.title = (antall ? `(${antall}) ` : '') + 'Jorda rundt – lærer';
+  oppdaterSkuffknapp(antall);
 
   // strøm
   const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 40);

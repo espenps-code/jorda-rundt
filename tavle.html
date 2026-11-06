@@ -82,7 +82,7 @@
 </head>
 <body>
 <section id="innlogging" class="skjult">
-  <div><div style="font-size:4rem">🌍📺</div><h1>Jorda rundt – tavle</h1><p style="color:#9fd3ef">Logg inn som lærer for å vise tavla. Banken kjører også her.</p>
+  <div><div style="font-size:4rem">🌍📺</div><h1>Jorda rundt – tavle</h1><p style="color:#9fd3ef">Logg inn som lærer for å vise tavla.</p>
   <div id="laererinn" style="margin-top:1rem"></div>
   <p id="melding" style="color:#fca5a5"></p></div>
 </section>
@@ -112,6 +112,8 @@ import { DUELLER } from './data/dueller.js';
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const spillId = new URLSearchParams(location.search).get('spill');
+const innebygd = new URLSearchParams(location.search).has('innebygd'); // vist inni lærerportalen (Tavlemodus)
+if (innebygd) document.getElementById('fullskjerm').style.display = 'none'; // lærerportalen styrer fullskjerm selv
 let spill = null, klode = null, sisteLoggTid = null, kø = [], visesNaa = false, roter = true, pauseTil = 0;
 
 monterInnlogging($('#laererinn'));
