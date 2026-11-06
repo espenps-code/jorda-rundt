@@ -1,9 +1,10 @@
 // MOTOREN – alle spillpakkene som finnes. Brukes av spillvelgeren i lærerportalen.
+// rot = hvor spillet ligger i databasen (samme som i pakker/<spill>/pakke.js). steder = ordet brukt i «Mine spill».
 // Ny spillpakke? Legg den til her også (i tillegg til mappa under pakker/).
 export const SPILLPAKKER = [
-  { id: 'verden', navn: 'Jorda rundt', ikon: '🌍', tekst: 'Reis jorden rundt og erobre land og kontinenter. Fly mellom hovedsteder.' },
-  { id: 'europa', navn: 'Europa rundt', ikon: '🇪🇺', tekst: 'Erobre byer i Europa – og hele land. Fly, tog og buss.' },
-  { id: 'norge', navn: 'Norge rundt', ikon: '🇳🇴', tekst: 'Erobre steder og hele fylker i Norge. Buss, tog, båt og fly – og telt med allemannsretten.' },
+  { id: 'verden', rot: '', steder: 'land', navn: 'Jorda rundt', ikon: '🌍', tekst: 'Reis jorden rundt og erobre land og kontinenter. Fly mellom hovedsteder.' },
+  { id: 'europa', rot: 'europa', steder: 'byer', navn: 'Europa rundt', ikon: '🇪🇺', tekst: 'Erobre byer i Europa – og hele land. Fly, tog og buss.' },
+  { id: 'norge', rot: 'norge', steder: 'steder', navn: 'Norge rundt', ikon: '🇳🇴', tekst: 'Erobre steder og hele fylker i Norge. Buss, tog, båt og fly – og telt med allemannsretten.' },
 ];
 /** Adressen til en side for en spillpakke: pakkeAdresse('europa', 'laerer.html') → laerer.html?pakke=europa */
 export function pakkeAdresse(id, side = 'laerer.html', ekstra = '') {

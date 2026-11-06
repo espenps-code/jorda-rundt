@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="css/felles.css">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
-  header.topp { background: var(--hav); color: #fff; padding: .7rem 1.2rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; }
+  header.topp { background: var(--hav); color: #fff; padding: .7rem 1.2rem; display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; position: sticky; top: 0; z-index: 50; }
   header.topp h1 { color: #fff; font-size: 1.5rem; margin: 0; display: flex; align-items: center; gap: .4em; }
   header.topp .rolle { font: 700 .75rem var(--font); background: var(--sol); color: var(--blekk); padding: .15em .6em; border-radius: 999px; }
   header.topp select { width: auto; background: var(--hav-2); color: #fff; border-color: transparent; }
@@ -105,6 +105,24 @@
   #skuff .skuff-topp { display: flex; justify-content: flex-end; margin-bottom: .6rem; }
   #skuff .venter-rutenett { grid-template-columns: 1fr; }
   #skuff .oppgave { flex-wrap: wrap; }
+  /* ---------- Mine spill ---------- */
+  #minespilloversikt { max-width: 1180px; margin: 0 auto; padding: 1.6rem 1.2rem 3rem; }
+  .ms-topp { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .ms-topp h2 { margin: 0; font-size: 2rem; }
+  .ms-sum { display: flex; gap: .6rem; flex-wrap: wrap; margin: 1rem 0 1.4rem; }
+  .ms-sum span { background: #fff; border: 2px solid var(--linje); border-radius: 12px; padding: .5em .9em; font-weight: 700; }
+  .ms-sum span.varsel-sum { border-color: var(--korall); color: var(--korall); }
+  .ms-pakke { margin: 1.6rem 0 .7rem; display: flex; align-items: center; gap: .5rem; font: 800 1.25rem var(--font-tittel); color: var(--hav); }
+  .ms-rutenett { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem; }
+  .ms-kort { background: #fff; border-radius: 16px; box-shadow: var(--skygge); padding: 1.1rem 1.2rem 1rem; display: flex; flex-direction: column; gap: .55rem; border-left: 6px solid var(--hav-3); }
+  .ms-kort.venter { border-left-color: var(--korall); }
+  .ms-kort.aktivt { box-shadow: 0 0 0 3px var(--sol), var(--skygge); }
+  .ms-kort h3 { margin: 0; font-size: 1.3rem; }
+  .ms-kort .ms-rolle { font: 700 .72rem var(--font); background: var(--papir); border-radius: 999px; padding: .15em .6em; color: var(--blekk-2); }
+  .ms-kort .ms-tall { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem .8rem; font-size: .95rem; }
+  .ms-kort .ms-tall b { font-family: var(--font-tittel); }
+  .ms-kort .ms-venter { color: var(--korall); font-weight: 800; }
+  .ms-kort .ms-knapper { display: flex; gap: .5rem; margin-top: auto; padding-top: .3rem; }
 </style>
 </head>
 <body>
@@ -114,6 +132,7 @@
   <select id="spillvelger" class="skjult" aria-label="Velg spill"></select>
   <div class="bankstatus skjult" id="bankstatus" title="Banken kjører i skyen og behandler elevenes kjøp døgnet rundt – også når denne siden er lukket"><span class="lampe"></span> Banken er åpen</div>
   <span class="vokser"></span>
+  <button id="minespillknapp" class="knapp lys mini skjult" title="Oversikt over alle spillene dine">📚 Mine spill</button>
   <a id="veiledningslenke" href="index.html#veiledning" target="_blank" class="knapp lys mini">❓ Veiledning</a>
   <a id="rapportlenke" class="knapp lys mini skjult" target="_blank" title="Reisedagbok for hver gruppe – til utskrift">📔 Rapporter</a>
   <a id="tavlelenke" class="knapp lys mini skjult" target="_blank" title="Åpner tavla i en egen fane – nyttig hvis du har to skjermer">↗ Tavle i eget vindu</a>
@@ -144,6 +163,17 @@
 </section>
 
 <!-- Selve spillet -->
+<!-- Mine spill: alle spillene til læreren, i alle spillpakkene -->
+<section id="minespilloversikt" class="skjult">
+  <div class="ms-topp">
+    <h2>📚 Mine spill</h2><span class="vokser"></span>
+    <button id="msoppdater" class="knapp lys mini">↻ Oppdater</button>
+    <button id="msnytt" class="knapp sol mini">＋ Nytt spill</button>
+  </div>
+  <p class="liten dempet" style="margin:.4rem 0 0">Alle spillene dine i Jorda rundt, Europa rundt og Norge rundt – samlet på ett sted. Trykk «Åpne» for å styre et spill.</p>
+  <div id="msinnhold"><p class="tom">Henter spillene dine …</p></div>
+</section>
+
 <div id="spillvisning" class="skjult">
   <nav class="faner" role="tablist">
     <button role="tab" data-fane="oversikt" aria-selected="true">Oversikt <span id="badgeOppgaver" class="badge skjult"></span></button>
@@ -288,7 +318,7 @@
 
 <script type="module">
 import { monterInnlogging } from './js/laererinn.js';
-import { auth, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
+import { auth, db, ref, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
 import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel } from './js/felles.js';
@@ -325,6 +355,8 @@ const POENGNOKLER = PAKKE.modell === 'land' ? ['poengLand', 'poengKontinent'] : 
 
 // ---------- spillvelger (Jorda rundt / Europa rundt / Norge rundt) ----------
 let visNyttSpill = new URLSearchParams(location.search).has('nytt');
+let visMineSpill = new URLSearchParams(location.search).has('minespill');
+let startSpill = new URLSearchParams(location.search).get('spill');
 const ekstraParam = brukerEmulator ? 'emulator' : '';
 $('#pakkevelger').innerHTML = SPILLPAKKER.map((p) => `<option value="${p.id}" ${p.id === PAKKE.id ? 'selected' : ''}>${p.ikon} ${esc(p.navn)}</option>`).join('');
 $('#pakkevelger').onchange = (e) => { location.href = pakkeAdresse(e.target.value, 'laerer.html', ekstraParam); };
@@ -342,7 +374,7 @@ function varsle(tekst, type = '') {
   const el = document.createElement('div'); el.className = 'varsel ' + type; el.textContent = tekst;
   $('#varsler').append(el); setTimeout(() => el.remove(), 4500);
 }
-function vis(id) { for (const s of ['innlogging', 'nyttspill', 'spillvisning']) $('#' + s).classList.toggle('skjult', s !== id); }
+function vis(id) { for (const s of ['innlogging', 'nyttspill', 'spillvisning', 'minespilloversikt']) $('#' + s).classList.toggle('skjult', s !== id); }
 
 // Bekreftelse uten nettleserens dialogboks
 function bekreft(tittel, tekst, knappetekst = 'Ja', farlig = false) {
@@ -369,15 +401,18 @@ monterInnlogging($('#laererinn'));
 $('#loggut').onclick = () => loggUt();
 
 vedInnlogging(async (u) => {
-  if (!u || u.isAnonymous) { bruker = null; stoppAlt(); vis('innlogging'); $('#loggut').classList.add('skjult'); return; }
-  bruker = u; $('#loggut').classList.remove('skjult');
+  if (!u || u.isAnonymous) { bruker = null; stoppAlt(); vis('innlogging'); $('#loggut').classList.add('skjult'); $('#minespillknapp').classList.add('skjult'); return; }
+  bruker = u; $('#loggut').classList.remove('skjult'); $('#minespillknapp').classList.remove('skjult');
   await mottaInvitasjon();
   onValue(r(`mineSpill/${u.uid}`), (snap) => {
     mineSpill = snap.val() || {};
     tegnSpillvelger();
     const ids = Object.keys(mineSpill);
-    if (!ids.length) { vis('nyttspill'); return; }
-    if (!spillId || !mineSpill[spillId]) velgSpill(localStorageHent(lagringsnokkel('spill')) in mineSpill ? localStorageHent(lagringsnokkel('spill')) : ids[ids.length - 1]);
+    if (visMineSpill) { visMineSpill = false; apneMineSpill(); if (!ids.length) return; }
+    if (!ids.length) { if (!$('#minespilloversikt').classList.contains('skjult')) return; vis('nyttspill'); return; }
+    const onsket = startSpill && startSpill in mineSpill ? startSpill : null; startSpill = null;
+    if (onsket) { velgSpill(onsket); return; }
+    if (!spillId || !mineSpill[spillId]) { const visesOversikt = !$('#minespilloversikt').classList.contains('skjult'); velgSpill(localStorageHent(lagringsnokkel('spill')) in mineSpill ? localStorageHent(lagringsnokkel('spill')) : ids[ids.length - 1]); if (visesOversikt) vis('minespilloversikt'); }
     if (visNyttSpill) { visNyttSpill = false; vis('nyttspill'); $('#avbrytnytt').classList.remove('skjult'); }
   });
 });
@@ -388,13 +423,14 @@ function tegnSpillvelger() {
   const sel = $('#spillvelger');
   const ids = Object.keys(mineSpill);
   sel.classList.toggle('skjult', !ids.length);
-  sel.innerHTML = ids.map((id) => `<option value="${id}" ${id === spillId ? 'selected' : ''}>${esc(mineSpill[id])}</option>`).join('') + '<option value="__nytt">＋ Nytt spill …</option>';
+  sel.innerHTML = ids.map((id) => `<option value="${id}" ${id === spillId ? 'selected' : ''}>${esc(mineSpill[id])}</option>`).join('') + '<option value="__nytt">＋ Nytt spill …</option><option value="__alle">📚 Alle mine spill …</option>';
 }
 $('#spillvelger').onchange = (e) => {
+  if (e.target.value === '__alle') { e.target.value = spillId; apneMineSpill(); return; }
   if (e.target.value === '__nytt') { vis('nyttspill'); $('#avbrytnytt').classList.remove('skjult'); e.target.value = spillId; return; }
   velgSpill(e.target.value);
 };
-$('#avbrytnytt').onclick = () => vis('spillvisning');
+$('#avbrytnytt').onclick = () => (spillId ? vis('spillvisning') : apneMineSpill());
 
 $('#lagspill').onclick = async () => {
   const navn = $('#nyttnavn').value.trim() || PAKKE.navn;
@@ -427,6 +463,80 @@ function velgSpill(id) {
   stoppPins = onValue(r(`pins/${id}`), (snap) => { pins = snap.val() || {}; if (spill) tegnGrupper(); });
   // Banken kjører nå i skyen (Cloud Functions) – lærersiden trenger ikke være åpen.
   $('#bankstatus').classList.remove('skjult');
+}
+
+// ---------- Mine spill: oversikt over alle spillene i alle spillpakkene ----------
+$('#minespillknapp').onclick = () => apneMineSpill();
+$('#msoppdater').onclick = () => apneMineSpill();
+$('#msnytt').onclick = () => { vis('nyttspill'); $('#avbrytnytt').classList.remove('skjult'); };
+function siden(tid) {
+  if (!tid) return 'ukjent';
+  const min = Math.round((Date.now() - tid) / 60000);
+  if (min < 2) return 'akkurat nå';
+  if (min < 60) return `for ${min} min siden`;
+  const t = Math.round(min / 60); if (t < 24) return `for ${t} ${t === 1 ? 'time' : 'timer'} siden`;
+  const d = Math.round(t / 24); if (d < 14) return `for ${d} ${d === 1 ? 'dag' : 'dager'} siden`;
+  return new Date(tid).toLocaleDateString('no-NO', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+/** Leser ett spill og regner ut nøkkeltall (fungerer for alle spillpakkene) */
+function oppsummer(p, id, navn, s) {
+  const grupper = s.grupper || {};
+  const eid = {};
+  for (const e of Object.values(s.eierskap || {})) if (e?.gruppe) eid[e.gruppe] = (eid[e.gruppe] || 0) + 1;
+  const ledere = Object.entries(eid).sort((a, b) => b[1] - a[1]);
+  const leder = ledere[0] && grupper[ledere[0][0]] ? { navn: grupper[ledere[0][0]].navn, farge: grupper[ledere[0][0]].farge, antall: ledere[0][1] } : null;
+  let venter = Object.values(s.dueller || {}).filter((d) => d.status === 'venter').length + Object.values(s.diktatKo || {}).filter((k) => !k.aapnet).length;
+  for (const liste of Object.values(s.reiselogger || {})) for (const rl of Object.values(liste || {})) if (rl?.status === 'levert') venter++;
+  const sist = Math.max(s.info?.opprettet || 0, ...Object.values(s.logg || {}).map((l) => l?.tid || 0));
+  return { p, id, navn: s.info?.navn || navn, eier: s.eier === bruker.uid, eierNavn: s.info?.eierNavn, grupper: Object.keys(grupper).length, steder: Object.keys(s.eierskap || {}).length, leder, venter, sist, pause: !!s.innstillinger?.pause };
+}
+let msTeller = 0;
+async function apneMineSpill() {
+  if (!bruker) return;
+  vis('minespilloversikt');
+  const nr = ++msTeller;
+  $('#msinnhold').innerHTML = '<p class="tom">Henter spillene dine …</p>';
+  const lister = await Promise.all(SPILLPAKKER.map(async (p) => {
+    const pre = p.rot ? p.rot + '/' : '';
+    const mine = (await get(ref(db, `${pre}mineSpill/${bruker.uid}`)).catch(() => null))?.val() || {};
+    const spill = await Promise.all(Object.entries(mine).map(async ([id, navn]) => {
+      const s = (await get(ref(db, `${pre}spill/${id}`)).catch(() => null))?.val();
+      return s ? oppsummer(p, id, navn, s) : { p, id, navn, borte: true };
+    }));
+    return { p, spill: spill.sort((a, b) => (b.sist || 0) - (a.sist || 0)) };
+  }));
+  if (nr !== msTeller) return;   // en nyere oppdatering er på vei
+  const alle = lister.flatMap((l) => l.spill).filter((x) => !x.borte);
+  if (!alle.length && !lister.some((l) => l.spill.length)) {
+    $('#msinnhold').innerHTML = '<p class="tom">Du har ingen spill ennå. Trykk «＋ Nytt spill» for å lage det første.</p>';
+    return;
+  }
+  const sumVenter = alle.reduce((n, x) => n + x.venter, 0);
+  const ekstra = (x) => `spill=${x.id}${brukerEmulator ? '&emulator' : ''}`;
+  const kort = (x) => {
+    if (x.borte) return `<div class="ms-kort"><h3>${esc(x.navn)}</h3><p class="liten dempet">Fant ikke spillet – det kan være slettet, eller du har mistet tilgangen.</p></div>`;
+    const her = x.p.id === PAKKE.id && x.id === spillId;
+    return `<div class="ms-kort ${x.venter ? 'venter' : ''} ${her ? 'aktivt' : ''}">
+      <div class="rad" style="justify-content:space-between;gap:.5rem;align-items:flex-start"><h3>${esc(x.navn)}</h3><span class="ms-rolle">${x.eier ? 'Eier' : 'Medlærer'}</span></div>
+      <div class="ms-tall">
+        <span>👥 <b>${x.grupper}</b> ${x.grupper === 1 ? 'gruppe' : 'grupper'}</span>
+        <span>📍 <b>${x.steder}</b> ${x.p.steder} erobret</span>
+        <span style="grid-column:1/-1">🏆 ${x.leder ? `Leder: <b style="color:${esc(x.leder.farge || 'inherit')}">${esc(x.leder.navn)}</b> (${x.leder.antall} ${x.p.steder})` : '<span class="dempet">Ingen har erobret noe ennå</span>'}</span>
+        <span style="grid-column:1/-1">${x.venter ? `<span class="ms-venter">⏳ ${x.venter} venter på deg</span>` : '✅ Ingenting venter'}${x.pause ? ' · ⏸️ <b>Pause</b>' : ''}</span>
+        <span class="liten dempet" style="grid-column:1/-1">Sist aktivitet ${siden(x.sist)}${!x.eier && x.eierNavn ? ` · eies av ${esc(x.eierNavn)}` : ''}</span>
+      </div>
+      <div class="ms-knapper">
+        <button class="knapp mini sol" data-msapne="${x.p.id}|${x.id}">${her ? 'Tilbake til spillet' : 'Åpne'}</button>
+        <a class="knapp mini lys" target="_blank" href="${pakkeAdresse(x.p.id, 'tavle.html', ekstra(x))}">📺 Tavle</a>
+      </div></div>`;
+  };
+  $('#msinnhold').innerHTML = `<div class="ms-sum"><span>🎮 ${alle.length} ${alle.length === 1 ? 'spill' : 'spill'}</span><span>👥 ${alle.reduce((n, x) => n + x.grupper, 0)} grupper</span><span class="${sumVenter ? 'varsel-sum' : ''}">⏳ ${sumVenter} venter på deg</span></div>`
+    + lister.filter((l) => l.spill.length).map((l) => `<div class="ms-pakke">${l.p.ikon} ${esc(l.p.navn)}</div><div class="ms-rutenett">${l.spill.map(kort).join('')}</div>`).join('');
+  $$('[data-msapne]').forEach((b) => b.onclick = () => {
+    const [pid, id] = b.dataset.msapne.split('|');
+    if (pid === PAKKE.id) { if (id === spillId) vis('spillvisning'); else velgSpill(id); }
+    else location.href = pakkeAdresse(pid, 'laerer.html', `spill=${id}${brukerEmulator ? '&emulator' : ''}`);
+  });
 }
 
 // ---------- deling ----------
