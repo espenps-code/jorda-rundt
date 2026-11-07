@@ -6,6 +6,7 @@ import { jobbLonn } from '#pakke/motor.js';
 import { PAKKE } from '#pakke/pakke.js';
 import * as REGLER from '#pakke/regler.js';
 import { rng, velg, stokk } from './tilfeldig.js';
+import { DUELLER } from '../data/dueller.js';
 
 export const STANDARD_INNSTILLINGER = {
   startbelopPerElev: 50000, // kr per gruppemedlem ved start (overstyres av spillpakken)
@@ -19,6 +20,7 @@ export const STANDARD_INNSTILLINGER = {
   startdato: '',          // "2026-11-10"
   sluttdato: '',          // "2026-11-28" – vises som nedtelling
   pause: false,           // når true kan ingen kjøpe noe (banken avviser)
+  duellUtvalg: 'standard', // hvilke dueller som trekkes: 'standard' | 'begge' (standard + lærerens egne) | 'egne'
   stengte: {},            // overstyring: { "UA": false } åpner Ukraina, { "FR-nice": true } stenger bare Nice
   ...REGLER.STANDARD,     // spillpakkens egne standardverdier (startbeløp, poeng …)
 };
@@ -211,6 +213,28 @@ export const HENDELSE_SJANSE = { 1: 0.5, 2: 0.3 };
 export function formaterKr(n) { return Math.round(n || 0).toLocaleString('nb-NO').replace(/,/g, ' ') + ' kr'; }
 export function nyId(lengde = 8) { const t = 'abcdefghijkmnpqrstuvwxyz23456789'; let s = ''; const a = crypto.getRandomValues(new Uint8Array(lengde)); for (const x of a) s += t[x % t.length]; return s; }
 export { LAND, landEtterId, KONTINENTER, LANDENE, landInfo, landKode, byerILand, PAKKE };
+
+// ---------- dueller ----------
+// Lærerens egne dueller lagres på kontoen (mineDueller/<uid>) og kopieres inn i spillet som spill/<id>/egneDueller
+// (bare eierens). Når en duell trekkes, kopieres hele oppgaven inn i duellen (d.o), så den ikke endrer seg
+// om lista endres senere. d.okilde = 's:<tittel>' (standard) eller 'e:<id>' (egen) – brukes for å unngå gjentakelser.
+export function renDuell(o) {
+  return { tittel: String(o?.tittel || '').slice(0, 60), tekst: String(o?.tekst || '').slice(0, 400), vinner: String(o?.vinner || '').slice(0, 200), tid: Math.max(0, Math.min(600, Number(o?.tid) || 0)), utstyr: String(o?.utstyr || '').slice(0, 100) || 'Ingenting' };
+}
+export function egneDuellerI(spill) {
+  return Object.entries(spill?.egneDueller || {}).filter(([, o]) => o && o.tittel).map(([id, o]) => ({ nokkel: 'e:' + id, o: renDuell(o) }));
+}
+/** Duellene som kan trekkes i dette spillet, etter lærerens valg. */
+export function duellPulje(spill) {
+  const valg = innst(spill).duellUtvalg || 'standard';
+  const std = DUELLER.map((o) => ({ nokkel: 's:' + o.tittel, o }));
+  const egne = egneDuellerI(spill);
+  if (valg === 'egne' && egne.length) return egne;
+  if (valg === 'begge') return [...std, ...egne];
+  return std;
+}
+/** Oppgaven i en duell (nye dueller har den kopiert inn; gamle har bare et nummer i standardlista). */
+export function duellOppgave(d) { return d?.o || (d?.oppgave != null ? DUELLER[d.oppgave] : null) || null; }
 
 /** «Tokyo, Japan» / «Bergen, Norge» */
 export function stedNavn(id) { const l = landEtterId[id]; return l ? `${l.by}, ${l.landNavn}` : ''; }

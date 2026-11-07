@@ -6,13 +6,12 @@
 // startBank() brukes ikke lenger, men er beholdt i tilfelle man vil teste uten skyen.
 import { r, get, update, push, remove, onValue, runTransaction } from './fb.js';
 import { flyTilbud, hoteller } from '#pakke/motor.js';
-import { DUELLER } from '../data/dueller.js';
 import { rettDiktat, ORD } from '#pakke/parlor.js';
 import { rettFlyquiz, kravFor, MAKS_SPORSMAL } from '../data/flyquiz.js';
 import { landKode, landInfo } from '#pakke/land.js';
 import {
   innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, landEtterId, formaterKr, nyId,
-  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER,
+  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER, duellPulje,
 } from './felles.js';
 
 const iArbeid = new Set();
@@ -385,12 +384,13 @@ export async function fjernEierskap(spillId, landId) {
 /** Trekk en tilfeldig duelloppgave (unngår de som er brukt nylig). */
 export async function trekkDuellOppgave(spillId, duellId) {
   const spill = (await get(r(`spill/${spillId}`))).val() || {};
-  const brukt = new Set(Object.values(spill.dueller || {}).map((d) => d.oppgave).filter((x) => x != null));
-  let kandidater = DUELLER.map((_, n) => n).filter((n) => !brukt.has(n));
-  if (!kandidater.length) kandidater = DUELLER.map((_, n) => n);
+  const pulje = duellPulje(spill);
+  const brukt = new Set(Object.values(spill.dueller || {}).map((d) => d.okilde).filter(Boolean));
+  let kandidater = pulje.filter((x) => !brukt.has(x.nokkel));
+  if (!kandidater.length) kandidater = pulje;
   const valgt = kandidater[Math.floor(Math.random() * kandidater.length)];
-  await update(r(`spill/${spillId}/dueller/${duellId}`), { oppgave: valgt, trukket: Date.now(), startet: null });
-  return DUELLER[valgt];
+  await update(r(`spill/${spillId}/dueller/${duellId}`), { o: valgt.o, okilde: valgt.nokkel, oppgave: null, trukket: Date.now(), startet: null });
+  return valgt.o;
 }
 export async function startDuellNedtelling(spillId, duellId) {
   await update(r(`spill/${spillId}/dueller/${duellId}`), { startet: Date.now() });

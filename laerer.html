@@ -46,6 +46,13 @@
   .fargevalg { display: flex; gap: .35rem; flex-wrap: wrap; }
   .fargevalg button { width: 28px; height: 28px; border-radius: 50%; border: 3px solid transparent; cursor: pointer; }
   .fargevalg button[aria-pressed=true] { border-color: var(--blekk); }
+  .duellvalg { display: grid; gap: .5rem; margin: .4rem 0 .8rem; }
+  .duellvalg label { display: flex; gap: .6rem; align-items: flex-start; padding: .6rem .8rem; border: 2px solid var(--linje); border-radius: 12px; cursor: pointer; background: #fff; }
+  .duellvalg label:has(input:checked) { border-color: var(--hav); background: #EEF4FB; }
+  .duellvalg input { width: 1.2em; height: 1.2em; margin-top: .15em; }
+  .duellrad { background: #fff; border: 1px solid var(--linje); border-radius: 12px; padding: .6rem .8rem; margin-bottom: .5rem; }
+  .duellrad .rad { margin-top: .4rem; }
+  .modal textarea { width: 100%; min-height: 5em; font: inherit; }
   .innst-rutenett { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0 1.2rem; }
   .hjelp { font-size: .8rem; color: var(--blekk-2); margin-top: .2em; }
   .landtabell td { padding: .4em .6em; }
@@ -179,6 +186,7 @@
     <button role="tab" data-fane="oversikt" aria-selected="true">Oversikt <span id="badgeOppgaver" class="badge skjult"></span></button>
     <button role="tab" data-fane="grupper">Grupper</button>
     <button role="tab" data-fane="land">Land</button>
+    <button role="tab" data-fane="dueller">Dueller</button>
     <button role="tab" data-fane="innstillinger">Innstillinger</button>
     <button role="tab" data-fane="logg">Logg</button>
     <button id="tavlemodus" class="tavleknapp" title="Vis tavla i fullskjerm – med skuff for reiselogger og dueller">📺 Tavle</button>
@@ -293,6 +301,23 @@
       </div>
     </section>
 
+    <!-- DUELLER -->
+    <section data-panel="dueller" class="skjult">
+      <div class="kort">
+        <h2>Hvilke dueller skal trekkes i dette spillet?</h2>
+        <div id="duellvalg" class="duellvalg"></div>
+        <p id="duellvalghjelp" class="liten dempet" style="margin-bottom:0"></p>
+      </div>
+      <div class="kort">
+        <div class="rad" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Mine dueller</h2><button id="nyduell" class="knapp sol">➕ Ny duell</button></div>
+        <p class="liten dempet">Duellene lagres på kontoen din og kan brukes i alle spillene dine – også i de andre spillvariantene. Tips: Lag dueller der det er lett å se hvem som vinner – raskest, flest eller lengst.</p>
+        <div id="mineduelliste"></div>
+      </div>
+      <div class="kort">
+        <details><summary><b>Standardduellene</b> <span id="antallStandard" class="dempet"></span></summary><div id="standardliste" style="margin-top:.6rem"></div></details>
+      </div>
+    </section>
+
     <!-- LOGG -->
     <section data-panel="logg" class="skjult">
       <div class="kort"><h2>Logg</h2><div style="overflow-x:auto"><table><thead><tr><th>Tid</th><th>Gruppe</th><th>Hendelse</th><th style="text-align:right">Beløp</th></tr></thead><tbody id="loggrader"></tbody></table></div></div>
@@ -318,10 +343,10 @@
 
 <script type="module">
 import { monterInnlogging } from './js/laererinn.js';
-import { auth, db, ref, r, get, set, update, remove, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
+import { auth, db, ref, r, get, set, update, remove, push, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
-import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel } from './js/felles.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel, duellOppgave, egneDuellerI, renDuell } from './js/felles.js';
 import { tilfeldigStart } from '#pakke/motor.js';
 import { fyllPakkeTekster, lenke, fullLenke } from './js/side.js';
 import { SPILLPAKKER, pakkeAdresse } from './js/pakkeliste.js';
@@ -366,7 +391,7 @@ for (const b of document.querySelectorAll('[data-pakkevalg]')) b.onclick = () =>
 };
 
 
-let bruker = null, spillId = null, spill = null, pins = {}, stoppSpill = null, stoppPins = null, stoppBank = null, stoppLaerere = null, mineSpill = {}, laerere = {};
+let bruker = null, spillId = null, spill = null, pins = {}, stoppSpill = null, stoppPins = null, stoppBank = null, stoppLaerere = null, mineSpill = {}, laerere = {}, mineDueller = {}, stoppMineDueller = null;
 const erEier = () => !!spill && !!bruker && spill.eier === bruker.uid;
 const mittNavn = () => bruker?.displayName || bruker?.email || 'Lærer';
 
@@ -401,9 +426,12 @@ monterInnlogging($('#laererinn'));
 $('#loggut').onclick = () => loggUt();
 
 vedInnlogging(async (u) => {
-  if (!u || u.isAnonymous) { bruker = null; stoppAlt(); vis('innlogging'); $('#loggut').classList.add('skjult'); $('#minespillknapp').classList.add('skjult'); return; }
+  if (!u || u.isAnonymous) { bruker = null; stoppAlt(); stoppMineDueller?.(); stoppMineDueller = null; mineDueller = {}; vis('innlogging'); $('#loggut').classList.add('skjult'); $('#minespillknapp').classList.add('skjult'); return; }
   bruker = u; $('#loggut').classList.remove('skjult'); $('#minespillknapp').classList.remove('skjult');
   await mottaInvitasjon();
+  stoppMineDueller?.();
+  // Mine dueller ligger på kontoen (ikke under spillpakkens rot), så de kan brukes i alle spillvariantene.
+  stoppMineDueller = onValue(ref(db, `mineDueller/${u.uid}`), (snap) => { mineDueller = snap.val() || {}; if (spill) { synkEgneDueller(); tegnDueller(); } }, () => {});
   onValue(r(`mineSpill/${u.uid}`), (snap) => {
     mineSpill = snap.val() || {};
     tegnSpillvelger();
@@ -597,7 +625,7 @@ const prikk = (gid) => `<span class="prikk" style="background:${esc(gfarge(gid))
 
 function tegnAlt() {
   mineSpill[spillId] = spill.info?.navn || 'Spill';
-  tegnOversikt(); tegnGrupper(); tegnLand(); tegnInnstillinger(); tegnLogg(); tegnLaerere();
+  tegnOversikt(); tegnGrupper(); tegnLand(); tegnInnstillinger(); tegnLogg(); tegnLaerere(); tegnDueller(); synkEgneDueller();
   if (erEier() && !spill.info?.eierNavn) update(r(`spill/${spillId}/info`), { eierNavn: mittNavn() });
 }
 
@@ -633,7 +661,7 @@ function tegnOversikt() {
   const dueller = Object.entries(spill.dueller || {}).filter(([, d]) => d.status === 'venter');
   $('#dueller').innerHTML = dueller.map(([id, d]) => {
     const l = landEtterId[d.land];
-    const o = d.oppgave != null ? DUELLER[d.oppgave] : null;
+    const o = duellOppgave(d);
     return `<div class="duell"><b>⚔️ Duell om ${l.flagg} ${esc(l.navn)}</b><p class="liten" style="margin:.3em 0 .6em">${prikk(d.utfordrer)} ${esc(gnavn(d.utfordrer))} utfordrer ${prikk(d.forsvarer)} ${esc(gnavn(d.forsvarer))}.</p>
       ${o ? `<div style="background:#fff;border-radius:10px;padding:.6rem .8rem;margin-bottom:.6rem"><b>${esc(o.tittel)}</b><br>${esc(o.tekst)}<br><span class="liten"><b>Vinner:</b> ${esc(o.vinner)}<br><b>Utstyr:</b> ${esc(o.utstyr)}${o.tid ? ` · <b>Tid:</b> ${o.tid} sek` : ''}</span></div>` : '<p class="liten dempet">Trekk en oppgave – den vises stort på tavla.</p>'}
       <div class="rad" style="margin-bottom:.5rem"><button class="knapp mini sol" data-trekk="${id}">🎲 ${o ? 'Trekk ny' : 'Trekk oppgave'}</button>${o && o.tid ? `<button class="knapp mini" data-start="${id}">▶ Start nedtelling</button>` : ''}</div>
@@ -860,6 +888,60 @@ function tegnLand() {
   });
 }
 $('#landsok').oninput = tegnLand; $('#landfilter').onchange = tegnLand;
+
+// ---------- dueller ----------
+// Eierens egne dueller kopieres inn i spillet (spill/<id>/egneDueller), så alle lærerne i spillet og tavla ser dem.
+function synkEgneDueller() {
+  if (!erEier()) return;
+  const naa = spill.egneDueller || {};
+  if (JSON.stringify(naa) === JSON.stringify(mineDueller)) return;
+  set(r(`spill/${spillId}/egneDueller`), Object.keys(mineDueller).length ? mineDueller : null).catch(console.error);
+}
+function duellKort(o, knapper = '') {
+  return `<div class="duellrad"><b>${esc(o.tittel)}</b><br>${esc(o.tekst)}<br><span class="liten"><b>Vinner:</b> ${esc(o.vinner)}<br><b>Utstyr:</b> ${esc(o.utstyr || 'Ingenting')}${o.tid ? ` · <b>Nedtelling:</b> ${o.tid} sek` : ''}</span>${knapper}</div>`;
+}
+function tegnDueller() {
+  if (!spill) return;
+  const valg = innst(spill).duellUtvalg || 'standard';
+  const egneISpill = egneDuellerI(spill).length;
+  const valgene = [
+    ['standard', 'Bare standardduellene', `${DUELLER.length} ferdige dueller`],
+    ['begge', 'Standardduellene + egne dueller', `${DUELLER.length} + ${egneISpill} dueller`],
+    ['egne', 'Bare egne dueller', `${egneISpill} dueller`],
+  ];
+  $('#duellvalg').innerHTML = valgene.map(([v, t, h]) => `<label><input type="radio" name="duellUtvalg" value="${v}" ${v === valg ? 'checked' : ''}><span><b>${t}</b><br><span class="liten dempet">${h}</span></span></label>`).join('');
+  $$('#duellvalg input').forEach((x) => x.onchange = async () => { await set(r(`spill/${spillId}/innstillinger/duellUtvalg`), x.value); varsle('Duellvalget er lagret.', 'ok'); });
+  const hjelp = [];
+  if (!erEier()) hjelp.push(`Det er dueller fra eieren av spillet${spill.info?.eierNavn ? ` (${esc(spill.info.eierNavn)})` : ''} som brukes her. Dine egne dueller brukes i spill du selv har laget.`);
+  if (valg !== 'standard' && !egneISpill) hjelp.push('Det er ingen egne dueller i spillet ennå, så standardduellene trekkes til du har laget noen.');
+  $('#duellvalghjelp').innerHTML = hjelp.join(' ');
+
+  const egne = Object.entries(mineDueller).sort((a, b) => (a[1].opprettet || 0) - (b[1].opprettet || 0));
+  $('#mineduelliste').innerHTML = egne.length ? egne.map(([id, o]) => duellKort(o, `<div class="rad"><button class="knapp mini lys" data-redduell="${id}">✏️ Rediger</button><button class="knapp mini lys" data-slettduell="${id}">🗑️ Slett</button></div>`)).join('') : '<p class="tom">Du har ingen egne dueller ennå. Trykk «Ny duell».</p>';
+  $$('[data-redduell]').forEach((b) => b.onclick = () => redigerDuell(b.dataset.redduell));
+  $$('[data-slettduell]').forEach((b) => b.onclick = async () => {
+    const o = mineDueller[b.dataset.slettduell];
+    if (!await bekreft('Slette duellen?', `«${esc(o?.tittel)}» blir borte fra alle spillene dine. Dueller som allerede er trukket, beholder oppgaven.`, 'Slett', true)) return;
+    await remove(ref(db, `mineDueller/${bruker.uid}/${b.dataset.slettduell}`)); varsle('Duellen er slettet.', 'ok');
+  });
+  $('#antallStandard').textContent = `(${DUELLER.length})`;
+  if (!$('#standardliste').innerHTML) $('#standardliste').innerHTML = DUELLER.map((o) => duellKort(o)).join('');
+}
+async function redigerDuell(id = null) {
+  const o = id ? mineDueller[id] : {};
+  const d = await skjemaModal(id ? 'Rediger duell' : 'Ny duell', `
+    <div class="felt"><label>Tittel</label><input name="tittel" maxlength="60" required value="${esc(o.tittel)}" placeholder="Reaksjonstesten"></div>
+    <div class="felt"><label>Hva skal deltakerne gjøre?</label><textarea name="tekst" maxlength="400" required placeholder="Læreren slipper en linjal mellom tommel og pekefinger …">${esc(o.tekst)}</textarea></div>
+    <div class="felt"><label>Hvem vinner?</label><input name="vinner" maxlength="200" required value="${esc(o.vinner)}" placeholder="Lavest tall på linjalen vinner. Best av tre."><div class="hjelp">Skriv det så det er lett å avgjøre: raskest, flest eller lengst.</div></div>
+    <div class="felt"><label>Utstyr</label><input name="utstyr" maxlength="100" value="${esc(o.utstyr)}" placeholder="Linjal (30 cm)"></div>
+    <div class="felt"><label>Nedtelling på tavla (sekunder)</label><input name="tid" type="number" min="0" max="600" value="${o.tid ?? 0}"><div class="hjelp">0 = ingen nedtelling.</div></div>`, id ? 'Lagre' : 'Legg til');
+  if (!d || !d.tittel.trim() || !d.tekst.trim() || !d.vinner.trim()) return;
+  const ny = { ...renDuell({ tittel: d.tittel.trim(), tekst: d.tekst.trim(), vinner: d.vinner.trim(), utstyr: d.utstyr.trim(), tid: d.tid }), opprettet: o.opprettet || Date.now() };
+  const nokkel = id || push(ref(db, `mineDueller/${bruker.uid}`)).key;
+  await set(ref(db, `mineDueller/${bruker.uid}/${nokkel}`), ny);
+  varsle(id ? 'Duellen er oppdatert.' : 'Duellen er lagt til.', 'ok');
+}
+$('#nyduell').onclick = () => redigerDuell();
 
 // ---------- innstillinger ----------
 let innstRedigeres = false;

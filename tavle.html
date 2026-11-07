@@ -112,7 +112,7 @@ import { fyllPakkeTekster } from './js/side.js';
 fyllPakkeTekster();
 document.title = `${PAKKE.navn} – Tavle`;
 document.documentElement.style.setProperty('--tavle-tittel', JSON.stringify(PAKKE.kart.tavle));
-import { DUELLER } from './data/dueller.js';
+import { duellOppgave, duellPulje } from './js/felles.js';
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -214,14 +214,14 @@ setInterval(() => spill && tegn(), 60000);
 // ---------- DUELL på storskjerm ----------
 let visteTrekk = null, klokkeTimer = null, snurrer = false;
 function aktivDuell() {
-  return Object.entries(spill?.dueller || {}).filter(([, d]) => d.status === 'venter' && d.oppgave != null).sort((a, b) => (b[1].trukket || 0) - (a[1].trukket || 0))[0];
+  return Object.entries(spill?.dueller || {}).filter(([, d]) => d.status === 'venter' && duellOppgave(d)).sort((a, b) => (b[1].trukket || 0) - (a[1].trukket || 0))[0];
 }
 function tegnDuell() {
   const funnet = aktivDuell(); const el = $('#duellscene');
   if (!funnet) { el.classList.add('skjult'); clearInterval(klokkeTimer); visteTrekk = null; return; }
   const [id, d] = funnet;
   const l = landEtterId[d.land]; const a = spill.grupper[d.utfordrer], b = spill.grupper[d.forsvarer];
-  const o = DUELLER[d.oppgave];
+  const o = duellOppgave(d);
   el.classList.remove('skjult');
   const nyTrekning = visteTrekk !== `${id}-${d.trukket}`;
   el.innerHTML = `<div class="duellinnhold"><div class="overskrift">⚔️ DUELL ⚔️</div><div class="landet">${l.flagg} ${esc(l.navn)}</div>
@@ -233,7 +233,7 @@ function tegnDuell() {
     $('#orest').style.visibility = 'hidden';
     let n = 0; const t = setInterval(() => {
       const tit = $('#otittel'); if (!tit) { clearInterval(t); snurrer = false; return; }
-      tit.textContent = DUELLER[Math.floor(Math.random() * DUELLER.length)].tittel; tit.classList.remove('snurr'); void tit.offsetWidth; tit.classList.add('snurr');
+      const pulje = duellPulje(spill); tit.textContent = pulje[Math.floor(Math.random() * pulje.length)].o.tittel; tit.classList.remove('snurr'); void tit.offsetWidth; tit.classList.add('snurr');
       if (++n > 18) { clearInterval(t); snurrer = false; tit.textContent = o.tittel; $('#orest').style.visibility = 'visible'; }
     }, 110);
   }
