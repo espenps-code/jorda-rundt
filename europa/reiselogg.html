@@ -130,7 +130,7 @@
 <body>
 <div class="styring kort">
   <h2>📓 Reiselogg til utskrift</h2>
-  <p class="dempet" style="margin-top:0">Reiseloggen er nøytral – skriv ut og kopier opp. <b>Bysiden</b> fylles ut i hver by. <b>Landsiden</b> fylles ut bare i den første byen gruppa besøker i et land (den trengs også til parlør-diktaten).</p>
+  <p class="dempet" style="margin-top:0">Reiseloggen er nøytral – skriv ut og kopier opp. <b>Bysiden</b> fylles ut i hver by. <b>Landsiden</b> fylles ut bare i den første byen gruppa besøker i et land.</p>
   <div class="rad" style="margin:.8rem 0">
     <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="medland" checked> Landsiden</label>
     <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="medby" checked> Bysiden</label>
@@ -214,7 +214,7 @@ function tegn() {
       ${felt('🍽️', 'Nasjonalrett – og hva den er laget av', 1, 'bred')}
     </div>
     <div class="parlor">
-      <div class="parlor-topp"><b>📖 Parlør</b><span class="hand">Oversett til landets språk – dere trenger ordene til diktaten!</span></div>
+      <div class="parlor-topp"><b>📖 Parlør</b><span class="hand">Oversett til landets språk – og øv på å si det høyt!</span></div>
       <div class="bobler">
         ${['Hei', 'Velkommen', 'Takk', 'Hvor er …?'].map((o) => `<div class="boble"><span class="no">${o}</span><div class="oversatt"></div></div>`).join('')}
         <div class="boble bred"><span class="no">Jeg heter …</span><div class="oversatt"></div></div>

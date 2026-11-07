@@ -524,7 +524,7 @@ function tegnNeste() {
   else {
     const st = reiseloggStatus();
     if (!st || st === 'avvist') { ikon = '📓'; tekst = `<b>Gjør reiseloggen for ${esc(l.navn)}</b><br>Fyll ut den fysiske reiseloggen og trykk «Levert» under Reiselogg. Dere kan reise videre når læreren har godkjent den.`; }
-    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere ta parlør-diktaten under Reiselogg, jobbe eller ta en quiz. Dere kan reise videre når loggen er godkjent.'; }
+    else if (st === 'levert') { ikon = '⏳'; tekst = '<b>Venter på at læreren godkjenner reiseloggen.</b><br>Imens kan dere jobbe eller ta en quiz. Dere kan reise videre når loggen er godkjent.'; }
     else if (st === 'duell') { ikon = '⚔️'; tekst = `<b>Duell!</b><br>Læreren setter opp en duell om ${ORD.stedet}.`; }
     else { ikon = '🧳'; tekst = `<b>Klar for neste ${ORD.sted}!</b><br>Velg et reisemål – eller tjen penger først.`; }
   }

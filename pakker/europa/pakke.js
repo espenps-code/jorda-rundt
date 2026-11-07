@@ -18,4 +18,5 @@ export const PAKKE = {
     sok: 'Søk på by eller land …',
   },
   reisemater: ['fly', 'tog', 'buss'],
+  diktat: false,           // parlør-diktaten er tatt bort (feltene skjules på lærersiden)
 };
