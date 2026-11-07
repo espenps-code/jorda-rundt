@@ -1,0 +1,1146 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fotostudio – Jorda rundt</title>
+<script src="js/pakke.js"></script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📸</text></svg>">
+<link rel="stylesheet" href="css/felles.css">
+<style>
+  /* ---------- topp ---------- */
+  .topp { background: var(--hav); color: #fff; display: flex; align-items: center; gap: .6rem 1.2rem; padding: .8rem 1.2rem calc(.8rem + 8px); flex-wrap: wrap; position: relative; }
+  .topp::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: var(--luftpost); }
+  .topp h1 { color: #fff; margin: 0; font-size: 1.7rem; }
+  .topp .etikett-mono { color: var(--lys-tekst); display: block; }
+  .topp a { color: var(--lys-tekst); text-decoration: none; font-weight: 700; }
+  .status-chip { margin-left: auto; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: .4em 1em; font: 500 .8rem var(--font-mono); letter-spacing: .04em; white-space: nowrap; }
+
+  /* ---------- oppsett ---------- */
+  .oppsett { display: grid; grid-template-columns: minmax(320px, 410px) minmax(0, 1fr); gap: 1.2rem; padding: 1.2rem; max-width: 1500px; margin: 0 auto; }
+  .kontroller { display: flex; flex-direction: column; gap: 1rem; }
+  .kontroller .kort + .kort { margin-top: 0; }
+  .scene { position: sticky; top: 1rem; align-self: start; }
+  .lerret-ramme { background: radial-gradient(circle at 50% 40%, #17457A, #0C2340 70%); border-radius: var(--radius); padding: 14px; display: grid; place-items: center; min-height: 320px; box-shadow: var(--skygge); position: relative; }
+  #lerret { display: block; max-width: 100%; max-height: calc(100vh - 150px); width: auto; height: auto; touch-action: none; border-radius: 4px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    background: repeating-conic-gradient(#d9d9d9 0 25%, #f4f4f4 0 50%) 0 0 / 24px 24px; }
+  .tom-scene { color: #cfe0ef; text-align: center; padding: 2rem 1rem; }
+  .tom-scene .stor { font-size: 4rem; line-height: 1; display: block; margin-bottom: .4rem; }
+  .tom-scene b { font: 800 1.4rem var(--font-tittel); color: #fff; display: block; margin-bottom: .3rem; }
+  .scene-hint { margin: .6rem 0 0; text-align: center; color: var(--blekk-2); font-size: .95rem; min-height: 1.4em; }
+  @media (max-width: 900px) {
+    .oppsett { grid-template-columns: 1fr; padding: .8rem; }
+    .scene { order: -1; top: 0; z-index: 20; background: var(--papir); padding: .4rem 0 .2rem; }
+    #lerret { max-height: 46vh; }
+    .lerret-ramme { min-height: 200px; padding: 10px; }
+  }
+
+  /* ---------- steg ---------- */
+  .steg h2 { display: flex; align-items: center; gap: .55rem; font-size: 1.25rem; margin-bottom: .6rem; }
+  .steg h2 .nr { flex: 0 0 auto; width: 1.9em; height: 1.9em; border-radius: 50%; background: var(--hav); color: var(--sol); display: grid; place-items: center; font-size: .85em; }
+  .steg.ferdig h2 .nr { background: var(--gress); color: #fff; }
+  .steg.laast { opacity: .5; pointer-events: none; filter: grayscale(.3); }
+  .steg p { margin: .3rem 0 .7rem; }
+  .tips { font-size: .88rem; color: var(--blekk-2); background: var(--sol-lys); border-radius: 10px; padding: .55em .8em; margin: .7rem 0 0; }
+  .fil-knapp { position: relative; overflow: hidden; width: 100%; justify-content: center; min-height: 54px; font-size: 1.05rem; }
+  .fil-knapp input { position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0; }
+  .mini-bilde { display: none; width: 100%; max-height: 120px; object-fit: cover; border-radius: 10px; margin-top: .7rem; box-shadow: 0 2px 6px rgba(0,0,0,.12); }
+  .mini-bilde.vis { display: block; }
+  .felt-rad { display: flex; flex-direction: column; gap: .25rem; margin-top: .75rem; }
+  .felt-rad label { font: 500 .72rem var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--blekk-2); }
+  .felt-rad input[type=text] { font: 400 1.05rem var(--font); padding: .6em .75em; border-radius: 10px; border: 2px solid var(--linje); background: #fff; min-height: 48px; width: 100%; box-sizing: border-box; color: var(--blekk); }
+
+  /* verktøy */
+  .verktoy { display: grid; grid-template-columns: repeat(3, 1fr); gap: .35rem; background: var(--papir-2); padding: .35rem; border-radius: 14px; }
+  .verktoy button { border: 0; background: transparent; border-radius: 10px; min-height: 58px; font: 700 .85rem var(--font-tittel); color: var(--hav); cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .1rem; }
+  .verktoy button span { font-size: 1.4rem; line-height: 1; }
+  .verktoy button[aria-pressed=true] { background: #fff; box-shadow: 0 2px 0 var(--linje), 0 3px 10px rgba(12,35,64,.12); }
+  .glider { display: grid; grid-template-columns: 6.4rem 1fr 2.6rem; align-items: center; gap: .5rem; margin-top: .55rem; }
+  .glider label { font-weight: 700; font-size: .95rem; }
+  .glider output { font: 500 .8rem var(--font-mono); text-align: right; color: var(--blekk-2); }
+  input[type=range] { width: 100%; accent-color: var(--hav-3); height: 36px; margin: 0; }
+  .knapp-rad { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .8rem; }
+  .knapp-rad .knapp { flex: 1 1 auto; justify-content: center; min-height: 46px; }
+  details.hjelp { margin-top: .9rem; border-top: 2px dashed var(--linje); padding-top: .7rem; }
+  details.hjelp summary { cursor: pointer; font-weight: 700; color: var(--hav); min-height: 36px; display: flex; align-items: center; }
+  .skjult { display: none !important; }
+
+  /* rammer */
+  .rammevalg { display: grid; grid-template-columns: repeat(3, 1fr); gap: .45rem; }
+  .rammevalg button { border: 2px solid var(--linje); background: #fff; border-radius: 12px; padding: .5rem .3rem; min-height: 72px; cursor: pointer; font: 700 .85rem var(--font-tittel); color: var(--hav); display: flex; flex-direction: column; align-items: center; gap: .2rem; }
+  .rammevalg button span { font-size: 1.6rem; line-height: 1; }
+  .rammevalg button[aria-pressed=true] { border-color: var(--hav); background: var(--sol-lys); }
+  .lagre-knapp { width: 100%; justify-content: center; min-height: 60px; font: 800 1.25rem var(--font-tittel); margin-top: .9rem; }
+
+  /* lagre-modal */
+  .modal img { width: 100%; border-radius: 10px; display: block; margin: .6rem 0; box-shadow: 0 4px 14px rgba(0,0,0,.18); -webkit-touch-callout: default; }
+  .modal .knapp { width: 100%; justify-content: center; min-height: 52px; margin-top: .5rem; }
+
+  /* ---------- reise-animasjon (nedlasting / utklipp) ---------- */
+  .reise { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: rgba(8,26,48,.72); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+  .billett { width: min(100%, 460px); background: var(--papir); border-radius: 20px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.45); position: relative; }
+  .billett-topp { background: var(--hav); color: #fff; padding: .8rem 1.2rem calc(.8rem + 7px); display: flex; justify-content: space-between; gap: 1rem; position: relative; }
+  .billett-topp::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: var(--luftpost); }
+  .billett-topp .etikett-mono { color: var(--sol); }
+  .billett-kropp { padding: 1rem 1.2rem 1.1rem; }
+  .rute { display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: .4rem; }
+  .rute small { display: block; font: 500 .65rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--blekk-2); }
+  .rute b { font: 800 1.05rem var(--font-tittel); color: var(--hav); display: block; max-width: 8.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rute .til { text-align: right; }
+  .bue { width: 100%; height: 70px; overflow: visible; }
+  .skanner { position: relative; margin: .9rem auto 0; width: 70%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #0C2340; box-shadow: inset 0 0 0 3px var(--hav); }
+  .skanner img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(.6) contrast(1.05); }
+  .skanner .strale { position: absolute; left: 0; right: 0; top: 0; height: 26%; background: linear-gradient(180deg, rgba(85,230,150,0), rgba(85,230,150,.55) 85%, rgba(200,255,220,.95)); animation: skann 1.5s ease-in-out infinite alternate; will-change: transform; }
+  .skanner .merkelapp { position: absolute; left: 8px; top: 8px; background: rgba(12,35,64,.85); color: #8FF0B8; padding: .2em .6em; border-radius: 6px; }
+  @keyframes skann { from { transform: translateY(-30%); } to { transform: translateY(330%); } }
+  .reise-melding { text-align: center; font: 800 1.15rem var(--font-tittel); color: var(--hav); margin: .9rem 0 .7rem; min-height: 1.4em; transition: opacity .3s; }
+  .reise-melding.ut { opacity: 0; }
+  .fremdrift { height: 12px; border-radius: 999px; background: var(--papir-2); overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.12); }
+  .fremdrift div { height: 100%; width: 0; background: var(--luftpost); background-size: 51px 100%; border-radius: 999px; transition: width .3s ease-out; animation: striper 1s linear infinite; }
+  @keyframes striper { to { background-position: 51px 0; } }
+  .billett-bunn { display: flex; justify-content: space-between; margin-top: .6rem; color: var(--blekk-2); }
+  .billett-bunn .etikett-mono:first-child { color: var(--hav); font-size: .85rem; }
+  .riv { border-top: 2px dashed var(--linje); margin: 0 -1.2rem; position: relative; }
+  .stempel { position: absolute; left: 50%; top: 52%; transform: translate(-50%, -50%) rotate(-14deg) scale(2.4); opacity: 0; font: 800 2.6rem var(--font-tittel); color: var(--gress); border: 5px solid var(--gress); border-radius: 14px; padding: .05em .45em; background: rgba(245,239,225,.85); text-transform: uppercase; letter-spacing: .04em; pointer-events: none; transition: transform .35s cubic-bezier(.2,1.6,.4,1), opacity .2s; }
+  .stempel.vis { opacity: 1; transform: translate(-50%, -50%) rotate(-14deg) scale(1); }
+  .stempel.feil { color: var(--korall); border-color: var(--korall); font-size: 1.6rem; }
+  @media (prefers-reduced-motion: reduce) {
+    .skanner .strale, .fremdrift div { animation: none; }
+    .stempel { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topp">
+  <div>
+    <span class="etikett-mono"><span data-p="navn">Jorda rundt</span> · Fotostudio</span>
+    <h1>📸 Reisebildet</h1>
+  </div>
+  <a id="tilbake" href="elev.html">← Tilbake til spillet</a>
+  <span class="status-chip" id="status-chip">✈️ Gjør klar magien …</span>
+</header>
+
+<main class="oppsett">
+  <section class="kontroller">
+
+    <!-- STEG 1 -->
+    <div class="kort steg" id="steg1">
+      <h2><span class="nr">1</span> Gruppebildet</h2>
+      <p>Ta et bilde av gruppa, eller velg et fra bilderullen.</p>
+      <label class="knapp fil-knapp">📷 Ta eller velg bilde
+        <input type="file" accept="image/*" id="fil-gruppe">
+      </label>
+      <img class="mini-bilde" id="mini-gruppe" alt="Gruppebildet dere valgte">
+      <p class="tips">💡 Stå foran en rolig vegg, med lyset forfra og ikke et vindu bak dere. Få med hele kroppen, eller fra livet og opp.</p>
+    </div>
+
+    <!-- STEG 2 -->
+    <div class="kort steg" id="steg2">
+      <h2><span class="nr">2</span> Hvor skal dere?</h2>
+      <p>Velg et bilde av byen eller severdigheten.</p>
+      <label class="knapp sol fil-knapp">🏞️ Velg bilde av stedet
+        <input type="file" accept="image/*" id="fil-sted">
+      </label>
+      <img class="mini-bilde" id="mini-sted" alt="Bildet av stedet dere valgte">
+      <div class="felt-rad">
+        <label for="sted">Hvor er dette?</label>
+        <input type="text" id="sted" list="steder" placeholder="F.eks. Paris" autocomplete="off">
+        <datalist id="steder"></datalist>
+      </div>
+      <div class="felt-rad">
+        <label for="kilde">Hvor fant dere bildet? (kilde)</label>
+        <input type="text" id="kilde" placeholder="F.eks. Wikimedia Commons" autocomplete="off">
+      </div>
+      <p class="tips">©️ Bruk bilder dere har lov til å bruke, for eksempel fra Wikimedia Commons eller Unsplash. Kilden blir skrevet med små bokstaver nederst på bildet.</p>
+    </div>
+
+    <!-- STEG 3 -->
+    <div class="kort steg laast" id="steg3">
+      <h2><span class="nr">3</span> Magien ✨</h2>
+      <div class="verktoy" role="group" aria-label="Verktøy">
+        <button type="button" data-modus="flytt" aria-pressed="true"><span>✋</span>Flytt</button>
+        <button type="button" data-modus="visk" aria-pressed="false"><span>🧽</span>Visk ut</button>
+        <button type="button" data-modus="hent" aria-pressed="false"><span>🖌️</span>Hent tilbake</button>
+      </div>
+      <div class="glider skjult" id="pensel-rad">
+        <label for="pensel">Pensel</label><input type="range" id="pensel" min="10" max="120" value="40"><output id="pensel-ut">40</output>
+      </div>
+      <div class="glider"><label for="storrelse">Størrelse</label><input type="range" id="storrelse" min="10" max="300" value="100"><output id="storrelse-ut">100 %</output></div>
+      <div class="glider"><label for="lys">Lys</label><input type="range" id="lys" min="-40" max="40" value="0"><output id="lys-ut">0</output></div>
+      <div class="glider"><label for="varme">Varme</label><input type="range" id="varme" min="-30" max="30" value="0"><output id="varme-ut">0</output></div>
+      <div class="glider"><label for="skygge">Skygge</label><input type="range" id="skygge" min="0" max="100" value="50"><output id="skygge-ut">50</output></div>
+      <div class="glider"><label for="kant">Myk kant</label><input type="range" id="kant" min="0" max="4" value="1"><output id="kant-ut">1</output></div>
+      <div class="knapp-rad">
+        <button type="button" class="knapp sol mini" id="auto-farge">🪄 Auto-farge</button>
+        <button type="button" class="knapp lys mini" id="speil">↔️ Speilvend</button>
+        <button type="button" class="knapp lys mini" id="angre" disabled>↩️ Angre</button>
+      </div>
+      <details class="hjelp" id="hjelp">
+        <summary>Ble utklippet rart?</summary>
+        <p>Står dere foran en vegg med én farge? Trykk på knappen og så på <b>veggen</b> i bildet. Da fjernes den fargen i stedet.</p>
+        <div class="knapp-rad">
+          <button type="button" class="knapp lys mini" id="pipette">🎯 Trykk på veggen</button>
+          <button type="button" class="knapp lys mini" id="bruk-ki">🤖 Bruk KI igjen</button>
+        </div>
+        <div class="glider skjult" id="toleranse-rad"><label for="toleranse">Hvor mye</label><input type="range" id="toleranse" min="5" max="140" value="45"><output id="toleranse-ut">45</output></div>
+      </details>
+    </div>
+
+    <!-- STEG 4 -->
+    <div class="kort steg laast" id="steg4">
+      <h2><span class="nr">4</span> Ramme og lagre</h2>
+      <div class="rammevalg" role="group" aria-label="Ramme">
+        <button type="button" data-ramme="ingen" aria-pressed="true"><span>🖼️</span>Ingen</button>
+        <button type="button" data-ramme="postkort" aria-pressed="false"><span>💌</span>Postkort</button>
+        <button type="button" data-ramme="frimerke" aria-pressed="false"><span>📮</span>Frimerke</button>
+      </div>
+      <div class="felt-rad" id="tekst-rad">
+        <label for="tekst">Tekst på bildet</label>
+        <input type="text" id="tekst" placeholder="Hilsen fra …" maxlength="40" autocomplete="off">
+      </div>
+      <button type="button" class="knapp gress lagre-knapp" id="lagre">💾 Lagre bildet</button>
+      <div class="knapp-rad"><button type="button" class="knapp omriss mini" id="nytt">🔄 Start på nytt</button></div>
+    </div>
+  </section>
+
+  <section class="scene" aria-label="Bildet">
+    <div class="lerret-ramme">
+      <div class="tom-scene" id="tom-scene">
+        <span class="stor">🧳</span>
+        <b>Her kommer reisebildet</b>
+        Start med gruppebildet i steg 1.
+      </div>
+      <canvas id="lerret" class="skjult" width="1200" height="900" aria-label="Reisebildet"></canvas>
+    </div>
+    <p class="scene-hint" id="scene-hint"></p>
+  </section>
+</main>
+
+<!-- Reise-animasjon -->
+<div class="reise skjult" id="reise" role="status" aria-live="polite">
+  <div class="billett">
+    <div class="billett-topp">
+      <span class="etikett-mono">Boardingkort · Teleport</span>
+      <span class="etikett-mono" id="reise-fase">Laster ned magien</span>
+    </div>
+    <div class="billett-kropp">
+      <div class="rute">
+        <div><small>Fra</small><b>Klasserommet</b></div>
+        <svg class="bue" viewBox="0 0 300 70" aria-hidden="true">
+          <path id="bue-sti" d="M8 62 Q150 -26 292 62" fill="none" stroke="#D9CDB2" stroke-width="3" stroke-dasharray="3 7" stroke-linecap="round"/>
+          <path id="bue-fly" d="M8 62 Q150 -26 292 62" fill="none" stroke="#F3B23A" stroke-width="4" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100"/>
+          <circle cx="8" cy="62" r="5" fill="#0C2340"/><circle cx="292" cy="62" r="5" fill="#C8382F"/>
+          <g id="fly">
+            <path d="M-13 -2.2 L6 -2.2 Q13 0 6 2.2 L-13 2.2 Z" fill="#0C2340"/>
+            <path d="M-3 -2 L-8 -13 L-3.5 -13 L5 -2 Z M-3 2 L-8 13 L-3.5 13 L5 2 Z" fill="#C8382F"/>
+            <path d="M-13 -2 L-15.5 -8 L-11.5 -8 L-8.5 -2 Z M-13 2 L-15.5 8 L-11.5 8 L-8.5 2 Z" fill="#C8382F"/>
+          </g>
+        </svg>
+        <div class="til"><small>Til</small><b id="reise-til">Et nytt sted</b></div>
+      </div>
+      <div class="skanner skjult" id="skanner">
+        <img id="skanner-bilde" alt="">
+        <div class="strale"></div>
+        <span class="merkelapp etikett-mono">Sikkerhetskontroll</span>
+      </div>
+      <p class="reise-melding" id="reise-melding">Pakker kofferten …</p>
+      <div class="fremdrift"><div id="fremdrift-fyll"></div></div>
+      <div class="billett-bunn">
+        <span class="etikett-mono" id="reise-prosent">0 %</span>
+        <span class="etikett-mono" id="reise-gate">Gate 7B · Sete 3A</span>
+      </div>
+    </div>
+    <div class="stempel" id="stempel">Landet!</div>
+  </div>
+</div>
+
+<!-- Lagre-modal -->
+<div class="modal-bakgrunn skjult" id="lagre-modal">
+  <div class="modal">
+    <h2>🎉 Reisebildet er klart!</h2>
+    <p id="lagre-tekst">Trykk på «Lagre i Bilder», eller hold fingeren på bildet og velg «Legg til i Bilder».</p>
+    <img id="ferdig-bilde" alt="Det ferdige reisebildet">
+    <button type="button" class="knapp gress" id="del">📲 Lagre i Bilder / del</button>
+    <a class="knapp lys" id="last-ned" download="reisebilde.jpg">⬇️ Last ned</a>
+    <button type="button" class="knapp omriss" id="lukk-lagre">Tilbake og fortsett å redigere</button>
+  </div>
+</div>
+
+<script type="module">
+import { PAKKE } from '#pakke/pakke.js';
+import { LAND } from '#pakke/land.js';
+import { fyllPakkeTekster, lenke } from '#motor/side.js';
+
+fyllPakkeTekster();
+document.title = 'Fotostudio – ' + PAKKE.navn;
+$('tilbake').href = lenke('elev.html');
+
+/* =====================================================================
+   Innstillinger
+   ===================================================================== */
+const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+const MODELL = 'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite';
+const MAKS_GRUPPE = 1400;   // største side på gruppebildet (piksler) – nok for kvalitet, lite nok for iPad
+const MAKS_STED = 2000;     // største side på bakgrunnen = størrelsen på det ferdige bildet
+
+/* =====================================================================
+   Tilstand
+   ===================================================================== */
+function $(id) { return document.getElementById(id); }
+const lerret = $('lerret');
+const ctx = lerret.getContext('2d');
+
+const S = {
+  gruppe: null,       // { w, h, kilde: canvas, orig: Uint8ClampedArray }
+  alfaKI: null,       // utklippet fra KI (Uint8ClampedArray, 0–255)
+  alfa: null,         // utklippet slik det er nå (kan viskes/hentes)
+  boks: null,         // hvor personene er i gruppebildet
+  kutt: null, kuttCtx: null,
+  bakgrunn: null,     // canvas
+  t: { x: 0, y: 0, s: 1, flip: false }, sStd: 1,
+  lys: 0, varme: 0, skygge: 0.5, kant: 1,
+  modus: 'flytt', pensel: 40,
+  metode: 'ki', nokkel: null, toleranse: 45,
+  ramme: 'ingen', tekst: '', tekstEndret: false, sted: '', kilde: '',
+  angre: [],
+};
+
+/* =====================================================================
+   Stedsforslag fra spillpakken
+   ===================================================================== */
+(function lagStedsforslag() {
+  const navn = new Set();
+  for (const l of LAND) { if (l.by) navn.add(l.by); if (l.navn) navn.add(l.navn); }
+  const dl = $('steder');
+  [...navn].sort((a, b) => a.localeCompare(b, 'nb')).forEach((n) => { const o = document.createElement('option'); o.value = n; dl.appendChild(o); });
+})();
+
+/* =====================================================================
+   KI-modellen: lastes ned med fremdrift (bare første gang – så ligger den i nettleserens lager)
+   ===================================================================== */
+const status = { p: 0, klar: false, feil: null };
+const statusLyttere = new Set();
+function meldStatus() {
+  const chip = $('status-chip');
+  if (status.feil) chip.textContent = '⚠️ Magien er utilgjengelig';
+  else if (status.klar) chip.textContent = '✨ Magien er klar';
+  else chip.textContent = `✈️ Magien lastes: ${Math.round(status.p * 100)} %`;
+  statusLyttere.forEach((f) => f(status));
+}
+
+async function lastNed(url, paFremdrift) {
+  const svar = await fetch(url);
+  if (!svar.ok) throw new Error('HTTP ' + svar.status);
+  const total = +svar.headers.get('content-length') || 0;
+  if (!svar.body || !total) { const b = new Uint8Array(await svar.arrayBuffer()); paFremdrift(1); return b; }
+  const leser = svar.body.getReader();
+  const biter = []; let mottatt = 0;
+  for (;;) {
+    const { done, value } = await leser.read();
+    if (done) break;
+    biter.push(value); mottatt += value.length;
+    paFremdrift(Math.min(1, mottatt / total));
+  }
+  const ut = new Uint8Array(mottatt); let o = 0;
+  for (const b of biter) { ut.set(b, o); o += b.length; }
+  return ut;
+}
+
+let segmenterLover = null;
+function hentSegmenter() {
+  if (!segmenterLover) {
+    segmenterLover = (async () => {
+      const [vision, modell] = await Promise.all([
+        import(MP + '/vision_bundle.mjs'),
+        lastNed(MODELL, (p) => { status.p = p * 0.88; meldStatus(); }),
+      ]);
+      status.p = 0.92; meldStatus();
+      const filer = await vision.FilesetResolver.forVisionTasks(MP + '/wasm');
+      const seg = await vision.ImageSegmenter.createFromOptions(filer, {
+        baseOptions: { modelAssetBuffer: modell, delegate: 'CPU' },
+        runningMode: 'IMAGE', outputConfidenceMasks: true, outputCategoryMask: false,
+      });
+      status.p = 1; status.klar = true; meldStatus();
+      return seg;
+    })().catch((e) => { console.error(e); status.feil = e; meldStatus(); throw e; });
+  }
+  return segmenterLover;
+}
+// Start nedlastingen i bakgrunnen, så er magien ofte klar før elevene har valgt bilder.
+setTimeout(() => hentSegmenter().catch(() => {}), 600);
+
+/* =====================================================================
+   Reise-animasjonen (boardingkort)
+   ===================================================================== */
+const MELDINGER = {
+  last: [
+    'Pakker kofferten …', 'Leter etter passene …', 'Smører matpakker til turen …',
+    'Lader teleporteringsmaskinen …', 'Spør piloten om veien …', 'Henter magistøv fra lageret …',
+    'Pumper opp redningsvestene …', 'Sjekker at alle har tannbørste …',
+  ],
+  klipp: [
+    'Ber alle si «appelsin»! …', 'Klipper forsiktig rundt ørene …', 'Teller nesetipper …',
+    'Børster bort klasserommet …', 'Pakker gruppa inn i bobleplast …', 'Sjekker at ingen ble igjen …',
+    'Flyr over skyene …', 'Snart framme i {sted} …',
+  ],
+};
+const Reise = {
+  timer: null, i: 0, fase: 'last',
+  start(fase, bildeUrl) {
+    this.fase = fase; this.i = 0;
+    $('reise').classList.remove('skjult');
+    $('stempel').className = 'stempel';
+    $('stempel').textContent = 'Landet!';
+    $('reise-til').textContent = S.sted || 'Et nytt sted';
+    $('reise-fase').textContent = fase === 'last' ? 'Laster ned magien' : 'Teleporterer gruppa';
+    $('reise-gate').textContent = fase === 'last' ? 'Bare første gang' : 'Gate 7B · Sete 3A';
+    $('skanner').classList.toggle('skjult', fase !== 'klipp' || !bildeUrl);
+    if (bildeUrl) $('skanner-bilde').src = bildeUrl;
+    this.fremdrift(0);
+    this.visMelding();
+    clearInterval(this.timer);
+    this.timer = setInterval(() => this.visMelding(), 2300);
+  },
+  visMelding() {
+    const liste = MELDINGER[this.fase];
+    const m = $('reise-melding');
+    m.classList.add('ut');
+    setTimeout(() => {
+      m.textContent = liste[this.i % liste.length].replace('{sted}', S.sted || 'et nytt sted');
+      m.classList.remove('ut');
+      this.i++;
+    }, 250);
+  },
+  fremdrift(p) {
+    p = Math.max(0, Math.min(1, p));
+    $('fremdrift-fyll').style.width = (p * 100).toFixed(1) + '%';
+    $('reise-prosent').textContent = Math.round(p * 100) + ' %';
+    $('bue-fly').setAttribute('stroke-dasharray', `${(p * 100).toFixed(1)} 100`);
+    const sti = $('bue-sti');
+    const L = sti.getTotalLength();
+    const a = sti.getPointAtLength(L * p);
+    const b = sti.getPointAtLength(Math.min(L, L * p + 1));
+    const c = sti.getPointAtLength(Math.max(0, L * p - 1));
+    const vinkel = Math.atan2(b.y - c.y, b.x - c.x) * 180 / Math.PI;
+    $('fly').setAttribute('transform', `translate(${a.x.toFixed(1)} ${a.y.toFixed(1)}) rotate(${vinkel.toFixed(1)})`);
+  },
+  async ferdig(tekst = 'Landet!', feil = false) {
+    clearInterval(this.timer);
+    if (!feil) this.fremdrift(1);
+    const st = $('stempel');
+    st.textContent = tekst;
+    st.className = 'stempel vis' + (feil ? ' feil' : '');
+    await vent(feil ? 2200 : 900);
+    $('reise').classList.add('skjult');
+  },
+};
+const vent = (ms) => new Promise((r) => setTimeout(r, ms));
+const pust = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 20)));
+
+/* =====================================================================
+   Bilder inn
+   ===================================================================== */
+function lesBilde(fil, maks) {
+  return new Promise((ok, feil) => {
+    const url = URL.createObjectURL(fil);
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, maks / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(img.naturalWidth * k));
+      c.height = Math.max(1, Math.round(img.naturalHeight * k));
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      ok(c);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); feil(new Error('Bildet kunne ikke åpnes')); };
+    img.src = url;
+  });
+}
+
+$('fil-gruppe').addEventListener('change', async (e) => {
+  const fil = e.target.files?.[0]; e.target.value = '';
+  if (!fil) return;
+  let c;
+  try { c = await lesBilde(fil, MAKS_GRUPPE); } catch { return hint('Det bildet kunne ikke åpnes. Prøv et annet.'); }
+  const url = c.toDataURL('image/jpeg', 0.7);
+  $('mini-gruppe').src = url; $('mini-gruppe').classList.add('vis');
+  const orig = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  S.gruppe = { w: c.width, h: c.height, kilde: c, orig };
+  S.kutt = document.createElement('canvas'); S.kutt.width = c.width; S.kutt.height = c.height;
+  S.kuttCtx = S.kutt.getContext('2d');
+  S.alfa = new Uint8ClampedArray(c.width * c.height).fill(255);
+  S.alfaKI = null; S.angre = []; S.metode = 'ki'; S.nokkel = null;
+  oppdaterAngre();
+  $('toleranse-rad').classList.add('skjult');
+  $('steg1').classList.add('ferdig');
+  await kjorKI(url);
+});
+
+$('fil-sted').addEventListener('change', async (e) => {
+  const fil = e.target.files?.[0]; e.target.value = '';
+  if (!fil) return;
+  try { S.bakgrunn = await lesBilde(fil, MAKS_STED); } catch { return hint('Det bildet kunne ikke åpnes. Prøv et annet.'); }
+  $('mini-sted').src = S.bakgrunn.toDataURL('image/jpeg', 0.6); $('mini-sted').classList.add('vis');
+  $('steg2').classList.add('ferdig');
+  if (S.gruppe) { plasser(); autoFarge(false); hint('Dra gruppa på plass med én finger. Knip med to fingre for å endre størrelsen.'); }
+  tegn(); oppdaterSteg();
+});
+
+$('sted').addEventListener('input', (e) => {
+  S.sted = e.target.value.trim();
+  if (!S.tekstEndret) { S.tekst = S.sted ? `Hilsen fra ${S.sted}!` : ''; $('tekst').value = S.tekst; }
+  planlegg();
+});
+$('kilde').addEventListener('input', (e) => { S.kilde = e.target.value.trim(); planlegg(); });
+$('tekst').addEventListener('input', (e) => { S.tekst = e.target.value; S.tekstEndret = true; planlegg(); });
+
+/* =====================================================================
+   KI-utklipp
+   Bildet deles i overlappende ruter, så personene blir store nok for modellen.
+   ===================================================================== */
+async function kjorKI(miniUrl) {
+  const g = S.gruppe;
+  const maaLaste = !status.klar;
+  Reise.start(maaLaste ? 'last' : 'klipp', miniUrl);
+  const lytter = (st) => { if (Reise.fase === 'last') Reise.fremdrift(st.p); };
+  statusLyttere.add(lytter);
+  let seg;
+  try {
+    seg = await hentSegmenter();
+  } catch {
+    statusLyttere.delete(lytter);
+    await Reise.ferdig('Ingen magi i dag', true);
+    hint('Magien kunne ikke lastes (kanskje nettet stopper den). Bruk «Trykk på veggen» under «Ble utklippet rart?».');
+    $('hjelp').open = true;
+    ferdigUtklipp(false);
+    return;
+  }
+  statusLyttere.delete(lytter);
+  if (maaLaste) { Reise.fremdrift(1); await vent(400); Reise.start('klipp', miniUrl); }
+  await pust();
+
+  const { w, h } = g;
+  const sum = new Float32Array(w * h);
+  // ruter: hele bildet + firkanter langs den lengste siden
+  const ruter = [{ x: 0, y: 0, w, h }];
+  const side = Math.min(w, h), lang = Math.max(w, h);
+  if (lang > side * 1.15) {
+    const n = Math.max(2, Math.ceil((lang - side) / (side * 0.5)) + 1);
+    for (let i = 0; i < n; i++) {
+      const o = Math.round((lang - side) * i / (n - 1));
+      ruter.push(w >= h ? { x: o, y: 0, w: side, h: side } : { x: 0, y: o, w: side, h: side });
+    }
+  }
+  try {
+    for (let r = 0; r < ruter.length; r++) {
+      klippRute(seg, g.kilde, ruter[r], sum, w);
+      Reise.fremdrift((r + 1) / (ruter.length + 1));
+      await pust();
+    }
+  } catch (e) {
+    console.error(e);
+    await Reise.ferdig('Oi! Noe gikk galt', true);
+    hint('Utklippet feilet. Prøv igjen, eller bruk «Trykk på veggen».');
+    $('hjelp').open = true;
+    ferdigUtklipp(false);
+    return;
+  }
+  // skarpere overgang mellom person og bakgrunn
+  const a = new Uint8ClampedArray(w * h);
+  for (let i = 0; i < a.length; i++) {
+    let v = (sum[i] - 0.3) / 0.4;
+    v = v < 0 ? 0 : v > 1 ? 1 : v;
+    a[i] = v * v * (3 - 2 * v) * 255;
+  }
+  S.alfaKI = a;
+  S.alfa = a.slice();
+  S.metode = 'ki';
+  await Reise.ferdig('Landet!');
+  ferdigUtklipp(true);
+}
+
+function klippRute(seg, kilde, r, sum, W) {
+  const side = Math.max(r.w, r.h);
+  const c = document.createElement('canvas'); c.width = side; c.height = side;
+  const x = c.getContext('2d');
+  x.fillStyle = '#7f7f7f'; x.fillRect(0, 0, side, side);
+  const ox = Math.floor((side - r.w) / 2), oy = Math.floor((side - r.h) / 2);
+  x.drawImage(kilde, r.x, r.y, r.w, r.h, ox, oy, r.w, r.h);
+  const res = seg.segment(c);
+  const maske = res.confidenceMasks[0];             // kategori 0 = bakgrunn
+  const bak = maske.getAsFloat32Array();
+  const mw = maske.width;
+  for (let yy = 0; yy < r.h; yy++) {
+    const rad = (yy + oy) * mw + ox, ut = (r.y + yy) * W + r.x;
+    for (let xx = 0; xx < r.w; xx++) {
+      const v = 1 - bak[rad + xx];
+      if (v > sum[ut + xx]) sum[ut + xx] = v;
+    }
+  }
+  if (typeof res.close === 'function') res.close();
+  else res.confidenceMasks.forEach((m) => m.close && m.close());
+}
+
+function ferdigUtklipp(ok) {
+  S.boks = finnBoks();
+  const avkuttet = S.boks.bunn >= S.gruppe.h * 0.97;   // bildet er tatt fra livet og opp
+  S.skygge = avkuttet ? 0 : 0.5;
+  setGlider('skygge', Math.round(S.skygge * 100));
+  plasser();
+  if (S.bakgrunn) autoFarge(false);
+  byggKutt();
+  $('tom-scene').classList.add('skjult');
+  lerret.classList.remove('skjult');
+  oppdaterSteg();
+  tegn();
+  if (ok) hint(S.bakgrunn ? 'Dra gruppa på plass med én finger. Knip med to fingre for å endre størrelsen.' : 'Flott! Velg et bilde av stedet i steg 2.');
+}
+
+/* =====================================================================
+   Fargeutklipp («Trykk på veggen»)
+   ===================================================================== */
+function fargeUtklipp() {
+  const g = S.gruppe, d = g.orig, k = S.nokkel, tol = S.toleranse, myk = 28;
+  const a = new Uint8ClampedArray(g.w * g.h);
+  for (let i = 0, p = 0; i < a.length; i++, p += 4) {
+    const dr = d[p] - k.r, dg = d[p + 1] - k.g, db = d[p + 2] - k.b;
+    const avstand = Math.sqrt(2 * dr * dr + 4 * dg * dg + 3 * db * db) / 3;
+    a[i] = Math.max(0, Math.min(1, (avstand - tol) / myk)) * 255;
+  }
+  S.alfa = a;
+}
+
+/* =====================================================================
+   Hvor er personene? (til plassering og skygge)
+   ===================================================================== */
+function finnBoks() {
+  const g = S.gruppe, a = S.alfa;
+  let topp = g.h, bunn = 0, v = g.w, h = 0;
+  for (let y = 0; y < g.h; y += 2) for (let x = 0; x < g.w; x += 2) {
+    if (a[y * g.w + x] > 128) { if (y < topp) topp = y; if (y > bunn) bunn = y; if (x < v) v = x; if (x > h) h = x; }
+  }
+  if (bunn <= topp) return { topp: 0, bunn: g.h - 1, venstre: 0, hoyre: g.w - 1, fotX: g.w / 2, fotB: g.w };
+  const grense = bunn - (bunn - topp) * 0.12;
+  let fv = g.w, fh = 0;
+  for (let y = Math.floor(grense); y <= bunn; y += 2) for (let x = 0; x < g.w; x += 2) {
+    if (a[y * g.w + x] > 128) { if (x < fv) fv = x; if (x > fh) fh = x; }
+  }
+  if (fh <= fv) { fv = v; fh = h; }
+  return { topp, bunn, venstre: v, hoyre: h, fotX: (fv + fh) / 2, fotB: fh - fv };
+}
+
+function plasser() {
+  const g = S.gruppe, b = S.boks || { topp: 0, bunn: g.h, venstre: 0, hoyre: g.w };
+  const bg = S.bakgrunn;
+  if (!bg) { S.t = { x: g.w / 2, y: g.h / 2, s: 1, flip: S.t.flip }; S.sStd = 1; setGlider('storrelse', 100, '100 %'); return; }
+  const W = bg.width, H = bg.height;
+  const avkuttet = b.bunn >= g.h * 0.97;
+  const hoyde = Math.max(10, b.bunn - b.topp), bredde = Math.max(10, b.hoyre - b.venstre);
+  let s = (H * (avkuttet ? 0.7 : 0.55)) / hoyde;
+  s = Math.min(s, (W * 0.9) / bredde);
+  S.t.s = s; S.sStd = s;
+  const fx = S.t.flip ? -1 : 1;
+  S.t.x = W / 2 - ((b.venstre + b.hoyre) / 2 - g.w / 2) * s * fx;
+  S.t.y = (avkuttet ? H + 2 : H * 0.95) - (b.bunn - g.h / 2) * s;
+  setGlider('storrelse', 100, '100 %');
+}
+
+/* =====================================================================
+   Bygg utklippet (farge, lys og myk kant). rekt = bare et område (når man pensler).
+   ===================================================================== */
+function byggKutt(rekt) {
+  const g = S.gruppe; if (!g) return;
+  const W = g.w, H = g.h;
+  const x0 = rekt ? Math.max(0, rekt.x0 | 0) : 0, y0 = rekt ? Math.max(0, rekt.y0 | 0) : 0;
+  const x1 = rekt ? Math.min(W, Math.ceil(rekt.x1)) : W, y1 = rekt ? Math.min(H, Math.ceil(rekt.y1)) : H;
+  const rw = x1 - x0, rh = y1 - y0; if (rw <= 0 || rh <= 0) return;
+  const r = Math.round(S.kant * Math.max(1, Math.max(W, H) / 1000));
+  const a = r > 0 ? sloreAlfa(S.alfa, W, H, x0, y0, x1, y1, r) : null;
+  const ut = S.kuttCtx.createImageData(rw, rh);
+  const o = ut.data, d = g.orig;
+  const lys = 1 + S.lys / 100, v = S.varme;
+  for (let y = 0; y < rh; y++) {
+    for (let x = 0; x < rw; x++) {
+      const i = (y + y0) * W + (x + x0), p = i * 4, q = (y * rw + x) * 4;
+      o[q] = d[p] * lys + v;
+      o[q + 1] = d[p + 1] * lys + v * 0.15;
+      o[q + 2] = d[p + 2] * lys - v;
+      o[q + 3] = a ? a[y * rw + x] : S.alfa[i];
+    }
+  }
+  S.kuttCtx.putImageData(ut, x0, y0);
+}
+
+// Boksuskarphet (to runder) på et område av masken. Ser litt utenfor området så kantene blir riktige.
+function sloreAlfa(a, W, H, x0, y0, x1, y1, r) {
+  const m = r * 2 + 1;
+  const ex0 = Math.max(0, x0 - m), ey0 = Math.max(0, y0 - m), ex1 = Math.min(W, x1 + m), ey1 = Math.min(H, y1 + m);
+  const ew = ex1 - ex0, eh = ey1 - ey0;
+  let buf = new Float32Array(ew * eh);
+  for (let y = 0; y < eh; y++) for (let x = 0; x < ew; x++) buf[y * ew + x] = a[(y + ey0) * W + x + ex0];
+  let tmp = new Float32Array(ew * eh);
+  const n = 2 * r + 1;
+  for (let runde = 0; runde < 2; runde++) {
+    for (let y = 0; y < eh; y++) {           // vannrett
+      const rad = y * ew; let s = 0;
+      for (let k = -r; k <= r; k++) s += buf[rad + Math.min(ew - 1, Math.max(0, k))];
+      for (let x = 0; x < ew; x++) {
+        tmp[rad + x] = s / n;
+        s += buf[rad + Math.min(ew - 1, x + r + 1)] - buf[rad + Math.max(0, x - r)];
+      }
+    }
+    for (let x = 0; x < ew; x++) {           // loddrett
+      let s = 0;
+      for (let k = -r; k <= r; k++) s += tmp[Math.min(eh - 1, Math.max(0, k)) * ew + x];
+      for (let y = 0; y < eh; y++) {
+        buf[y * ew + x] = s / n;
+        s += tmp[Math.min(eh - 1, y + r + 1) * ew + x] - tmp[Math.max(0, y - r) * ew + x];
+      }
+    }
+  }
+  const rw = x1 - x0, rh = y1 - y0, ut = new Uint8ClampedArray(rw * rh);
+  for (let y = 0; y < rh; y++) for (let x = 0; x < rw; x++) ut[y * rw + x] = buf[(y + y0 - ey0) * ew + (x + x0 - ex0)];
+  return ut;
+}
+
+/* =====================================================================
+   Auto-farge: gjør gruppa litt mer lik lyset og fargene i bakgrunnen
+   ===================================================================== */
+function snittFarge(kilde, vekt) {
+  const c = document.createElement('canvas'); c.width = 48; c.height = 48;
+  const x = c.getContext('2d'); x.drawImage(kilde, 0, 0, 48, 48);
+  const d = x.getImageData(0, 0, 48, 48).data;
+  let r = 0, g = 0, b = 0, n = 0;
+  for (let i = 0; i < d.length; i += 4) {
+    const w = vekt ? d[i + 3] / 255 : 1;
+    r += d[i] * w; g += d[i + 1] * w; b += d[i + 2] * w; n += w;
+  }
+  n = n || 1;
+  return { r: r / n, g: g / n, b: b / n };
+}
+function autoFarge(tegnNa = true) {
+  if (!S.gruppe || !S.bakgrunn) return;
+  // gruppa uten justering, men med utklippet som vekt
+  const c = document.createElement('canvas'); c.width = S.gruppe.w; c.height = S.gruppe.h;
+  const x = c.getContext('2d'); const id = x.createImageData(c.width, c.height);
+  id.data.set(S.gruppe.orig);
+  for (let i = 0; i < S.alfa.length; i++) id.data[i * 4 + 3] = S.alfa[i];
+  x.putImageData(id, 0, 0);
+  const gr = snittFarge(c, true), bg = snittFarge(S.bakgrunn, false);
+  const lum = (f) => 0.299 * f.r + 0.587 * f.g + 0.114 * f.b;
+  const lys = Math.max(-40, Math.min(40, Math.round(((lum(bg) / Math.max(1, lum(gr))) - 1) * 100 * 0.45)));
+  const varme = Math.max(-30, Math.min(30, Math.round(((bg.r - bg.b) - (gr.r - gr.b)) * 0.25)));
+  S.lys = lys; S.varme = varme;
+  setGlider('lys', lys); setGlider('varme', varme);
+  if (tegnNa) { byggKutt(); tegn(); }
+}
+
+/* =====================================================================
+   Tegning
+   ===================================================================== */
+function tegn() {
+  const g = S.gruppe, bg = S.bakgrunn;
+  if (!g) return;
+  const W = bg ? bg.width : g.w, H = bg ? bg.height : g.h;
+  if (lerret.width !== W || lerret.height !== H) { lerret.width = W; lerret.height = H; }
+  ctx.clearRect(0, 0, W, H);
+  if (bg) ctx.drawImage(bg, 0, 0);
+  const { x: tx, y: ty, s, flip } = S.t;
+  const f = flip ? -1 : 1;
+
+  if (S.skygge > 0 && S.boks && bg && S.modus !== 'pipette') {
+    const b = S.boks;
+    const fx = (b.fotX - g.w / 2) * s * f + tx;
+    const fy = (b.bunn - g.h / 2) * s + ty;
+    const rx = Math.max(8, b.fotB * s * 0.62), ry = Math.max(3, rx * 0.13);
+    ctx.save();
+    ctx.translate(fx, fy - ry * 0.25); ctx.scale(1, ry / rx);
+    const gr = ctx.createRadialGradient(0, 0, 0, 0, 0, rx);
+    gr.addColorStop(0, `rgba(0,0,0,${(0.6 * S.skygge).toFixed(3)})`);
+    gr.addColorStop(0.55, `rgba(0,0,0,${(0.3 * S.skygge).toFixed(3)})`);
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(0, 0, rx, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+  ctx.save();
+  ctx.translate(tx, ty); ctx.scale(s * f, s);
+  ctx.drawImage(S.modus === 'pipette' ? g.kilde : S.kutt, -g.w / 2, -g.h / 2);
+  ctx.restore();
+
+  if (S.modus !== 'pipette') { tegnRamme(W, H); tegnKilde(W, H); }
+}
+
+let planlagt = false, ventendeOmrade = null, fullBygg = false;
+function planlegg(omrade, bygg = false) {
+  if (bygg) { if (omrade && !fullBygg) ventendeOmrade = ventendeOmrade ? slaSammen(ventendeOmrade, omrade) : omrade; else fullBygg = true; }
+  if (planlagt) return;
+  planlagt = true;
+  requestAnimationFrame(() => {
+    planlagt = false;
+    if (fullBygg) byggKutt(); else if (ventendeOmrade) byggKutt(ventendeOmrade);
+    fullBygg = false; ventendeOmrade = null;
+    tegn();
+  });
+}
+const slaSammen = (a, b) => ({ x0: Math.min(a.x0, b.x0), y0: Math.min(a.y0, b.y0), x1: Math.max(a.x1, b.x1), y1: Math.max(a.y1, b.y1) });
+
+/* ---------- rammer ---------- */
+function tilpassSkrift(tekst, vekt, familie, storrelse, maksBredde) {
+  let st = storrelse;
+  ctx.font = `${vekt} ${st}px ${familie}`;
+  while (st > 10 && ctx.measureText(tekst).width > maksBredde) { st *= 0.92; ctx.font = `${vekt} ${st}px ${familie}`; }
+  return st;
+}
+const TITTEL = '"Bricolage Grotesque", system-ui, sans-serif';
+const MONO = '"DM Mono", ui-monospace, monospace';
+
+function tegnRamme(W, H) {
+  const k = Math.min(W, H);
+  if (S.ramme === 'postkort') {
+    const b = Math.round(k * 0.05);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.rect(b, b, W - 2 * b, H - 2 * b); ctx.clip('evenodd');
+    ctx.fillStyle = '#F5EFE1'; ctx.fillRect(0, 0, W, H);
+    const P = b * 1.6;                                   // luftpost-striper
+    for (let i = -H - P; i < W + H; i += P) {
+      ctx.fillStyle = '#C8382F'; skraa(i, P * 0.32);
+      ctx.fillStyle = '#1D5B8F'; skraa(i + P * 0.5, P * 0.32);
+    }
+    ctx.fillStyle = '#F5EFE1';
+    ctx.beginPath(); ctx.rect(b * 0.55, b * 0.55, W - b * 1.1, H - b * 1.1); ctx.rect(b, b, W - 2 * b, H - 2 * b); ctx.fill('evenodd');
+    ctx.restore();
+    function skraa(x, bredde) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + bredde, 0); ctx.lineTo(x + bredde - H, H); ctx.lineTo(x - H, H); ctx.closePath(); ctx.fill(); }
+
+    // liten etikett øverst
+    ctx.save();
+    ctx.font = `500 ${Math.round(k * 0.022)}px ${MONO}`;
+    const etikett = `${PAKKE.navn.toUpperCase()} · LUFTPOST`;
+    const ew = ctx.measureText(etikett).width;
+    ctx.fillStyle = 'rgba(12,35,64,.82)';
+    rundRekt(b * 1.5, b * 1.5, ew + k * 0.04, k * 0.045, k * 0.012); ctx.fill();
+    ctx.fillStyle = '#F3B23A'; ctx.textBaseline = 'middle';
+    ctx.fillText(etikett, b * 1.5 + k * 0.02, b * 1.5 + k * 0.0235);
+    ctx.restore();
+
+    if (S.tekst) {
+      ctx.save();
+      const st = tilpassSkrift(S.tekst, 800, TITTEL, k * 0.1, W - b * 4);
+      ctx.textBaseline = 'alphabetic'; ctx.lineJoin = 'round';
+      const x = b * 1.6, y = H - b * 1.7;
+      ctx.lineWidth = st * 0.16; ctx.strokeStyle = '#0C2340'; ctx.strokeText(S.tekst, x, y);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillText(S.tekst, x, y);
+      ctx.restore();
+    }
+  } else if (S.ramme === 'frimerke') {
+    const marg = Math.round(k * 0.035), kant = Math.round(k * 0.045), bunnband = Math.round(k * 0.12);
+    ctx.save();
+    // hvit frimerkekant (med plass til tekst nederst)
+    ctx.beginPath(); ctx.rect(0, 0, W, H);
+    ctx.rect(marg + kant, marg + kant, W - 2 * (marg + kant), H - 2 * (marg + kant) - bunnband);
+    ctx.fillStyle = '#FFFFFF'; ctx.fill('evenodd');
+    // papirbakgrunn utenfor frimerket
+    ctx.fillStyle = '#EAE1CC';
+    ctx.beginPath(); ctx.rect(0, 0, W, H); ctx.rect(marg, marg, W - 2 * marg, H - 2 * marg); ctx.fill('evenodd');
+    // takker (perforering)
+    const rh = marg * 0.55, steg = rh * 2.6;
+    for (let x = marg; x <= W - marg; x += steg) { hull(x, marg); hull(x, H - marg); }
+    for (let y = marg; y <= H - marg; y += steg) { hull(marg, y); hull(W - marg, y); }
+    function hull(x, y) { ctx.beginPath(); ctx.arc(x, y, rh, 0, Math.PI * 2); ctx.fill(); }
+    // tekst i båndet
+    const tekst = S.tekst || S.sted || PAKKE.navn;
+    const st = tilpassSkrift(tekst, 800, TITTEL, bunnband * 0.6, W - 2 * (marg + kant) - k * 0.22);
+    ctx.fillStyle = '#0C2340'; ctx.textBaseline = 'middle';
+    ctx.fillText(tekst, marg + kant, H - marg - kant * 0.6 - bunnband / 2);
+    ctx.font = `800 ${Math.round(bunnband * 0.45)}px ${TITTEL}`; ctx.textAlign = 'right'; ctx.fillStyle = '#C8382F';
+    ctx.fillText('12 kr', W - marg - kant, H - marg - kant * 0.6 - bunnband / 2);
+    ctx.restore();
+
+    // poststempel
+    ctx.save();
+    const R = k * 0.11;
+    ctx.translate(W - marg - kant - R * 1.25, marg + kant + R * 1.15);
+    ctx.rotate(-0.22);
+    ctx.globalAlpha = 0.78;
+    ctx.strokeStyle = '#0C2340'; ctx.fillStyle = '#0C2340';
+    ctx.lineWidth = k * 0.006;
+    ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.8, 0, Math.PI * 2); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    const sted = (S.sted || PAKKE.navn).toUpperCase();
+    tilpassSkrift(sted, 800, TITTEL, R * 0.32, R * 1.4);
+    ctx.fillText(sted, 0, -R * 0.22);
+    ctx.font = `500 ${R * 0.2}px ${MONO}`;
+    ctx.fillText(new Date().toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }), 0, R * 0.2);
+    ctx.font = `500 ${R * 0.13}px ${MONO}`;
+    ctx.fillText(PAKKE.navn.toUpperCase(), 0, R * 0.48);
+    // bølgestreker
+    ctx.lineWidth = k * 0.005;
+    for (let j = 0; j < 4; j++) {
+      ctx.beginPath();
+      for (let x = -R * 1.2; x >= -R * 4.2; x -= 2) ctx.lineTo(x, -R * 0.45 + j * R * 0.3 + Math.sin(x / (R * 0.18)) * R * 0.06);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+function rundRekt(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+
+function tegnKilde(W, H) {
+  if (!S.kilde || !S.bakgrunn) return;
+  const k = Math.min(W, H);
+  const innrykk = S.ramme === 'postkort' ? k * 0.065 : S.ramme === 'frimerke' ? k * 0.09 : k * 0.015;
+  ctx.save();
+  ctx.font = `500 ${Math.max(10, Math.round(k * 0.017))}px ${MONO}`;
+  ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = k * 0.004;
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  const y = S.ramme === 'frimerke' ? H - k * 0.035 - k * 0.045 - k * 0.12 - k * 0.008 : H - innrykk;
+  ctx.fillText('Foto: ' + S.kilde, W - innrykk, y);
+  ctx.restore();
+}
+
+/* =====================================================================
+   Fingerstyring: dra, knip, visk ut / hent tilbake, trykk på veggen
+   ===================================================================== */
+const pekere = new Map();
+let gest = null, strok = null;
+
+function punkt(e) {
+  const r = lerret.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * lerret.width / r.width, y: (e.clientY - r.top) * lerret.height / r.height };
+}
+function tilGruppe(p) {
+  const { x, y, s, flip } = S.t, g = S.gruppe;
+  return { x: (p.x - x) / (s * (flip ? -1 : 1)) + g.w / 2, y: (p.y - y) / s + g.h / 2 };
+}
+function startGest() {
+  const ps = [...pekere.values()];
+  const mid = ps.length > 1 ? { x: (ps[0].x + ps[1].x) / 2, y: (ps[0].y + ps[1].y) / 2 } : ps[0];
+  const d = ps.length > 1 ? Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y) : 0;
+  gest = { t0: { ...S.t }, mid0: mid, d0: d, to: ps.length > 1 };
+}
+
+lerret.addEventListener('pointerdown', (e) => {
+  if (!S.gruppe) return;
+  e.preventDefault();
+  lerret.setPointerCapture(e.pointerId);
+  pekere.set(e.pointerId, punkt(e));
+  if (S.modus === 'pipette') { velgFarge(punkt(e)); pekere.delete(e.pointerId); return; }
+  if (pekere.size >= 2) {
+    if (strok) { avbrytStrok(); }
+    startGest();
+  } else if (S.modus === 'flytt') startGest();
+  else startStrok(punkt(e));
+});
+lerret.addEventListener('pointermove', (e) => {
+  if (!pekere.has(e.pointerId)) return;
+  pekere.set(e.pointerId, punkt(e));
+  if (gest) {
+    const ps = [...pekere.values()];
+    if (gest.to && ps.length > 1) {
+      const mid = { x: (ps[0].x + ps[1].x) / 2, y: (ps[0].y + ps[1].y) / 2 };
+      const d = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+      const k = d / Math.max(1, gest.d0);
+      const ns = Math.max(S.sStd * 0.1, Math.min(S.sStd * 3, gest.t0.s * k));
+      const kk = ns / gest.t0.s;
+      S.t.s = ns;
+      S.t.x = mid.x + (gest.t0.x - gest.mid0.x) * kk;
+      S.t.y = mid.y + (gest.t0.y - gest.mid0.y) * kk;
+      setGlider('storrelse', Math.round(ns / S.sStd * 100), Math.round(ns / S.sStd * 100) + ' %');
+    } else {
+      const p = ps[0];
+      S.t.x = gest.t0.x + (p.x - gest.mid0.x);
+      S.t.y = gest.t0.y + (p.y - gest.mid0.y);
+    }
+    planlegg();
+  } else if (strok) {
+    fortsettStrok(punkt(e));
+  }
+});
+function slipp(e) {
+  if (!pekere.has(e.pointerId)) return;
+  pekere.delete(e.pointerId);
+  if (strok && pekere.size === 0) avsluttStrok();
+  if (gest) { if (pekere.size === 0) gest = null; else startGest(); }
+}
+lerret.addEventListener('pointerup', slipp);
+lerret.addEventListener('pointercancel', slipp);
+
+/* ---------- pensel ---------- */
+function penselRadius() {
+  const r = lerret.getBoundingClientRect();
+  return (S.pensel / 2) * (lerret.width / r.width) / S.t.s;
+}
+function startStrok(p) {
+  S.angre.push(S.alfa.slice()); if (S.angre.length > 15) S.angre.shift();
+  oppdaterAngre();
+  strok = { siste: tilGruppe(p) };
+  stempel(strok.siste);
+}
+function fortsettStrok(p) {
+  const q = tilGruppe(p), a = strok.siste;
+  const r = penselRadius(), avst = Math.hypot(q.x - a.x, q.y - a.y), n = Math.max(1, Math.ceil(avst / (r / 3)));
+  for (let i = 1; i <= n; i++) stempel({ x: a.x + (q.x - a.x) * i / n, y: a.y + (q.y - a.y) * i / n });
+  strok.siste = q;
+}
+function stempel(c) {
+  const g = S.gruppe, r = penselRadius(), a = S.alfa, visk = S.modus === 'visk';
+  const x0 = Math.max(0, Math.floor(c.x - r)), x1 = Math.min(g.w, Math.ceil(c.x + r));
+  const y0 = Math.max(0, Math.floor(c.y - r)), y1 = Math.min(g.h, Math.ceil(c.y + r));
+  if (x1 <= x0 || y1 <= y0) return;
+  const indre = r * 0.6;
+  for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+    const d = Math.hypot(x - c.x, y - c.y); if (d > r) continue;
+    let f = d <= indre ? 1 : 1 - (d - indre) / (r - indre);
+    f = f * f * (3 - 2 * f);
+    const i = y * g.w + x;
+    if (visk) { const m = 255 * (1 - f); if (a[i] > m) a[i] = m; }
+    else { const m = 255 * f; if (a[i] < m) a[i] = m; }
+  }
+  planlegg({ x0, y0, x1, y1 }, true);
+}
+function avsluttStrok() { strok = null; S.boks = finnBoks(); planlegg(); }
+function avbrytStrok() { if (S.angre.length) S.alfa = S.angre.pop(); strok = null; oppdaterAngre(); planlegg(null, true); }
+function oppdaterAngre() { $('angre').disabled = S.angre.length === 0; }
+$('angre').addEventListener('click', () => {
+  if (!S.angre.length) return;
+  S.alfa = S.angre.pop(); oppdaterAngre(); S.boks = finnBoks(); planlegg(null, true);
+});
+
+/* ---------- trykk på veggen ---------- */
+function velgFarge(p) {
+  const g = S.gruppe, q = tilGruppe(p);
+  const cx = Math.round(q.x), cy = Math.round(q.y);
+  if (cx < 0 || cy < 0 || cx >= g.w || cy >= g.h) { hint('Trykk på veggen bak dere, inne i gruppebildet.'); return; }
+  let r = 0, gg = 0, b = 0, n = 0;
+  for (let y = cy - 3; y <= cy + 3; y++) for (let x = cx - 3; x <= cx + 3; x++) {
+    if (x < 0 || y < 0 || x >= g.w || y >= g.h) continue;
+    const i = (y * g.w + x) * 4; r += g.orig[i]; gg += g.orig[i + 1]; b += g.orig[i + 2]; n++;
+  }
+  S.angre.push(S.alfa.slice()); oppdaterAngre();
+  S.nokkel = { r: r / n, g: gg / n, b: b / n };
+  S.metode = 'farge';
+  fargeUtklipp();
+  S.boks = finnBoks();
+  $('toleranse-rad').classList.remove('skjult');
+  settModus('flytt');
+  hint('Er det rester av veggen igjen? Skyv «Hvor mye» mot høyre. Forsvinner noen av dere? Skyv mot venstre.');
+  planlegg(null, true);
+}
+$('pipette').addEventListener('click', () => {
+  settModus('pipette');
+  hint('🎯 Trykk på veggen bak dere i bildet.');
+  lerret.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+$('bruk-ki').addEventListener('click', () => {
+  if (!S.alfaKI) { kjorKI($('mini-gruppe').src); return; }
+  S.angre.push(S.alfa.slice()); oppdaterAngre();
+  S.alfa = S.alfaKI.slice(); S.metode = 'ki';
+  $('toleranse-rad').classList.add('skjult');
+  S.boks = finnBoks(); planlegg(null, true);
+  hint('KI-utklippet er tilbake.');
+});
+
+/* =====================================================================
+   Knapper og glidebrytere
+   ===================================================================== */
+function settModus(m) {
+  S.modus = m;
+  document.querySelectorAll('.verktoy button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.modus === m)));
+  $('pensel-rad').classList.toggle('skjult', m !== 'visk' && m !== 'hent');
+  lerret.style.cursor = m === 'flytt' ? 'grab' : 'crosshair';
+  if (m === 'visk') hint('🧽 Mal over det som ikke skal være med. To fingre flytter fortsatt bildet.');
+  else if (m === 'hent') hint('🖌️ Mal over det som forsvant ved et uhell.');
+  else if (m === 'flytt') hint('');
+  planlegg();
+}
+document.querySelectorAll('.verktoy button').forEach((b) => b.addEventListener('click', () => settModus(b.dataset.modus)));
+
+function setGlider(id, verdi, tekst) { $(id).value = verdi; $(id + '-ut').textContent = tekst ?? String(verdi); }
+function glider(id, fn, format) {
+  $(id).addEventListener('input', (e) => { const v = +e.target.value; $(id + '-ut').textContent = format ? format(v) : String(v); fn(v); });
+}
+glider('pensel', (v) => { S.pensel = v; });
+glider('storrelse', (v) => {
+  const ny = S.sStd * v / 100, g = S.gruppe, b = S.boks;
+  if (g && b) {   // behold føttene på samme sted
+    const fy = (b.bunn - g.h / 2);
+    S.t.y = S.t.y + fy * S.t.s - fy * ny;
+  }
+  S.t.s = ny; planlegg();
+}, (v) => v + ' %');
+glider('lys', (v) => { S.lys = v; planlegg(null, true); });
+glider('varme', (v) => { S.varme = v; planlegg(null, true); });
+glider('skygge', (v) => { S.skygge = v / 100; planlegg(); });
+glider('kant', (v) => { S.kant = v; planlegg(null, true); });
+glider('toleranse', (v) => { S.toleranse = v; if (S.nokkel) { fargeUtklipp(); S.boks = finnBoks(); planlegg(null, true); } });
+
+$('auto-farge').addEventListener('click', () => {
+  if (!S.bakgrunn) { hint('Velg et bilde av stedet først, så kan fargene tilpasses.'); return; }
+  autoFarge(); hint('🪄 Fargene er tilpasset stedet. Juster med Lys og Varme hvis det ble for mye.');
+});
+$('speil').addEventListener('click', () => {
+  const g = S.gruppe, b = S.boks; if (!g) return;
+  // speilvend rundt midten av personene, så gruppa blir stående på samme sted
+  const midt = b ? (b.venstre + b.hoyre) / 2 - g.w / 2 : 0;
+  const f = S.t.flip ? -1 : 1;
+  S.t.x += midt * S.t.s * f * 2;
+  S.t.flip = !S.t.flip; planlegg();
+});
+
+document.querySelectorAll('.rammevalg button').forEach((b) => b.addEventListener('click', async () => {
+  S.ramme = b.dataset.ramme;
+  document.querySelectorAll('.rammevalg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  if (S.ramme !== 'ingen' && !S.tekst && S.sted) { S.tekst = `Hilsen fra ${S.sted}!`; $('tekst').value = S.tekst; }
+  planlegg();
+}));
+
+function oppdaterSteg() {
+  const klar = !!(S.gruppe && S.kutt);
+  $('steg3').classList.toggle('laast', !klar);
+  $('steg4').classList.toggle('laast', !(klar && S.bakgrunn));
+}
+function hint(t) { $('scene-hint').textContent = t || ''; }
+
+/* ---------- lagre ---------- */
+let ferdigFil = null, ferdigUrl = null;
+$('lagre').addEventListener('click', async () => {
+  if (S.modus === 'pipette') settModus('flytt');
+  tegn();
+  const blob = await new Promise((r) => lerret.toBlob(r, 'image/jpeg', 0.9));
+  if (!blob) { hint('Bildet kunne ikke lagres. Prøv igjen.'); return; }
+  const navn = 'reisebilde-' + (S.sted || 'jorda-rundt').toLowerCase().replace(/[^a-z0-9æøå]+/g, '-').replace(/^-|-$/g, '') + '.jpg';
+  ferdigFil = new File([blob], navn, { type: 'image/jpeg' });
+  if (ferdigUrl) URL.revokeObjectURL(ferdigUrl);
+  ferdigUrl = URL.createObjectURL(blob);
+  $('ferdig-bilde').src = ferdigUrl;
+  $('last-ned').href = ferdigUrl; $('last-ned').download = navn;
+  const kanDele = !!(navigator.canShare && navigator.canShare({ files: [ferdigFil] }));
+  $('del').classList.toggle('skjult', !kanDele);
+  $('lagre-tekst').textContent = kanDele
+    ? 'Trykk på «Lagre i Bilder / del». Du kan også holde fingeren på bildet og velge «Legg til i Bilder».'
+    : 'Hold fingeren på bildet og velg «Legg til i Bilder», eller trykk «Last ned».';
+  $('lagre-modal').classList.remove('skjult');
+});
+$('del').addEventListener('click', () => {
+  if (!ferdigFil) return;
+  navigator.share({ files: [ferdigFil], title: 'Reisebilde' }).catch(() => {});
+});
+$('lukk-lagre').addEventListener('click', () => $('lagre-modal').classList.add('skjult'));
+$('lagre-modal').addEventListener('click', (e) => { if (e.target.id === 'lagre-modal') $('lagre-modal').classList.add('skjult'); });
+
+$('nytt').addEventListener('click', () => {
+  if (!confirm('Vil du starte på nytt? Bildet du har laget forsvinner hvis du ikke har lagret det.')) return;
+  location.reload();
+});
+
+// Sørg for at skriftene er lastet før de tegnes på bildet
+Promise.all([
+  document.fonts.load(`800 60px "Bricolage Grotesque"`),
+  document.fonts.load(`500 30px "DM Mono"`),
+]).then(() => planlegg()).catch(() => {});
+</script>
+</body>
+</html>
