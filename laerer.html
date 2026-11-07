@@ -60,6 +60,17 @@
   .tom { color: var(--blekk-2); font-style: italic; padding: .6rem 0; }
   .duell { background: linear-gradient(135deg, #fff7e6, #fff); border: 2px solid var(--sol); border-radius: 12px; padding: .8rem; margin-bottom: .6rem; }
 
+  /* utstyrsliste for dueller */
+  .utstyrliste { list-style: none; padding: 0; margin: .6rem 0; }
+  .utstyrliste li { display: flex; gap: .6rem; align-items: flex-start; padding: .45rem 0; border-bottom: 1px solid var(--linje); }
+  .utstyrliste input { width: 1.2em; height: 1.2em; margin-top: .15em; flex: none; }
+  @media print {
+    body.skriv-utstyr > #utskrift { display: none !important; }
+    body.skriv-utstyr > .modal-bakgrunn#utstyrmodal { display: block !important; position: static; background: none; padding: 0; }
+    body.skriv-utstyr #utstyrmodal .modal { box-shadow: none; max-height: none; width: auto; overflow: visible; }
+    body.skriv-utstyr #utstyrmodal .knapper { display: none; }
+  }
+
   /* innloggingskort for utskrift */
   #utskrift { display: none; }
   @media print {
@@ -309,7 +320,7 @@
         <p id="duellvalghjelp" class="liten dempet" style="margin-bottom:0"></p>
       </div>
       <div class="kort">
-        <div class="rad" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Mine dueller</h2><button id="nyduell" class="knapp sol">➕ Ny duell</button></div>
+        <div class="rad" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Mine dueller</h2><div class="rad"><button id="utstyrknapp" class="knapp lys">📦 Utstyrsliste</button><button id="nyduell" class="knapp sol">➕ Ny duell</button></div></div>
         <p class="liten dempet">Duellene lagres på kontoen din og kan brukes i alle spillene dine – også i de andre spillvariantene. Tips: Lag dueller der det er lett å se hvem som vinner – raskest, flest eller lengst.</p>
         <div id="mineduelliste"></div>
       </div>
@@ -346,7 +357,7 @@ import { monterInnlogging } from './js/laererinn.js';
 import { auth, db, ref, r, get, set, update, remove, push, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
-import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel, duellOppgave, egneDuellerI, renDuell } from './js/felles.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel, duellOppgave, egneDuellerI, renDuell, duellPulje } from './js/felles.js';
 import { tilfeldigStart } from '#pakke/motor.js';
 import { fyllPakkeTekster, lenke, fullLenke } from './js/side.js';
 import { SPILLPAKKER, pakkeAdresse } from './js/pakkeliste.js';
@@ -469,6 +480,7 @@ $('#lagspill').onclick = async () => {
   });
   spillId = null; velgSpill(id);
   varsle('Spillet er laget! Lag gruppene under «Grupper».', 'ok');
+  visUtstyrsliste(DUELLER, '<p>Spillet er klart! Én ting før du begynner: Når to grupper vil ha samme sted, blir det duell i klasserommet. Her er det du trenger til duellene.</p>');
 };
 
 function stoppAlt() { stoppSpill?.(); stoppPins?.(); stoppBank?.(); stoppLaerere?.(); stoppSpill = stoppPins = stoppBank = stoppLaerere = null; laerere = {}; }
@@ -942,6 +954,37 @@ async function redigerDuell(id = null) {
   varsle(id ? 'Duellen er oppdatert.' : 'Duellen er lagt til.', 'ok');
 }
 $('#nyduell').onclick = () => redigerDuell();
+$('#utstyrknapp').onclick = () => visUtstyrsliste(duellPulje(spill).map((x) => x.o));
+
+// Utstyrsliste: alt som trengs til duellene, samlet så læreren kan pakke en «duellkasse» på forhånd.
+function visUtstyrsliste(oppgaver, intro = '') {
+  const grupper = new Map();
+  for (const o of oppgaver) {
+    const u = String(o.utstyr || '').trim();
+    if (!u || /^ingenting$/i.test(u)) continue;
+    const n = u.toLowerCase();
+    if (!grupper.has(n)) grupper.set(n, { u, titler: [] });
+    grupper.get(n).titler.push(o.tittel);
+  }
+  const liste = [...grupper.values()].sort((a, b) => a.u.localeCompare(b.u, 'nb'));
+  const uten = oppgaver.filter((o) => !String(o.utstyr || '').trim() || /^ingenting$/i.test(String(o.utstyr).trim())).length;
+  const bg = document.createElement('div'); bg.className = 'modal-bakgrunn'; bg.id = 'utstyrmodal';
+  bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="width:min(100%,560px)">
+    <h3>📦 Utstyr til duellene</h3>
+    ${intro}
+    <p class="liten dempet">Duellene trekkes tilfeldig, så det lønner seg å ha alt klart i en «duellkasse». Kryss av etter hvert som du finner tingene.</p>
+    <ul class="utstyrliste">${liste.map((x) => `<li><input type="checkbox" aria-label="${esc(x.u)}"><span><b>${esc(x.u)}</b><br><span class="liten dempet">${esc(x.titler.join(', '))}</span></span></li>`).join('') || '<li>Ingen av duellene trenger utstyr.</li>'}</ul>
+    ${uten ? `<p class="liten dempet">${uten} ${uten === 1 ? 'duell trenger' : 'dueller trenger'} ikke noe utstyr.</p>` : ''}
+    <p class="liten dempet">Du finner lista igjen under fanen «Dueller» → «📦 Utstyrsliste».</p>
+    <div class="rad knapper" style="justify-content:flex-end"><button class="knapp lys" data-skriv>🖨️ Skriv ut</button><button class="knapp" data-lukk>Den er grei!</button></div></div>`;
+  bg.addEventListener('click', (e) => { if (e.target === bg || e.target.closest('[data-lukk]')) bg.remove(); });
+  $('[data-skriv]', bg).onclick = () => {
+    document.body.classList.add('skriv-utstyr');
+    const ferdig = () => { document.body.classList.remove('skriv-utstyr'); window.removeEventListener('afterprint', ferdig); };
+    window.addEventListener('afterprint', ferdig); window.print();
+  };
+  document.body.append(bg);
+}
 
 // ---------- innstillinger ----------
 let innstRedigeres = false;
