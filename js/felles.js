@@ -43,7 +43,11 @@ export const GRUPPENAVN = ['Globetrotterne', 'Backpackerne', 'Oppdagerne', 'Pilo
 /** Startbudsjett for en gruppe = beløp per elev × antall elever */
 export function startbelopFor(innstillinger, personer) { return Math.round((innstillinger.startbelopPerElev || 0) * Math.max(1, personer || 1)); }
 
-export function innst(spill) { return { ...STANDARD_INNSTILLINGER, ...(spill?.innstillinger || {}) }; }
+export function innst(spill) {
+  const i = { ...STANDARD_INNSTILLINGER, ...(spill?.innstillinger || {}) };
+  if (PAKKE.diktat === false) i.diktatBelopPerElev = 0; // diktat av – gjelder også spill som er laget før den ble tatt bort
+  return i;
+}
 
 /** Dato i Norge som "YYYY-MM-DD" */
 export function idag(d = new Date()) {
