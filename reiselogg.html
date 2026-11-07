@@ -119,6 +119,17 @@
   .stort-stempel::before { content: ''; position: absolute; inset: 2.2mm; border: 1px solid #9aa4ae; border-radius: 50%; }
   .stort-stempel b { font: 800 11pt/1.1 var(--font-tittel); color: #8a96a2; letter-spacing: .06em; }
 
+  .godkjent { margin-top: 2.5mm; font-size: 9pt; color: #3d4955; border-top: 1px dotted var(--strek); padding-top: 1.5mm; }
+  .stor-postkort { flex: 1 1 auto; min-height: 60mm; }
+  .reisekasse { border: 1.6px solid var(--blekk-r); border-radius: 3mm; padding: 2.5mm 4mm; background: #fff; display: flex; flex-direction: column; gap: 2mm; }
+  .reisekasse .topp { display: flex; align-items: center; gap: 2mm; flex-wrap: wrap; }
+  .reisekasse .valg { margin-left: auto; display: flex; gap: 2.5mm; font: 700 9.5pt var(--font); }
+  .reisekasse .valg span { border: 1.2px solid var(--strek); border-radius: 99px; padding: .5mm 2.5mm; }
+  .polaroid .foto { height: 8mm; }
+  .polaroid .tekst { height: 6mm; margin-bottom: 1.5mm; }
+  .reisekasse .fakta { grid-template-columns: 1fr 1fr 1.6fr; }
+  .tett .tallerken { width: 46mm; height: 46mm; }
+  .tett .rett { grid-template-columns: 46mm 1fr; }
   @media print {
     body { background: #fff; }
     .styring { display: none; }
@@ -133,7 +144,8 @@
   <p class="dempet" style="margin-top:0">Reiseloggen er landsnøytral – skriv ut ett sett og kopier opp til alle gruppene.</p>
   <div class="rad" style="margin:.8rem 0">
     <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="valuta"> Ekstra felt: Valuta</label>
-    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="kilder"> Ekstra felt: Kilder</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="collage" checked> Bildecollage</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="kilder" checked> Felt for kilder</label>
   </div>
   <button class="knapp sol" onclick="window.print()">🖨️ Skriv ut (3 sider)</button>
   <p class="liten dempet">Laget for A4. Fungerer fint på svart-hvitt-skriver. Slå av «topptekst og bunntekst» i utskriftsvinduet.</p>
@@ -145,7 +157,7 @@
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const p = new URLSearchParams(location.search);
-$('#valuta').checked = p.has('valuta'); $('#kilder').checked = p.has('kilder');
+$('#valuta').checked = p.has('valuta'); $('#kilder').checked = !p.has('utenkilder'); $('#collage').checked = !p.has('utencollage');
 
 // Guilloche-bånd (bølgemønster som på pengesedler og pass)
 function guilloche() {
@@ -191,7 +203,7 @@ function band(l, gruppe, del, navn) {
 
 function tegn() {
   const l = null, gruppe = '';
-  const medValuta = $('#valuta').checked, medKilder = $('#kilder').checked;
+  const medValuta = $('#valuta').checked, medKilder = $('#kilder').checked, medCollage = $('#collage').checked;
 
   const side1 = `<section class="ark">
     ${band(l, gruppe, 1, 'Fakta')}
@@ -205,7 +217,7 @@ function tegn() {
     </div>
     <div class="fakta">
       ${felt('📐', 'Areal (km²)')}${felt('⛰️', 'Høyeste fjell (m.o.h.)')}
-      ${felt('🛐', 'Største religion')}${medValuta ? felt('💱', 'Valuta – 100 kr er …') : felt('🗺️', 'Kontinent')}
+      ${felt('🛐', 'Religioner i landet')}${medValuta ? felt('💱', 'Valuta – 100 kr er …') : felt('🗺️', 'Kontinent')}
       ${felt('🧭', 'Naboland', 2, 'bred')}
       ${felt('🏭', 'Hovednæringer – hva lever folk av?', 2, 'bred')}
       ${felt('🏙️', 'Tre største byer', 1, 'bred')}
@@ -217,7 +229,7 @@ function tegn() {
     ${mrz(l, gruppe)}
   </section>`;
 
-  const side2 = `<section class="ark">
+  const side2 = `<section class="ark ${medKilder ? 'tett' : ''}">
     ${band(l, gruppe, 2, 'Kultur')}
     <div><h1 class="side">Kultur <small>– slik lever de i ${l ? esc(l.navn) : 'landet'}</small></h1>${guilloche()}</div>
     <div class="lapper">
@@ -242,32 +254,40 @@ function tegn() {
     ${medKilder ? `<div class="lapp bred" style="border-radius:3mm">${felt('🔎', 'Kilder – hvor fant dere informasjonen?', 2)}</div>` : ''}
   </section>`;
 
-  const side3 = `<section class="ark">
-    ${band(l, gruppe, 3, 'Bilder')}
-    <div><h1 class="side">Bildecollage <small>– i BookCreator</small></h1>${guilloche()}</div>
-    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis ${l ? esc(l.navn) : 'landet'} i bilder!</b><p>Lag et bildecollage med ca. 10 bilder som beskriver landet. <b style="display:inline;font:inherit;font-weight:700;color:inherit">Gruppebildet skal stå i midten av siden, med de andre bildene rundt.</b> Planlegg først: skriv eller tegn hva hvert bilde skal vise – natur, mat, severdigheter, dyr, folk, sport …</p></div></div>
-    <div class="planhint"><div class="smaa">Plan for collage-siden</div><span class="hand" style="font-size:11pt">Tegn eller skriv hva som skal være på hvert bilde</span></div>
+  const collage = `
+    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis ${l ? esc(l.navn) : 'landet'} i bilder!</b><p>Lag et collage med ca. 10 bilder som beskriver landet. Lag det i PowerPoint, Google Presentasjoner, Canva, Book Creator – eller lim bildene på et A3-ark.</p></div></div>
+    <div class="planhint"><div class="smaa">Plan for collage-siden</div><span class="hand" style="font-size:11pt">Tegn eller skriv hva hvert bilde skal vise – natur, mat, severdigheter, dyr, folk, sport …</span></div>
     <div class="polaroider">${(() => {
       const p = (n) => `<div class="polaroid"><div class="foto"><span>${n}</span></div><div class="tekst"></div></div>`;
-      const midt = `<div class="polaroid midt"><div class="foto"><div style="width:100%;padding:0 3mm"><b>🎬 GRUPPEBILDET i midten</b><div class="smaa" style="margin:1mm 0 2mm">Greenscreen · hele gruppa · foran en kjent severdighet</div>${felt('📍', 'Vi poserer foran')}</div></div><div class="tekst smaa">★ Midt på siden ★</div></div>`;
+      const midt = `<div class="polaroid midt"><div class="foto"><div style="width:100%;padding:0 3mm"><b>🎬 GRUPPEBILDET i midten</b><div class="smaa" style="margin:1mm 0 2mm">Hele gruppa · ta bildet med 📸 Reisebilde i spillet</div>${felt('📍', 'Vi poserer foran')}</div></div><div class="tekst smaa">★ Midt på siden ★</div></div>`;
       return [1, 2, 3, 4].map(p).join('') + p(5) + midt + p(6) + [7, 8, 9, 10].map(p).join('');
-    })()}</div>
-    <div class="bunn3">
+    })()}</div>`;
+  const postkort = `<div class="postkort stor-postkort"><div class="tittel">🖍️ Postkort</div><div class="hand">Tegn en kjent severdighet fra ${l ? esc(l.navn) : 'landet'}</div></div>`;
+
+  const side3 = `<section class="ark">
+    ${band(l, gruppe, 3, 'Reisen')}
+    <div><h1 class="side">Reisen <small>– ${medCollage ? 'bilder og reisekasse' : 'postkort og reisekasse'}</small></h1>${guilloche()}</div>
+    ${medCollage ? collage : postkort}
+    <div class="reisekasse">
+      <div class="topp"><span class="smaa">🧳 Slik kom vi hit</span><span class="hand" style="font-size:11pt">– ring rundt:</span><div class="valg"><span>✈️ Direkte</span><span>1 stopp</span><span>2 stopp</span></div></div>
+      <div class="fakta">${felt('🎫', 'Flybilletten kostet (kr)')}${felt('🏨', 'Hotellet vi bodde på')}${felt('💡', 'Lurt valg? Hvorfor?')}</div>
+    </div>
+    <div class="bunn3" style="grid-template-columns:1fr 36mm">
       <div><div class="smaa" style="margin-bottom:2mm">Sjekkliste før innsjekk</div>
         <div class="sjekk"><div><span></span>Del 1 – fakta er fylt ut</div><div><span></span>Del 2 – kultur er fylt ut</div>
-        <div><span></span>Ca. 10 bilder i BookCreator</div><div><span></span>Gruppebildet står i midten</div>
-        <div><span></span>Vi har øvd på parløren</div><div><span></span>Trykket «levert» i spillet</div></div></div>
-      <div class="stort-stempel"><div><b>INNREISE<br>GODKJENT</b><div class="hand" style="font-size:10pt">lærerens stempel</div></div></div>
+        <div><span></span>Del 3 – reisen er fylt ut</div><div><span></span>${medCollage ? 'Collaget er laget' : 'Postkortet er tegnet'}</div>
+        <div><span></span>Vi har øvd på parløren</div><div><span></span>Trykket «levert» i spillet</div></div><div class="godkjent"><b>Godkjent når:</b> alle felt er fylt ut med egne ord${medKilder ? ', kildene er skrevet' : ''} – og dere kan forklare det dere har skrevet.</div></div>
+      <div class="stort-stempel" style="width:36mm;height:36mm"><div><b>INNREISE<br>GODKJENT</b><div class="hand" style="font-size:10pt">lærerens stempel</div></div></div>
     </div>
     ${mrz(l, gruppe)}
   </section>`;
 
   $('#ark').innerHTML = side1 + side2 + side3;
   const q = new URLSearchParams();
-  if (medValuta) q.set('valuta', ''); if (medKilder) q.set('kilder', '');
+  if (medValuta) q.set('valuta', ''); if (!medKilder) q.set('utenkilder', ''); if (!medCollage) q.set('utencollage', '');
   history.replaceState(null, '', '?' + q.toString().replace(/=(&|$)/g, '$1'));
 }
-['#valuta', '#kilder'].forEach((s) => $(s).addEventListener('input', tegn));
+['#valuta', '#kilder', '#collage'].forEach((s) => $(s).addEventListener('input', tegn));
 tegn();
 </script>
 </body>

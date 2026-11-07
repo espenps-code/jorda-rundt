@@ -119,6 +119,7 @@
   .stort-stempel::before { content: ''; position: absolute; inset: 2.2mm; border: 1px solid #9aa4ae; border-radius: 50%; }
   .stort-stempel b { font: 800 11pt/1.1 var(--font-tittel); color: #8a96a2; letter-spacing: .06em; }
 
+  .godkjent { margin-top: 2.5mm; font-size: 9pt; color: #3d4955; border-top: 1px dotted var(--strek); padding-top: 1.5mm; }
   @media print {
     body { background: #fff; }
     .styring { display: none; }
@@ -134,8 +135,8 @@
   <div class="rad" style="margin:.8rem 0">
     <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="medland" checked> Landsiden</label>
     <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="medby" checked> Bysiden</label>
-    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="collage"> Ekstra: bildecollage (BookCreator)</label>
-    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="kilder"> Ekstra felt: Kilder</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="collage" checked> Bildecollage</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="kilder" checked> Felt for kilder</label>
   </div>
   <button class="knapp sol" onclick="window.print()">🖨️ Skriv ut</button>
   <p class="liten dempet">Tips: kopier opp flere bysider enn landsider. Laget for A4 og fungerer fint på svart-hvitt-skriver. Slå av «topptekst og bunntekst» i utskriftsvinduet.</p>
@@ -147,7 +148,7 @@
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const p = new URLSearchParams(location.search);
-$('#kilder').checked = p.has('kilder'); $('#collage').checked = p.has('collage');
+$('#kilder').checked = !p.has('utenkilder'); $('#collage').checked = !p.has('utencollage');
 if (p.has('side')) { $('#medland').checked = p.get('side') !== 'by'; $('#medby').checked = p.get('side') !== 'land'; }
 
 // Guilloche-bånd (bølgemønster som på pengesedler og pass)
@@ -195,7 +196,7 @@ function band(l, gruppe, merke, navn) {
 function tegn() {
   const l = null, gruppe = '';
   const medLand = $('#medland').checked, medBy = $('#medby').checked, medCollage = $('#collage').checked, medKilder = $('#kilder').checked;
-  const kilder = medKilder ? `<div class="lapp bred" style="border-radius:3mm">${felt('🔎', 'Kilder – hvor fant dere informasjonen?', 2)}</div>` : '';
+  const kilder = medKilder ? `<div class="lapp" style="border-radius:3mm;padding-right:4mm">${felt('🔎', 'Kilder – hvor fant dere det?', 2)}</div>` : '';
 
   // ---------- LANDSIDEN: én gang per land ----------
   const landside = `<section class="ark">
@@ -220,11 +221,11 @@ function tegn() {
         <div class="boble bred"><span class="no">Jeg heter …</span><div class="oversatt"></div></div>
       </div>
     </div>
-    <div class="postrad">
-      <div class="postkort"><div class="tittel">✉️ Fun fact om landet!</div><div class="hand" style="margin-bottom:1mm">Visste du at …</div><div style="margin-right:20mm">${strek(2)}</div></div>
+    <div class="postrad" style="${medKilder ? 'grid-template-columns:1fr 1fr 36mm' : ''}">
+      <div class="postkort"><div class="tittel">✉️ Fun fact om landet!</div><div class="hand" style="margin-bottom:1mm">Visste du at …</div><div style="margin-right:18mm">${strek(2)}</div></div>
+      ${kilder}
       <div class="stempelfelt"><div><b>FAKTA<br>SJEKKET</b><div class="hand" style="font-size:9pt">lærerens stempel</div></div></div>
     </div>
-    ${kilder}
     ${mrz(l, gruppe)}
   </section>`;
 
@@ -255,7 +256,7 @@ function tegn() {
     <div class="bunn3" style="grid-template-columns:1fr 32mm">
       <div><div class="smaa" style="margin-bottom:2mm">Sjekkliste før innsjekk</div>
         <div class="sjekk"><div><span></span>Bysiden er fylt ut</div><div><span></span>Postkortet er tegnet</div>
-        <div><span></span>Ny i landet? Landsiden er med</div><div><span></span>Trykket «levert» i spillet</div></div></div>
+        <div><span></span>Ny i landet? Landsiden er med</div><div><span></span>Trykket «levert» i spillet</div></div><div class="godkjent"><b>Godkjent når:</b> alle felt er fylt ut med egne ord${medKilder ? ', kildene er skrevet' : ''} – og dere kan forklare det dere har skrevet.</div></div>
       <div class="stort-stempel" style="width:32mm;height:32mm"><div><b>INNREISE<br>GODKJENT</b><div class="hand" style="font-size:10pt">lærerens stempel</div></div></div>
     </div>
     ${mrz(l, gruppe)}
@@ -264,12 +265,12 @@ function tegn() {
   // ---------- EKSTRA: bildecollage ----------
   const collage = `<section class="ark">
     ${band(l, gruppe, '+', 'Bilder')}
-    <div><h1 class="side">Bildecollage <small>– i BookCreator</small></h1>${guilloche()}</div>
-    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis byen i bilder!</b><p>Lag et bildecollage med ca. 10 bilder fra byen og landet. <b style="display:inline;font:inherit;font-weight:700;color:inherit">Gruppebildet skal stå i midten av siden, med de andre bildene rundt.</b> Planlegg her først.</p></div></div>
+    <div><h1 class="side">Bildecollage <small>– digitalt eller på papir</small></h1>${guilloche()}</div>
+    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis byen i bilder!</b><p>Lag et bildecollage med ca. 10 bilder fra byen og landet. <b style="display:inline;font:inherit;font-weight:700;color:inherit">Gruppebildet skal stå i midten av siden, med de andre bildene rundt.</b> Lag det i PowerPoint, Google Presentasjoner, Canva, Book Creator – eller lim bildene på et A3-ark. Planlegg her først.</p></div></div>
     <div class="planhint"><div class="smaa">Plan for collage-siden</div><span class="hand" style="font-size:11pt">Tegn eller skriv hva som skal være på hvert bilde</span></div>
     <div class="polaroider">${(() => {
       const p = (n) => `<div class="polaroid"><div class="foto"><span>${n}</span></div><div class="tekst"></div></div>`;
-      const midt = `<div class="polaroid midt"><div class="foto"><div style="width:100%;padding:0 3mm"><b>🎬 GRUPPEBILDET i midten</b><div class="smaa" style="margin:1mm 0 2mm">Greenscreen · hele gruppa · foran en kjent severdighet</div>${felt('📍', 'Vi poserer foran')}</div></div><div class="tekst smaa">★ Midt på siden</div></div>`;
+      const midt = `<div class="polaroid midt"><div class="foto"><div style="width:100%;padding:0 3mm"><b>🎬 GRUPPEBILDET i midten</b><div class="smaa" style="margin:1mm 0 2mm">Hele gruppa · ta bildet med 📸 Reisebilde i spillet</div>${felt('📍', 'Vi poserer foran')}</div></div><div class="tekst smaa">★ Midt på siden</div></div>`;
       return [1, 2, 3, 4].map(p).join('') + p(5) + midt + p(6) + [7, 8, 9, 10].map(p).join('');
     })()}</div>
     ${mrz(l, gruppe)}
@@ -278,7 +279,7 @@ function tegn() {
   $('#ark').innerHTML = (medLand ? landside : '') + (medBy ? byside : '') + (medCollage ? collage : '') || '<p class="styring">Velg minst én side.</p>';
   const q = new URLSearchParams();
   if (medLand && !medBy) q.set('side', 'land'); if (medBy && !medLand) q.set('side', 'by');
-  if (medCollage) q.set('collage', ''); if (medKilder) q.set('kilder', '');
+  if (!medCollage) q.set('utencollage', ''); if (!medKilder) q.set('utenkilder', '');
   history.replaceState(null, '', '?' + q.toString().replace(/=(&|$)/g, '$1'));
 }
 ['#medland', '#medby', '#collage', '#kilder'].forEach((s) => $(s).addEventListener('input', tegn));
