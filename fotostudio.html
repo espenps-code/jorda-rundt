@@ -275,6 +275,10 @@ import { fyllPakkeTekster, lenke } from '#motor/side.js';
 fyllPakkeTekster();
 document.title = 'Fotostudio – ' + PAKKE.navn;
 $('tilbake').href = lenke('elev.html');
+// Åpnet fra spillet i en egen fane? Da lukker «Tilbake» bare denne fanen.
+$('tilbake').addEventListener('click', (e) => {
+  try { if (window.opener && !window.opener.closed) { e.preventDefault(); window.opener.focus(); window.close(); } } catch {}
+});
 
 /* =====================================================================
    Innstillinger
@@ -834,11 +838,11 @@ function tegnRamme(W, H) {
       ctx.restore();
     }
   } else if (S.ramme === 'frimerke') {
-    const marg = Math.round(k * 0.035), kant = Math.round(k * 0.045), bunnband = Math.round(k * 0.12);
+    const marg = Math.round(k * 0.035), kant = Math.round(k * 0.045);
     ctx.save();
-    // hvit frimerkekant (med plass til tekst nederst)
+    // hvit frimerkekant
     ctx.beginPath(); ctx.rect(0, 0, W, H);
-    ctx.rect(marg + kant, marg + kant, W - 2 * (marg + kant), H - 2 * (marg + kant) - bunnband);
+    ctx.rect(marg + kant, marg + kant, W - 2 * (marg + kant), H - 2 * (marg + kant));
     ctx.fillStyle = '#FFFFFF'; ctx.fill('evenodd');
     // papirbakgrunn utenfor frimerket
     ctx.fillStyle = '#EAE1CC';
@@ -848,13 +852,21 @@ function tegnRamme(W, H) {
     for (let x = marg; x <= W - marg; x += steg) { hull(x, marg); hull(x, H - marg); }
     for (let y = marg; y <= H - marg; y += steg) { hull(marg, y); hull(W - marg, y); }
     function hull(x, y) { ctx.beginPath(); ctx.arc(x, y, rh, 0, Math.PI * 2); ctx.fill(); }
-    // tekst i båndet
-    const tekst = S.tekst || S.sted || PAKKE.navn;
-    const st = tilpassSkrift(tekst, 800, TITTEL, bunnband * 0.6, W - 2 * (marg + kant) - k * 0.22);
-    ctx.fillStyle = '#0C2340'; ctx.textBaseline = 'middle';
-    ctx.fillText(tekst, marg + kant, H - marg - kant * 0.6 - bunnband / 2);
-    ctx.font = `800 ${Math.round(bunnband * 0.45)}px ${TITTEL}`; ctx.textAlign = 'right'; ctx.fillStyle = '#C8382F';
-    ctx.fillText('12 kr', W - marg - kant, H - marg - kant * 0.6 - bunnband / 2);
+    // verdi øverst til venstre, oppå bildet
+    ctx.font = `800 ${Math.round(k * 0.05)}px ${TITTEL}`;
+    ctx.textBaseline = 'top'; ctx.lineJoin = 'round';
+    ctx.lineWidth = k * 0.008; ctx.strokeStyle = '#FFFFFF';
+    ctx.strokeText('12 kr', marg + kant + k * 0.025, marg + kant + k * 0.022);
+    ctx.fillStyle = '#C8382F';
+    ctx.fillText('12 kr', marg + kant + k * 0.025, marg + kant + k * 0.022);
+    // tekst oppå bildet nederst, som på postkortet
+    if (S.tekst) {
+      const ix = marg + kant + k * 0.03, iy = H - marg - kant - k * 0.035;
+      const st = tilpassSkrift(S.tekst, 800, TITTEL, k * 0.085, W - 2 * (marg + kant) - k * 0.06);
+      ctx.textBaseline = 'alphabetic';
+      ctx.lineWidth = st * 0.16; ctx.strokeStyle = '#0C2340'; ctx.strokeText(S.tekst, ix, iy);
+      ctx.fillStyle = '#FFFFFF'; ctx.fillText(S.tekst, ix, iy);
+    }
     ctx.restore();
 
     // poststempel
@@ -890,13 +902,13 @@ function rundRekt(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.ar
 function tegnKilde(W, H) {
   if (!S.kilde || !S.bakgrunn) return;
   const k = Math.min(W, H);
-  const innrykk = S.ramme === 'postkort' ? k * 0.065 : S.ramme === 'frimerke' ? k * 0.09 : k * 0.015;
+  const innrykk = S.ramme === 'postkort' ? k * 0.065 : S.ramme === 'frimerke' ? k * 0.095 : k * 0.015;
   ctx.save();
   ctx.font = `500 ${Math.max(10, Math.round(k * 0.017))}px ${MONO}`;
   ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
   ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = k * 0.004;
   ctx.fillStyle = 'rgba(255,255,255,.9)';
-  const y = S.ramme === 'frimerke' ? H - k * 0.035 - k * 0.045 - k * 0.12 - k * 0.008 : H - innrykk;
+  const y = H - innrykk;
   ctx.fillText('Foto: ' + S.kilde, W - innrykk, y);
   ctx.restore();
 }
@@ -1135,6 +1147,10 @@ $('nytt').addEventListener('click', () => {
   if (!confirm('Vil du starte på nytt? Bildet du har laget forsvinner hvis du ikke har lagret det.')) return;
   location.reload();
 });
+
+// Stedet kan komme fra spillet: fotostudio.html?sted=Paris
+const stedFraSpillet = new URLSearchParams(location.search).get('sted');
+if (stedFraSpillet) { $('sted').value = stedFraSpillet.slice(0, 60); $('sted').dispatchEvent(new Event('input')); }
 
 // Sørg for at skriftene er lastet før de tegnes på bildet
 Promise.all([

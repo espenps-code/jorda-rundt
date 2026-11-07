@@ -186,6 +186,48 @@
   .bekreft p { color: var(--blekk-2); margin: 0 0 1rem; }
   .bekreft .rad { display: flex; gap: .6rem; justify-content: center; flex-wrap: wrap; }
 .nedtelling { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- justerbar deling mellom kart og meny ---------- */
+  @media (min-width: 901px) { .oppsett { grid-template-columns: minmax(0, 55fr) 22px minmax(0, 45fr); } }
+  .deler { position: relative; background: var(--papir-2); display: flex; align-items: center; justify-content: center; cursor: col-resize; touch-action: none; user-select: none; -webkit-user-select: none; z-index: 6; box-shadow: inset 1px 0 0 var(--linje), inset -1px 0 0 var(--linje); }
+  .deler::before { content: ''; position: absolute; left: 9px; top: calc(50% - 96px); width: 4px; height: 40px; border-radius: 4px; background: repeating-linear-gradient(180deg, var(--blekk-2) 0 3px, transparent 3px 7px); opacity: .45; }
+  .deler.drar, .deler:hover { background: var(--sol-lys); }
+  .deler-knapper { display: flex; flex-direction: column; gap: 10px; }
+  .deler-knapper button { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; background: var(--hav); color: #fff; font-size: .95rem; line-height: 1; box-shadow: 0 3px 8px rgba(12,35,64,.3); cursor: pointer; display: grid; place-items: center; padding: 0; }
+  .deler-knapper button:disabled { opacity: .3; cursor: default; }
+  .oppsett.kart-skjult #klode { display: none; }
+  .oppsett.meny-skjult .panel { display: none; }
+  .oppsett.meny-skjult .deler-knapper { transform: translateX(-14px); }
+  .oppsett.kart-skjult .deler-knapper { transform: translateX(14px); }
+  @media (max-width: 900px) { #fotoknapp .foto-tekst { display: none; } .topp .knapp.mini { padding-left: .6em; padding-right: .6em; } .topp .tall-boks b { font-size: 1.25rem; } .oppsett.kart-skjult .deler-knapper { transform: none; } }
+  @media (max-width: 900px) {
+    .deler { cursor: row-resize; height: 22px; box-shadow: inset 0 1px 0 var(--linje), inset 0 -1px 0 var(--linje); }
+    .deler::before { left: calc(50% - 110px); top: 9px; width: 40px; height: 4px; background: repeating-linear-gradient(90deg, var(--blekk-2) 0 3px, transparent 3px 7px); }
+    .deler-knapper { flex-direction: row; }
+    #klode { height: var(--karthoyde, 46vh); }
+  }
+
+  /* ---------- kassa (regnskap) ---------- */
+  .kassa-sum { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-bottom: .8rem; }
+  .kassa-sum > div { background: #fff; border-radius: 14px; padding: .6rem .8rem; box-shadow: 0 2px 0 var(--linje); }
+  .kassa-sum small { display: block; font: 500 .68rem var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--blekk-2); }
+  .kassa-sum b { font: 800 1.25rem var(--font-tittel); font-variant-numeric: tabular-nums; color: var(--hav); }
+  .kassa-sum .inn b { color: var(--gress); }
+  .kassa-sum .ut b { color: var(--korall); }
+  .kassa-sum .naa { background: var(--hav); box-shadow: 0 2px 0 #04101F; }
+  .kassa-sum .naa small { color: var(--lys-tekst); }
+  .kassa-sum .naa b { color: #fff; }
+  .kassa-rad { display: grid; grid-template-columns: 1.8rem minmax(0, 1fr) auto; align-items: center; column-gap: .55rem; margin: .45rem 0 .75rem; }
+  .kassa-rad .ik { font-size: 1.3rem; grid-row: span 2; text-align: center; }
+  .kassa-rad .bel { font: 800 1rem var(--font-tittel); font-variant-numeric: tabular-nums; }
+  .kassa-rad .under { grid-column: 2 / 4; font-size: .8rem; color: var(--blekk-2); margin-top: .15rem; }
+  .kassa-stolpe { grid-column: 2 / 4; height: 10px; border-radius: 999px; background: var(--papir-2); overflow: hidden; margin-top: .2rem; }
+  .kassa-stolpe i { display: block; height: 100%; border-radius: inherit; background: var(--gress); }
+  .kassa-stolpe.ut i { background: var(--korall); }
+  .utskrift-rad { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) auto; gap: .5rem; align-items: center; padding: .5rem 0; border-bottom: 1px solid var(--linje); font-size: .92rem; }
+  .utskrift-rad .tid { display: block; font: 500 .68rem var(--font-mono); color: var(--blekk-2); }
+  .utskrift-rad .pluss { color: var(--gress); font-weight: 800; white-space: nowrap; }
+  .utskrift-rad .minus { color: var(--korall); font-weight: 800; white-space: nowrap; }
 </style>
 </head>
 <body>
@@ -212,12 +254,16 @@
     <div class="tall-boks"><small>Penger</small><b id="saldo" class="tall"></b></div>
     <div class="tall-boks"><small>Poeng</small><b id="poeng" class="tall"></b></div>
     <div class="tall-boks"><small>Plass</small><b id="plass" class="tall"></b></div>
+    <a class="knapp lys mini" id="fotoknapp" href="fotostudio.html" target="fotostudio" title="Lag et reisebilde av gruppa" aria-label="Reisebilde">📸<span class="foto-tekst"> Reisebilde</span></a>
     <button class="knapp lys mini" id="hjelp" title="Se veiledningen igjen">❓ Hjelp</button>
     <button class="knapp lys mini" id="loggut" title="Logg ut">Logg ut</button>
   </header>
   <div class="oppsett">
     <div id="klode"><div class="klode-laster" data-p="kart.laster">Laster kartet …</div>
       <div class="tegnforklaring"><span><i class="prikk" style="background:#EFE6D2"></i> ledig</span><span><i class="prikk" style="background:#9AA3AD"></i> stengt</span><span>sterk farge = låst 🔒</span><span>trykk på et land for å reise dit</span></div>
+    </div>
+    <div class="deler" id="deler" role="separator" aria-label="Juster størrelsen på kartet og menyen" title="Dra for å endre størrelsen. Dobbeltklikk for å tilbakestille.">
+      <div class="deler-knapper"><button type="button" id="deler-a" aria-label="Mindre kart, større meny">◀</button><button type="button" id="deler-b" aria-label="Større kart, mindre meny">▶</button></div>
     </div>
     <div class="panel">
       <div id="utfordringer"></div>
@@ -228,6 +274,7 @@
         <button data-fane="logg"><span class="i">📓</span>Reiselogg</button>
         <button data-fane="jobb"><span class="i">💼</span>Jobb</button>
         <button data-fane="quiz"><span class="i">🧭</span>Quiz</button>
+        <button data-fane="kassa"><span class="i">💰</span>Kassa</button>
         <button data-fane="tavle"><span class="i">🏆</span>Tavle</button>
       </nav>
       <div class="faneinnhold" id="innhold"></div>
@@ -351,7 +398,7 @@ async function startSpill(sid, gruppe) {
     tegnTopp(); tegnUtfordringer(); tegnNeste(); tegnFane(); klode?.oppdater(spill, gid); kanskjeVisVeiviser();
   }, () => { lagre(lagringsnokkel('elev-spill'), null); location.reload(); });
   try {
-    klode = await lagKlode($('#klode'), { vedKlikk: (id) => { reiseMal = id; velgFane('reis'); } });
+    klode = await lagKlode($('#klode'), { vedKlikk: (id) => { reiseMal = id; sikreMeny(); velgFane('reis'); } });
     $('.klode-laster')?.remove();
     if (spill) { klode.oppdater(spill, gid); klode.fokus(g.posisjon, 2.2, 1500); }
   } catch (e) { $('.klode-laster').textContent = 'Kartet kunne ikke lastes, men resten av spillet virker.'; console.error(e); }
@@ -440,6 +487,7 @@ function tegnTopp() {
   $('#gfarge').style.background = g.farge; $('#gnavn').textContent = g.navn;
   $('#her').innerHTML = g.iLufta ? `${{ tog: '🚆', buss: '🚌', bat: '⛴️' }[g.iLufta.type] || '✈️'} På vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].by)}` : `📍 ${l.flagg} ${esc(l.by)}, ${esc(l.landNavn)}`;
   $('#saldo').textContent = formaterKr(g.saldo);
+  $('#fotoknapp').href = fotoLenke();
   const tavle = poengtavle(spill); const meg = tavle.find((x) => x.gid === gid);
   $('#poeng').textContent = meg?.poeng ?? 0;
   $('#plass').textContent = `${tavle.findIndex((x) => x.gid === gid) + 1}/${tavle.length}`;
@@ -467,6 +515,68 @@ function tegnNeste() {
 $$('.faner button').forEach((b) => b.onclick = () => velgFane(b.dataset.fane));
 function velgFane(f) { fane = f; $$('.faner button').forEach((b) => b.setAttribute('aria-selected', b.dataset.fane === f)); tegnFane(); }
 setInterval(() => { for (const el of document.querySelectorAll('[data-dkslutt]')) { const t = Math.max(0, Math.ceil((Number(el.dataset.dkslutt) - Date.now()) / 1000)); el.textContent = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`; el.style.color = t < 30 ? 'var(--korall)' : ''; } }, 250);
+// ================= KART / MENY – JUSTERBAR DELING =================
+// Side om side (iPad på tvers, PC): kartets andel i prosent. Over hverandre (iPad på høykant): kartets høyde i vh.
+const DELING_BRED = [0, 35, 55, 75, 100];
+const DELING_HOY = [0, 25, 46, 65, 85];
+const stabletMq = matchMedia('(max-width: 900px)');
+let deling = { p: 55, h: 46 };
+try { Object.assign(deling, JSON.parse(hent(lagringsnokkel('deling')) || '{}')); } catch {}
+function brukDeling(lagreNa = true) {
+  const o = $('.oppsett'); if (!o) return;
+  const stablet = stabletMq.matches, { p, h } = deling;
+  o.classList.toggle('kart-skjult', stablet ? h <= 0 : p <= 0);
+  o.classList.toggle('meny-skjult', !stablet && p >= 100);
+  if (stablet) { o.style.gridTemplateColumns = ''; o.style.setProperty('--karthoyde', h + 'vh'); }
+  else o.style.gridTemplateColumns = p <= 0 ? '0px 22px minmax(0,1fr)' : p >= 100 ? 'minmax(0,1fr) 22px 0px' : `minmax(0,${p}fr) 22px minmax(0,${100 - p}fr)`;
+  $('#deler-a').textContent = stablet ? '▲' : '◀';
+  $('#deler-b').textContent = stablet ? '▼' : '▶';
+  $('#deler-a').disabled = stablet ? h <= 0 : p <= 0;
+  $('#deler-b').disabled = stablet ? h >= DELING_HOY[DELING_HOY.length - 1] : p >= 100;
+  if (lagreNa) lagre(lagringsnokkel('deling'), JSON.stringify(deling));
+}
+function stegDeling(retning) {
+  const stablet = stabletMq.matches, liste = stablet ? DELING_HOY : DELING_BRED, naa = stablet ? deling.h : deling.p;
+  const ny = retning > 0 ? liste.find((v) => v > naa + 1) : [...liste].reverse().find((v) => v < naa - 1);
+  if (ny === undefined) return;
+  if (stablet) deling.h = ny; else deling.p = ny;
+  brukDeling();
+}
+/** Sørger for at menyen synes (f.eks. når noen trykker på kartet mens menyen er skjult). */
+function sikreMeny() { if (!stabletMq.matches && deling.p >= 100) { deling.p = 55; brukDeling(); } }
+(() => {
+  const d = $('#deler'); let drar = false;
+  $('#deler-a').onclick = (e) => { e.stopPropagation(); stegDeling(-1); };
+  $('#deler-b').onclick = (e) => { e.stopPropagation(); stegDeling(1); };
+  d.addEventListener('pointerdown', (e) => { if (e.target.closest('button')) return; drar = true; d.setPointerCapture(e.pointerId); d.classList.add('drar'); e.preventDefault(); });
+  d.addEventListener('pointermove', (e) => {
+    if (!drar) return;
+    const o = $('.oppsett').getBoundingClientRect();
+    if (stabletMq.matches) {
+      const h = (e.clientY - o.top) / innerHeight * 100;
+      deling.h = Math.round(h < 8 ? 0 : Math.min(85, h));
+    } else {
+      const p = (e.clientX - o.left) / o.width * 100;
+      deling.p = Math.round(p < 12 ? 0 : p > 92 ? 100 : Math.max(20, Math.min(85, p)));
+    }
+    brukDeling(false);
+  });
+  const slipp = () => { if (!drar) return; drar = false; d.classList.remove('drar'); brukDeling(); };
+  d.addEventListener('pointerup', slipp);
+  d.addEventListener('pointercancel', slipp);
+  d.addEventListener('dblclick', (e) => { if (e.target.closest('button')) return; deling = { p: 55, h: 46 }; brukDeling(); });
+  stabletMq.addEventListener?.('change', () => brukDeling(false));
+  brukDeling(false);
+})();
+
+// ================= FOTOSTUDIO =================
+function fotoLenke() {
+  const u = new URL(window.pakkeLenke ? window.pakkeLenke('fotostudio.html') : 'fotostudio.html', location.href);
+  const l = g && !g.iLufta ? landEtterId[g.posisjon] : null;
+  if (l) u.searchParams.set('sted', l.by || l.navn);
+  return u.href;
+}
+
 // ================= INFLIGHT =================
 let fq = null, flyVist = null, hjulVinkel = 0;
 function lagreFq() { try { localStorage.setItem(lagringsnokkel('fly-') + fq.fro, JSON.stringify({ svar: fq.svar, livlinerBrukt: fq.livlinerBrukt || 0 })); } catch {} }
@@ -530,7 +640,7 @@ function tegnFane() {
   // ikke tegn om mens noen skriver i et felt (ellers mister de fokus)
   const aktiv = document.activeElement;
   if (aktiv && aktiv.matches?.('#innhold input') && fane !== 'reis') return;
-  ({ reis: tegnReis, hotell: tegnHotell, logg: tegnLogg, jobb: tegnJobb, quiz: tegnQuiz, tavle: tegnTavle })[fane]();
+  ({ reis: tegnReis, hotell: tegnHotell, logg: tegnLogg, jobb: tegnJobb, quiz: tegnQuiz, kassa: tegnKassa, tavle: tegnTavle })[fane]();
 }
 
 // ---------- send forespørsel til banken ----------
@@ -724,6 +834,7 @@ function tegnLogg() {
     <div class="malkort"><span class="f">${l.flagg}</span><div class="vokser"><h3>Reiselogg: ${esc(l.navn)}</h3><div class="liten">${st ? tekster[st] : harHotell() ? 'Ikke levert ennå' : 'Book hotell først'}</div></div></div>
     ${kanLevere ? `<p>Når dere har fylt ut den fysiske reiseloggen for ${esc(l.navn)}, trykker dere her og gir den til læreren.</p><button class="knapp sol" id="lever" ${venterPa.reiselogg ? 'disabled' : ''}>📓 Vi har levert reiseloggen</button>` : ''}
     ${diktatHtml(st, i, l)}
+    <div class="infoboks hav" style="margin-top:1rem;display:flex;gap:.8rem;align-items:center"><span style="font-size:2rem">📸</span><div class="vokser"><b>Lag et reisebilde til reiseloggen</b><br><span class="liten">Ta et gruppebilde og «teleporter» dere til ${esc(l.by || l.navn)}.</span></div><a class="knapp sol mini" href="${fotoLenke()}" target="fotostudio">Åpne</a></div>
     ${PAKKE.modell === 'land' ? `
     <h3 style="margin-top:1.4rem">Våre land (${mineLand.length})</h3>
     <div class="rad" style="margin-bottom:.4rem">${KONTINENTER.map((k) => `<span class="merke ${kont.has(k) ? 'gress' : ''}">${kont.has(k) ? '✓' : '○'} ${k}</span>`).join('')}</div>
@@ -743,6 +854,85 @@ function tegnLogg() {
     const res = await send('diktat', { land: dk.land, svar: PARLOR_ORD.map((_, n) => dk.svar[n] || '') });
     if (res.ok && /5 av 5/.test(res.svar || '')) feir('✍️');
   });
+}
+
+// ---------- KASSA (regnskap) ----------
+// Bygges fra spillets logg, der banken skriver beløpet for hver ting som koster eller gir penger.
+const KASSA_KAT = {
+  jobb: { ikon: '💼', navn: 'Jobb' }, quiz: { ikon: '🧭', navn: 'Quiz' }, diktat: { ikon: '✍️', navn: 'Parlør-diktat' },
+  duell: { ikon: '⚔️', navn: 'Duellpremier' }, heldig: { ikon: '🍀', navn: 'Heldige overraskelser' }, laererPluss: { ikon: '🧑‍🏫', navn: 'Fra læreren' },
+  reise: { ikon: '🧳', navn: 'Reiser' }, hotell: { ikon: '🏨', navn: 'Overnatting' }, uheldig: { ikon: '🌧️', navn: 'Uheldige overraskelser' }, laererMinus: { ikon: '🧑‍🏫', navn: 'Trukket av læreren' },
+};
+const REISEMATE = { fly: '✈️ Fly', tog: '🚆 Tog', buss: '🚌 Buss', bat: '⛴️ Båt' };
+let kassaAlle = false;
+const storForbokstav = (t) => (t ? String(t)[0].toUpperCase() + String(t).slice(1) : '');
+function kassaPoster() {
+  const ut = [];
+  for (const x of Object.values(spill.logg || {})) {
+    if (!x || x.gruppe !== gid) continue;
+    const tid = x.tid || 0, b = Number(x.belop) || 0;
+    if (x.type === 'billett' && b) ut.push({ tid, kat: 'reise', belop: b, tekst: x.tekst, under: x.reisemate || 'fly' });
+    else if (x.type === 'hotell') {
+      const kr = Number(x.hendelse?.kr) || 0;
+      const pris = x.pris != null ? Number(x.pris) : -(b - kr);
+      const sted = landEtterId[x.land];
+      if (pris) ut.push({ tid, kat: 'hotell', belop: -pris, tekst: `${x.navn || 'Overnatting'}${sted ? ' i ' + (sted.by || sted.navn) : ''} – 3 netter` });
+      if (kr) ut.push({ tid: tid + 1, kat: kr > 0 ? 'heldig' : 'uheldig', belop: kr, tekst: x.hendelse.tekst || 'Overraskelse' });
+    }
+    else if (['jobb', 'quiz', 'diktat', 'duell'].includes(x.type) && b) ut.push({ tid, kat: x.type, belop: b, tekst: x.tekst });
+    else if (x.type === 'lærer' && b) ut.push({ tid, kat: b > 0 ? 'laererPluss' : 'laererMinus', belop: b, tekst: x.tekst });
+  }
+  return ut.sort((a, c) => c.tid - a.tid);
+}
+function tegnKassa() {
+  const el = $('#innhold');
+  const poster = kassaPoster();
+  const start = startbelop();
+  const sumKat = {}, reiseType = {};
+  let inn = 0, ut = 0;
+  for (const p of poster) {
+    sumKat[p.kat] = (sumKat[p.kat] || 0) + p.belop;
+    if (p.belop > 0) inn += p.belop; else ut -= p.belop;
+    if (p.kat === 'reise') reiseType[p.under] = (reiseType[p.under] || 0) - p.belop;
+  }
+  const annet = Math.round((g.saldo || 0) - (start + inn - ut));
+  const innKat = Object.entries(sumKat).filter(([, v]) => v > 0).sort((a, c) => c[1] - a[1]);
+  const utKat = Object.entries(sumKat).filter(([, v]) => v < 0).map(([k, v]) => [k, -v]).sort((a, c) => c[1] - a[1]);
+  const rad = ([k, v], total, maks, utgift) => {
+    const kat = KASSA_KAT[k]; const andel = total ? Math.round(v / total * 100) : 0;
+    const under = k === 'reise' && Object.keys(reiseType).length ? Object.entries(reiseType).sort((a, c) => c[1] - a[1]).map(([t, kr]) => `${REISEMATE[t] || t} ${formaterKr(kr)}`).join(' · ') : '';
+    return `<div class="kassa-rad"><span class="ik">${kat.ikon}</span><b>${kat.navn} <span class="liten dempet">(${andel} %)</span></b><span class="bel" style="color:var(${utgift ? '--korall' : '--gress'})">${utgift ? '−' : '+'}${formaterKr(v)}</span>
+      <div class="kassa-stolpe ${utgift ? 'ut' : ''}"><i style="width:${maks ? Math.max(2, v / maks * 100) : 0}%"></i></div>${under ? `<div class="under">${under}</div>` : ''}</div>`;
+  };
+  let innsikt = '';
+  if (poster.length) {
+    const netto = inn - ut;
+    innsikt = netto >= 0
+      ? `Dere har tjent <b>${formaterKr(netto)} mer</b> enn dere har brukt. Godt jobbet! 💪`
+      : `Dere har brukt <b>${formaterKr(-netto)} mer</b> enn dere har tjent. Kanskje lurt å jobbe litt før neste reise?`;
+    if (utKat[0]) innsikt += `<br>Mest penger har gått til <b>${KASSA_KAT[utKat[0][0]].navn.toLowerCase()}</b> (${Math.round(utKat[0][1] / ut * 100)} % av utgiftene).`;
+    if (innKat[0]) innsikt += `<br>Den største inntekten deres er <b>${KASSA_KAT[innKat[0][0]].navn.toLowerCase()}</b>.`;
+  }
+  const vis = kassaAlle ? poster : poster.slice(0, 12);
+  const dato = (t) => t ? new Date(t).toLocaleString('nb-NO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  el.innerHTML = `
+    <h2>💰 Reisekassa</h2>
+    <div class="kassa-sum">
+      <div><small>Startet med</small><b>${formaterKr(start)}</b></div>
+      <div class="naa"><small>Igjen nå</small><b>${formaterKr(g.saldo || 0)}</b></div>
+      <div class="inn"><small>Tjent</small><b>+${formaterKr(inn)}</b></div>
+      <div class="ut"><small>Brukt</small><b>−${formaterKr(ut)}</b></div>
+    </div>
+    ${innsikt ? `<div class="infoboks sol">${innsikt}</div>` : '<div class="infoboks hav">Her kommer regnskapet deres: hva dere tjener penger på, og hva dere bruker dem på. Det fylles ut etter hvert som dere reiser, bor på hotell, jobber og tar quiz.</div>'}
+    <h3 style="margin-top:1.2rem">Hvor kom pengene fra?</h3>
+    ${innKat.length ? innKat.map((x) => rad(x, inn, innKat[0][1], false)).join('') : '<p class="tom">Ingen inntekter ennå. Prøv en jobb eller en quiz!</p>'}
+    <h3 style="margin-top:1.2rem">Hva brukte dere penger på?</h3>
+    ${utKat.length ? utKat.map((x) => rad(x, ut, utKat[0][1], true)).join('') : '<p class="tom">Ingen utgifter ennå.</p>'}
+    <h3 style="margin-top:1.2rem">Kontoutskrift</h3>
+    ${vis.length ? vis.map((p) => `<div class="utskrift-rad"><span>${KASSA_KAT[p.kat].ikon}</span><div><span class="tid">${dato(p.tid)}</span>${esc(storForbokstav(p.tekst))}</div><span class="${p.belop > 0 ? 'pluss' : 'minus'}">${p.belop > 0 ? '+' : '−'}${formaterKr(Math.abs(p.belop))}</span></div>`).join('') : '<p class="tom">Ingen pengebevegelser ennå.</p>'}
+    ${poster.length > 12 ? `<button class="knapp lys mini" id="kassa-alle" style="margin-top:.8rem">${kassaAlle ? 'Vis færre' : `Vis alle (${poster.length})`}</button>` : ''}
+    ${Math.abs(annet) >= 1 ? `<p class="liten dempet" style="margin-top:1rem">${annet > 0 ? '+' : '−'}${formaterKr(Math.abs(annet))} av saldoen kommer fra endringer som ikke står i regnskapet (for eksempel fra før regnskapet kom med i spillet).</p>` : ''}`;
+  $('#kassa-alle')?.addEventListener('click', () => { kassaAlle = !kassaAlle; tegnKassa(); });
 }
 
 // ---------- JOBB ----------
