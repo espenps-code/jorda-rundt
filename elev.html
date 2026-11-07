@@ -293,6 +293,7 @@ import { lagKlode } from '#pakke/klode.js';
 import { fyllPakkeTekster } from './js/side.js';
 import { ORD as PARLOR_ORD, SPRAK, sprakFor } from '#pakke/parlor.js';
 import { KATEGORIER, flySporsmal } from './data/flyquiz.js';
+import { visVelkommen, velkomstApen } from './js/velkommen.js';
 
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
@@ -395,7 +396,7 @@ async function startSpill(sid, gruppe) {
     spill = snap.val(); g = spill?.grupper?.[gid];
     if (!g) { varsle('Gruppa finnes ikke lenger.', 'feil'); return; }
     sjekkEndringer(forrige, g); sjekkNyeLand();
-    tegnTopp(); tegnUtfordringer(); tegnNeste(); tegnFane(); klode?.oppdater(spill, gid); kanskjeVisVeiviser();
+    tegnTopp(); tegnUtfordringer(); tegnNeste(); tegnFane(); klode?.oppdater(spill, gid); kanskjeVisVeiviser(); kanskjeVisVelkommen();
   }, () => { lagre(lagringsnokkel('elev-spill'), null); location.reload(); });
   try {
     klode = await lagKlode($('#klode'), { vedKlikk: (id) => { reiseMal = id; sikreMeny(); velgFane('reis'); } });
@@ -479,6 +480,25 @@ function kanskjeVisVeiviser() {
   if (veiviserSjekket) return; veiviserSjekket = true;
   let sett = null; try { sett = localStorage.getItem(vvNokkel()); } catch {}
   if (!sett) setTimeout(() => visVeiviser(0), 600);
+}
+
+// ================= VELKOMST-SLIDESHOW =================
+// Vises én gang hver gang gruppa kommer fram til et nytt sted (og ved start), før de har overnatting.
+let velkomstTimer = null;
+const velkomstNokkel = () => `${PAKKE.prefiks}-velkommen-${spillId}-${gid}-${g.posisjon}-${g.reiser || 0}`;
+function spillVelkommen() {
+  visVelkommen({ sted: landEtterId[g.posisjon], ord: ORD, telt: !!PAKKE.telt, vedOvernatting: () => { sikreMeny(); velgFane('hotell'); } });
+}
+function kanskjeVisVelkommen() {
+  if (!g || g.iLufta || harHotell() || velkomstApen() || velkomstTimer || innst(spill).pause) return;
+  if (hent(velkomstNokkel())) return;
+  velkomstTimer = setTimeout(() => {
+    velkomstTimer = null;
+    if (!g || g.iLufta || harHotell() || hent(velkomstNokkel())) return;
+    if (document.querySelector('.vv-bakgrunn, .bekreft-bg')) return kanskjeVisVelkommen(); // vent til veiviseren er lukket
+    lagre(velkomstNokkel(), '1');
+    spillVelkommen();
+  }, 1400);
 }
 
 // ================= TOPP + NESTE STEG =================
@@ -782,7 +802,7 @@ function tegnHotell() {
     if (HENDELSE_SJANSE[h.stjerner]) deler.push('🎲 overraskelser kan skje');
     return deler.join(' · ');
   };
-  el.innerHTML = `<h2>${PAKKE.telt ? 'Overnatting' : 'Hoteller'} i ${esc(l.by)}</h2>${liste.some((h) => h.telt) ? '<div class="infoboks hav">⛺ Her kan dere telte <b>gratis</b> med allemannsretten – hvis dere kan reglene!</div>' : ''}<p class="liten dempet">Prisen er per natt for hele gruppa. Dere må bo tre netter. Et bedre hotell gir bedre søvn – og mer energi til å jobbe.</p>
+  el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:.6rem;flex-wrap:wrap"><h2>${PAKKE.telt ? 'Overnatting' : 'Hoteller'} i ${esc(l.by)}</h2><button class="knapp mini lys" id="velkomst-igjen">🎬 Se velkomsten igjen</button></div>${liste.some((h) => h.telt) ? '<div class="infoboks hav">⛺ Her kan dere telte <b>gratis</b> med allemannsretten – hvis dere kan reglene!</div>' : ''}<p class="liten dempet">Prisen er per natt for hele gruppa. Dere må bo tre netter. Et bedre hotell gir bedre søvn – og mer energi til å jobbe.</p>
     ${liste.map((h) => {
       const tot = h.prisNatt * 3; const rad = (g.saldo || 0) >= tot; const lok = iLokalValuta(h.prisNatt, l);
       return `<div class="hotell"><div><h4>${esc(h.navn)}</h4><div><span class="stjerner">${'★'.repeat(h.stjerner)}</span> <span class="vurdering">${h.vurdering.toLocaleString('nb-NO')}</span> <span class="liten dempet">${h.sentrumKm.toLocaleString('nb-NO')} km fra sentrum</span></div>
@@ -795,6 +815,7 @@ function tegnHotell() {
     if (b.dataset.telt) { teltValg = { sted: g.posisjon, fro: nyId(10), svar: [] }; tegnHotell(); return; }
     const res = await send('hotell', { hotellId: b.dataset.book }); if (res.ok) { feir('🏨'); tegnNeste(); }
   });
+  $('#velkomst-igjen')?.addEventListener('click', spillVelkommen);
 }
 
 // ---------- REISELOGG ----------
