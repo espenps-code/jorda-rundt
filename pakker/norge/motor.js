@@ -3,7 +3,7 @@
 // og båt (mellom kyststeder). Billigere reiser tar lengre tid og gir flere spørsmål underveis.
 // Samme søk gir samme svar samme dag (rettferdig mellom gruppene), men prisene varierer litt fra dag til dag.
 import { LAND, landEtterId } from './land.js';
-import { togNett } from './steder.js';
+import { togNett, HURTIGRUTA } from './steder.js';
 
 // ---------- hjelpere ----------
 function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
@@ -27,6 +27,7 @@ const FLYSELSKAP = ['Nordvind Air', 'Polarlys Air', 'Fjordfly', 'Kystflyet', 'Lu
 const KNUTEPUNKT = LAND.filter((l) => l.hub);
 const OSLO = '03-oslo';
 function kanFlyDirekte(a, b, km) {
+  if (a.oy || b.oy) return [a.id, b.id].some((id) => id === OSLO || id === '55-tromso');  // Svalbard: bare fra Oslo og Tromsø
   if (a.id === OSLO || b.id === OSLO) return true;     // nesten alle flyplasser har rute til Oslo
   if (a.hub && b.hub) return true;
   if (a.hub || b.hub) return km < 800;
@@ -95,7 +96,7 @@ const OPPSETT = {
 const kystsone = (l) => (l.lng > 7.3 && l.lat < 60.2 ? 'sor' : 'vest');
 function bakkeTilbud(a, b, km, dato, personer) {
   const ut = [];
-  const kan = { tog: togNett(a) && togNett(b), buss: true, bat: a.kyst && b.kyst };
+  const kan = { tog: togNett(a) && togNett(b), buss: !a.oy && !b.oy, bat: a.kyst && b.kyst };
   const prisniva = (((a.prisniva || 1) + (b.prisniva || 1)) / 2) ** 0.8;
   for (const type of ['tog', 'buss', 'bat']) {
     if (!kan[type] || km > MAKS_KM[type]) continue;
@@ -110,7 +111,29 @@ function bakkeTilbud(a, b, km, dato, personer) {
       krav: o.c + Math.ceil(veiKm / o.omvei / o.d), prisPerPerson, personer, totalt: prisPerPerson * personer,
     });
   }
+  const hr = hurtigrutaTilbud(a, b, dato, personer);
+  if (hr) ut.push(hr);
   return ut;
+}
+
+// ---------- Hurtigruta ----------
+// Fast rute langs kysten fra Bergen til Kirkenes. Går innom alle anløpene på veien, så den er treg –
+// men rolig: færre spørsmål per kilometer enn vanlig båt, og utsikt hele veien.
+function hurtigrutaTilbud(a, b, dato, personer) {
+  const i = HURTIGRUTA.indexOf(a.id), j = HURTIGRUTA.indexOf(b.id);
+  if (i < 0 || j < 0 || i === j) return null;
+  const [fra, til] = i < j ? [i, j] : [j, i];
+  let km = 0;
+  for (let n = fra; n < til; n++) km += avstandKm(landEtterId[HURTIGRUTA[n]], landEtterId[HURTIGRUTA[n + 1]]);
+  km = Math.round(km * 1.15);                         // skipsleia er litt lengre enn luftlinja
+  const anlop = til - fra - 1;
+  const r = rng(`hurtigruta-${a.id}-${b.id}-${dato}`);
+  const prisPerPerson = runde9((250 + 0.4 * km) * (0.9 + r() * 0.2));
+  return {
+    id: `${a.id}-${b.id}-${dato}-hurtigruta`, type: 'bat', hurtigruta: true, selskap: 'Hurtigruta',
+    fra: a.id, til: b.id, stopp: anlop, via: [], avgang: klokke(r), varighetMin: Math.round(km / 28 * 60 + anlop * 30), km,
+    krav: 2 + Math.ceil(km / 400), prisPerPerson, personer, totalt: prisPerPerson * personer,
+  };
 }
 
 // ---------- overnatting ----------

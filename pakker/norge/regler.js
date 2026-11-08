@@ -5,7 +5,7 @@ import { rng, velg, stokk } from '#motor/tilfeldig.js';
 
 export const STANDARD = {
   startbelopPerElev: 20000, // kr per gruppemedlem ved start (gruppe på 4 = 80 000 kr)
-  diktatBelopPerElev: 0,  // ingen parlør-diktat i Norge rundt
+  diktatBelopPerElev: 1000, // samisk språkoppdrag i Troms og Finnmark (én gang per fylke)
   poengBy: 3,             // poeng per sted gruppa eier
   heltLand1: 5,           // bonus for å eie ALLE stedene i et fylke med 1 sted
   heltLand2: 10,          //   … med 2 steder
@@ -32,16 +32,62 @@ export function poengForGruppe(gid, eierskap, i, erStengt) {
 }
 
 // ---------- geografiquiz (Norge) ----------
-const SENTRE = LANDENE.filter((f) => f.id !== '32');        // Akershus styres fra Oslo – for forvirrende
+// Svalbard er ikke et fylke, og «Vårt sted»-stedene er ikke åpne i alle spill – derfor er de ikke med i quizen.
+const FYLKENE = LANDENE.filter((f) => f.id !== '21');
+const SENTRE = FYLKENE.filter((f) => f.id !== '32');        // Akershus styres fra Oslo – for forvirrende
+const QUIZSTEDER = LAND.filter((l) => !l.valgfri && !l.oy);
+
+// Norgesfakta: næringer, natur, kjente steder og samferdsel. [spørsmål, riktig svar, tre feil svar]
+export const NORGESFAKTA = [
+  ['Hva heter Norges høyeste fjell?', 'Galdhøpiggen', ['Glittertind', 'Snøhetta', 'Store Skagastølstind']],
+  ['Hva heter Norges lengste fjord?', 'Sognefjorden', ['Hardangerfjorden', 'Trondheimsfjorden', 'Oslofjorden']],
+  ['Hva heter Norges største innsjø?', 'Mjøsa', ['Femunden', 'Tyrifjorden', 'Randsfjorden']],
+  ['Hva heter Norges lengste elv?', 'Glomma', ['Lågen', 'Tanaelva', 'Altaelva']],
+  ['Hva heter den største isbreen på fastlandet i Norge?', 'Jostedalsbreen', ['Folgefonna', 'Svartisen', 'Hardangerjøkulen']],
+  ['Ved hvilken fjord ligger Preikestolen?', 'Lysefjorden', ['Geirangerfjorden', 'Sognefjorden', 'Nærøyfjorden']],
+  ['Hvilken fjord står på UNESCOs verdensarvliste sammen med Geirangerfjorden?', 'Nærøyfjorden', ['Lysefjorden', 'Oslofjorden', 'Trondheimsfjorden']],
+  ['Hva kalles det når sola er oppe hele døgnet om sommeren i nord?', 'Midnattssol', ['Mørketid', 'Nordlys', 'Jevndøgn']],
+  ['Hva kalles tiden om vinteren når sola ikke kommer over horisonten i Nord-Norge?', 'Mørketid', ['Midnattssol', 'Polarnatt-ferie', 'Vintersolverv-uka']],
+  ['Hvor må dere være for å kunne se midnattssol?', 'Nord for polarsirkelen', ['Sør for Oslo', 'Bare på Vestlandet', 'Ved ekvator']],
+  ['I hvilket fylke krysser toget polarsirkelen på vei nordover?', 'Nordland', ['Trøndelag', 'Troms', 'Finnmark']],
+  ['Hvilket oljefelt i Nordsjøen ble funnet i 1969 og startet oljeeventyret?', 'Ekofisk', ['Troll', 'Statfjord', 'Snøhvit']],
+  ['Hvilken by kalles ofte Norges oljehovedstad?', 'Stavanger', ['Bergen', 'Kristiansund', 'Hammerfest']],
+  ['Hva er Norges største eksportvare?', 'Olje og gass', ['Fisk', 'Tømmer', 'Aluminium']],
+  ['Hvilken fisk henges til tørk på hjeller i Lofoten og blir til tørrfisk?', 'Torsk', ['Laks', 'Makrell', 'Sild']],
+  ['Hva var det gruvene på Røros hentet opp i over 300 år?', 'Kobber', ['Sølv', 'Gull', 'Kull']],
+  ['Hva var det gruvene på Kongsberg hentet opp?', 'Sølv', ['Kobber', 'Jern', 'Kull']],
+  ['Hvilket sted er kjent for Vemork og tungtvannsaksjonen under krigen?', 'Rjukan', ['Kongsberg', 'Røros', 'Narvik']],
+  ['Hvor ligger Sametinget?', 'Karasjok', ['Tromsø', 'Alta', 'Kautokeino']],
+  ['Hvilket språk er offisielt språk sammen med norsk i flere kommuner i nord?', 'Samisk', ['Finsk', 'Svensk', 'Russisk']],
+  ['Hvilket dyr gjeter mange samiske familier på vidda?', 'Rein', ['Elg', 'Sau', 'Hjort']],
+  ['Hvor ligger Bryggen, som står på UNESCOs verdensarvliste?', 'Bergen', ['Trondheim', 'Ålesund', 'Stavanger']],
+  ['I hvilken by ligger Nidarosdomen?', 'Trondheim', ['Bergen', 'Oslo', 'Stavanger']],
+  ['Hvilken by arrangerte vinter-OL i 1994?', 'Lillehammer', ['Oslo', 'Trondheim', 'Geilo']],
+  ['I hvilket fylke ligger Atlanterhavsveien?', 'Møre og Romsdal', ['Vestland', 'Nordland', 'Rogaland']],
+  ['Mellom hvilke to byer går Bergensbanen?', 'Oslo og Bergen', ['Oslo og Trondheim', 'Bergen og Stavanger', 'Trondheim og Bodø']],
+  ['Mellom hvilke to steder går Hurtigruta?', 'Bergen og Kirkenes', ['Oslo og Tromsø', 'Stavanger og Bodø', 'Trondheim og Hammerfest']],
+  ['Hva heter hovedstedet på Svalbard?', 'Longyearbyen', ['Ny-Ålesund', 'Barentsburg', 'Hammerfest']],
+  ['Hvor mange fylker har Norge?', '15', ['11', '19', '23']],
+  ['Hvilken dag er Norges nasjonaldag?', '17. mai', ['1. mai', '7. juni', '24. desember']],
+  ['I hvilket fylke ligger Nordkapp?', 'Finnmark', ['Troms', 'Nordland', 'Svalbard']],
+];
+
 export function lagQuiz(fro, antall = 5) {
   const r = rng('quiz-' + fro);
   const spm = [];
-  const typer = stokk(r, ['fylke', 'senter', 'landsdel', 'nord', 'fylke', 'senterfylke', 'nord']);
+  const typer = stokk(r, ['fylke', 'senter', 'landsdel', 'nord', 'fakta', 'senterfylke', 'fakta']);
+  const brukteFakta = new Set();
   for (let n = 0; n < antall; n++) {
     const type = typer[n % typer.length];
-    if (type === 'fylke') {
-      const s = velg(r, LAND);
-      const feil = stokk(r, LANDENE.filter((f) => f.id !== s.landId)).slice(0, 3);
+    if (type === 'fakta') {
+      let k = Math.floor(r() * NORGESFAKTA.length);
+      while (brukteFakta.has(k)) k = (k + 1) % NORGESFAKTA.length;
+      brukteFakta.add(k);
+      const [tekst, svar, feil] = NORGESFAKTA[k];
+      spm.push({ tekst, valg: stokk(r, [svar, ...feil]), svar });
+    } else if (type === 'fylke') {
+      const s = velg(r, QUIZSTEDER);
+      const feil = stokk(r, FYLKENE.filter((f) => f.id !== s.landId)).slice(0, 3);
       spm.push({ tekst: `I hvilket fylke ligger ${s.navn}?`, valg: stokk(r, [s.landNavn, ...feil.map((f) => f.navn)]), svar: s.landNavn });
     } else if (type === 'senter') {
       const f = velg(r, SENTRE);
@@ -52,10 +98,10 @@ export function lagQuiz(fro, antall = 5) {
       const feil = stokk(r, SENTRE.filter((x) => x.id !== f.id)).slice(0, 3).map((x) => x.navn);
       spm.push({ tekst: `${f.by} er administrasjonssenter i hvilket fylke?`, valg: stokk(r, [f.navn, ...feil]), svar: f.navn });
     } else if (type === 'landsdel') {
-      const s = velg(r, LAND);
+      const s = velg(r, QUIZSTEDER);
       spm.push({ tekst: `I hvilken landsdel ligger ${s.navn}?`, valg: stokk(r, [s.kontinent, ...stokk(r, LANDSDELER.filter((x) => x !== s.kontinent)).slice(0, 3)]), svar: s.kontinent });
     } else {
-      const tre = stokk(r, LAND).slice(0, 3).sort((a, b) => b.lat - a.lat);
+      const tre = stokk(r, QUIZSTEDER).slice(0, 3).sort((a, b) => b.lat - a.lat);
       if (tre[0].lat - tre[1].lat < 1) { n--; continue; }
       spm.push({ tekst: `Hvilket sted ligger lengst nord?`, valg: stokk(r, tre.map((l) => l.navn)), svar: tre[0].navn });
     }
@@ -97,3 +143,33 @@ export const TELTHENDELSER = [
   { tekst: '⛺ Teltstanga knakk – ny stang kostet litt.', kr: -300 },
   { tekst: '🎣 Dere fikk fisk til middag og sparte matpenger.', kr: 200 },
 ];
+
+// ---------- natur- og værhendelser på reisen ----------
+// Når en gruppe kommer fram, kan det ha skjedd noe underveis. Hendelsene følger årstiden og reisemåten.
+// Brukes av banken (js/bank.js → landing). kr ganges med prisnivået på stedet dere kom til.
+const ARSTID = (mnd) => (mnd === 12 || mnd <= 3 ? 'vinter' : mnd <= 5 ? 'var' : mnd <= 8 ? 'sommer' : 'host');
+const REISEHENDELSER = [
+  { arstid: ['vinter'], typer: ['buss', 'tog'], tekst: '❄️ Fjellovergangen var stengt på grunn av snøstorm. Dere ventet i timevis og måtte kjøpe varm mat.', kr: -300 },
+  { arstid: ['vinter'], nord: true, tekst: '🌌 Nordlyset danset over himmelen da dere kom fram! Dere solgte et bilde til lokalavisa.', kr: 500 },
+  { arstid: ['vinter'], typer: ['fly'], tekst: '🧊 Flyet måtte avises før avgang og ble forsinket. Dere fikk matkupong av flyselskapet.', kr: 150 },
+  { arstid: ['vinter', 'host'], typer: ['bat'], tekst: '🌊 Storm langs kysten! Båten ble forsinket, og dere måtte kjøpe mat om bord.', kr: -250 },
+  { arstid: ['host'], tekst: '🍄 Dere plukket blåbær og sopp i en pause underveis og sparte matpenger.', kr: 200 },
+  { arstid: ['host', 'var'], typer: ['buss'], tekst: '🌧️ Regnet høljet ned, og et ras stengte veien. Bussen måtte kjøre en lang omvei.', kr: -200 },
+  { arstid: ['var'], tekst: '🌊 Snøsmeltingen gjorde elvene flomstore. Dere tok en ekstra tur for å se fossene – og fikk tips om en jobb!', kr: 300 },
+  { arstid: ['var'], dato: '05-17', tekst: '🇳🇴 Dere kom fram midt i 17. mai-toget! Noen spanderte is og pølser på hele gruppa.', kr: 300 },
+  { arstid: ['sommer'], nord: true, tekst: '☀️ Midnattssol! Dere var så opplagte at dere hjalp til på en kafé hele natta.', kr: 400 },
+  { arstid: ['sommer'], typer: ['buss'], tekst: '🐑 En saueflokk sperret veien i en halvtime. Sjåføren ble sur, men dere fikk fine bilder.', kr: 0 },
+  { arstid: ['sommer'], tekst: '🦟 Myggen var overalt der dere stoppet. Dere måtte kjøpe myggmiddel.', kr: -150 },
+  { arstid: ['sommer'], typer: ['bat'], tekst: '🐋 Hval ved siden av båten! En turist kjøpte videoen deres.', kr: 400 },
+];
+export const REISEHENDELSE_SJANSE = 0.35;
+/** En tilfeldig hendelse som passer reisen, eller null. tilfeldig = () => tall mellom 0 og 1 */
+export function reisehendelse({ type, til, dato }, tilfeldig = Math.random) {
+  if (tilfeldig() >= REISEHENDELSE_SJANSE) return null;
+  const mnd = Number(String(dato).slice(5, 7)); const dag = String(dato).slice(5, 10);
+  const sted = landEtterId[til]; if (!sted) return null;
+  const nord = sted.lat >= 66.5;                         // nord for polarsirkelen
+  const passer = REISEHENDELSER.filter((h) => h.arstid.includes(ARSTID(mnd)) && (!h.typer || h.typer.includes(type))
+    && (!h.nord || nord) && (!h.dato || h.dato === dag));
+  return passer.length ? passer[Math.floor(tilfeldig() * passer.length)] : null;
+}

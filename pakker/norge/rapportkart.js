@@ -23,7 +23,8 @@ export function kartSvg(fylker, gid, farge, rute, eide, besokt) {
     const fyll = eideFylker.has(f.properties?.fylkesnummer) ? farge + '33' : '#fbf7ee';
     return `<path d="${sti}" fill="${fyll}" stroke="#b8c7d1" stroke-width=".7"/>`;
   }).join('');
-  const steder = LAND.map((l) => eide.has(l.id) ? `<circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="7" fill="${farge}" stroke="#fff" stroke-width="1.6"/>`
+  // valgfrie «Vårt sted»-steder og Svalbard tegnes bare hvis gruppa har vært der
+  const steder = LAND.filter((l) => !(l.valgfri || l.oy) || eide.has(l.id) || besokt.has(l.id)).map((l) => eide.has(l.id) ? `<circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="7" fill="${farge}" stroke="#fff" stroke-width="1.6"/>`
     : besokt.has(l.id) ? `<circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="5" fill="#fff" stroke="${farge}" stroke-width="2"/>`
     : `<circle cx="${px(l.lng)}" cy="${py(l.lat)}" r="2.2" fill="#9aa8b2"/>`).join('');
   let linjer = '';

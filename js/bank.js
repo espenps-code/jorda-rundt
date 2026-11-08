@@ -7,11 +7,12 @@
 import { r, get, update, push, remove, onValue, runTransaction } from './fb.js';
 import { flyTilbud, hoteller } from '#pakke/motor.js';
 import { rettDiktat, ORD } from '#pakke/parlor.js';
+import * as PARLOR from '#pakke/parlor.js';   // harDiktat finnes bare i noen spillpakker
 import { rettFlyquiz, kravFor, MAKS_SPORSMAL } from '../data/flyquiz.js';
 import { landKode, landInfo } from '#pakke/land.js';
 import {
   innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, landEtterId, formaterKr, nyId,
-  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER, duellPulje,
+  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER, duellPulje, reisehendelse, DIKTATNAVN,
 } from './felles.js';
 
 const iArbeid = new Set();
@@ -122,14 +123,14 @@ function fly(spillId, gid, d, i, spill) {
     g.hotell = null;
     g.iLufta = {
       fra, til: d.til, krav, fro: nyId(12), startet: Date.now(), livliner, type,
-      selskap: tilbud.selskap, stopp: tilbud.stopp, via: tilbud.via.map((v) => v.by),
+      selskap: tilbud.selskap, stopp: tilbud.stopp, via: tilbud.via.map((v) => v.by), ...(tilbud.hurtigruta ? { hurtigruta: true } : {}),
       flight: `${tilbud.selskap.split(' ').map((o) => o[0]).join('').slice(0, 2).toUpperCase()}${100 + (parseInt(tilbud.id.replace(/\D/g, '').slice(-3) || '0', 10) % 900)}`,
     };
     const til = landEtterId[d.til];
     const ikon = { fly: '✈️', tog: '🚆', buss: '🚌', bat: '⛴️' }[type];
     return {
       melding: `God tur! Svar riktig på ${krav} spørsmål underveis for å komme fram til ${til.by}.`,
-      logg: { type: 'billett', belop: -pris, fra, til: d.til, reisemate: type, tekst: `${{ fly: 'tok av mot', tog: 'tok toget mot', buss: 'tok bussen mot', bat: 'tok båten mot' }[type] || 'reiste mot'} ${til.flagg} ${til.navn} ${ikon}` },
+      logg: { type: 'billett', belop: -pris, fra, til: d.til, reisemate: type, tekst: `${tilbud.hurtigruta ? 'tok Hurtigruta mot' : ({ fly: 'tok av mot', tog: 'tok toget mot', buss: 'tok bussen mot', bat: 'tok båten mot' }[type] || 'reiste mot')} ${til.flagg} ${til.navn} ${ikon}` },
     };
   });
 }
@@ -145,9 +146,17 @@ function landing(spillId, gid, d) {
     g.posisjon = f.til;
     g.iLufta = null;
     g.reiser = (g.reiser || 0) + 1;
+    // Natur- og værhendelse underveis (bare spillpakker som har det). kr følger prisnivået på stedet.
+    const h = reisehendelse ? reisehendelse({ type: f.type || 'fly', fra: f.fra, til: f.til, dato: idag() }) : null;
+    let hKr = 0, hTekst = '';
+    if (h) {
+      hKr = h.kr ? Math.max(50, Math.round(Math.abs(h.kr) * Math.pow(til.prisniva || 1, 0.8) / 10) * 10) * Math.sign(h.kr) : 0;
+      if (hKr) g.saldo = Math.max(0, (g.saldo || 0) + hKr);
+      hTekst = ` ${h.tekst}${hKr ? ` (${hKr > 0 ? '+' : '−'}${formaterKr(Math.abs(hKr))})` : ''}`;
+    }
     return {
-      melding: `${f.type && f.type !== 'fly' ? '🏁' : '🛬'} Velkommen til ${til.by}, ${til.landNavn}! Husk å booke hotell.`,
-      logg: { type: 'fly', reisemate: f.type || 'fly', fra: f.fra, til: f.til, turbulens: svar.length - riktige, stopp: f.stopp, tekst: `${f.type && f.type !== 'fly' ? 'kom fram til' : 'landet i'} ${til.flagg} ${til.navn} (${svar.length - riktige} ${f.type && f.type !== 'fly' ? 'feil' : 'turbulens'})` },
+      melding: `${f.type && f.type !== 'fly' ? '🏁' : '🛬'} Velkommen til ${til.by}, ${til.landNavn}! Husk å booke hotell.${hTekst}`,
+      logg: { type: 'fly', reisemate: f.type || 'fly', fra: f.fra, til: f.til, turbulens: svar.length - riktige, stopp: f.stopp, ...(hKr ? { belop: hKr } : {}), ...(h ? { hendelse: h.tekst } : {}), tekst: `${f.type && f.type !== 'fly' ? 'kom fram til' : 'landet i'} ${til.flagg} ${til.navn} (${svar.length - riktige} ${f.type && f.type !== 'fly' ? 'feil' : 'turbulens'})${hTekst ? ' –' + hTekst : ''}` },
     };
   });
 }
@@ -243,6 +252,7 @@ function kanTaDiktat(spill, gid, stedId, i) {
   const g = spill.grupper[gid]; const l = landEtterId[stedId]; const lk = landKode(stedId); const ln = landInfo[lk]?.navn || 'landet';
   if (!i.diktatBelopPerElev) return 'Diktat er slått av av læreren.';
   if (!l) return `Ukjent ${O.sted}.`;
+  if (PARLOR.harDiktat && !PARLOR.harDiktat(stedId)) return `Det er ikke noe ${DIKTATNAVN.toLowerCase()} her.`;
   if (!LEVERT.includes(spill.reiselogger?.[gid]?.[stedId]?.status)) return `Dere må levere reiseloggen for ${O.stedet} før dere kan ta diktaten.`;
   if (g.diktat?.[lk]) return `Dere har allerede klart diktaten for ${ln}.`;
   if (g.diktatForsok?.[idag()]?.[lk]) return `Dere har allerede prøvd diktaten for ${ln} i dag. Prøv igjen i morgen!`;
@@ -276,11 +286,11 @@ async function diktat(spillId, gid, d, i, spill) {
       const belop = i.diktatBelopPerElev * (g.personer || 4);
       g.diktat = { ...(g.diktat || {}), [lk]: true };
       g.saldo = (g.saldo || 0) + belop;
-      return { melding: `5 av 5 riktige! Dere fikk ${formaterKr(belop)}. 🎉`, logg: { type: 'diktat', belop, land: d.land, tekst: `klarte parlør-diktaten for ${ln.flagg} ${ln.navn} (5/5) ✍️` } };
+      return { melding: `5 av 5 riktige! Dere fikk ${formaterKr(belop)}. 🎉`, logg: { type: 'diktat', belop, land: d.land, tekst: `klarte ${DIKTATNAVN.toLowerCase()} for ${ln.flagg} ${ln.navn} (5/5) ✍️` } };
     }
     g.diktatForsok = { [dag]: { ...(g.diktatForsok?.[dag] || {}), [lk]: true } };
     const feil = ORD.filter((_, n) => !res.resultat[n]).map((o) => `«${o.norsk}»`).join(', ');
-    return { melding: `${res.riktige} av ${res.antall} riktige. Sjekk ${feil} og prøv igjen i morgen!`, logg: { type: 'diktat', land: d.land, tekst: `prøvde parlør-diktaten for ${ln.flagg} ${ln.navn} (${res.riktige}/${res.antall})` } };
+    return { melding: `${res.riktige} av ${res.antall} riktige. Sjekk ${feil} og prøv igjen i morgen!`, logg: { type: 'diktat', land: d.land, tekst: `prøvde ${DIKTATNAVN.toLowerCase()} for ${ln.flagg} ${ln.navn} (${res.riktige}/${res.antall})` } };
   });
 }
 
@@ -301,7 +311,7 @@ export async function godkjennDiktatManuelt(spillId, gid, stedId) {
   const belop = i.diktatBelopPerElev * (g.personer || 4);
   await update(r(`spill/${spillId}/grupper/${gid}/diktat`), { [lk]: true });
   await runTransaction(r(`spill/${spillId}/grupper/${gid}/saldo`), (s) => (s || 0) + belop);
-  await logg(spillId, { gruppe: gid, type: 'diktat', belop, land: landId, tekst: `fikk parlør-diktaten for ${l.flagg} ${l.navn} godkjent av læreren ✍️` });
+  await logg(spillId, { gruppe: gid, type: 'diktat', belop, land: landId, tekst: `fikk ${DIKTATNAVN.toLowerCase()} for ${l.flagg} ${l.navn} godkjent av læreren ✍️` });
   return `${g.navn} fikk ${formaterKr(belop)} for diktaten i ${l.navn}.`;
 }
 

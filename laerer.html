@@ -271,6 +271,7 @@
           </div>
         </div>
         <p class="liten dempet" id="landhjelp"></p>
+        <div id="vartsted" style="display:none;margin:.6rem 0 1rem;padding:.9rem 1rem;border-radius:12px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.35)"></div>
         <div style="overflow-x:auto"><table class="landtabell"><thead><tr><th></th><th id="kolSted">Sted</th><th id="kolRegion">Region</th><th>Eier</th><th>Status</th><th></th></tr></thead><tbody id="landrader"></tbody></table></div>
       </div>
     </section>
@@ -357,7 +358,7 @@ import { monterInnlogging } from './js/laererinn.js';
 import { auth, db, ref, r, get, set, update, remove, push, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
 import { DUELLER } from './data/dueller.js';
-import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel, duellOppgave, egneDuellerI, renDuell, duellPulje } from './js/felles.js';
+import { STANDARD_INNSTILLINGER, GRUPPEFARGER, GRUPPENAVN, innst, startbelopFor, poengtavle, erStengt, erLaast, laasesOm, nedtelling, formaterKr, nyId, LAND, landEtterId, landInfo, landKode, byerILand, PAKKE, ORD, stor, lagringsnokkel, duellOppgave, egneDuellerI, renDuell, duellPulje, erSynlig, DIKTATNAVN } from './js/felles.js';
 import { tilfeldigStart } from '#pakke/motor.js';
 import { fyllPakkeTekster, lenke, fullLenke } from './js/side.js';
 import { SPILLPAKKER, pakkeAdresse } from './js/pakkeliste.js';
@@ -381,7 +382,16 @@ $('#poengfelt').innerHTML = PAKKE.modell === 'land' ? `
             <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>` : `
             <div class="felt"><label>Poeng per ${ORD.sted}</label><input type="number" name="poengBy" min="0"></div>
             <div class="felt"><label>Bonus for hele ${ORD.regionen}</label><div class="rad" style="gap:.3rem;flex-wrap:nowrap"><input type="number" name="heltLand1" min="0" title="1 ${ORD.sted}" style="width:3.6rem"><input type="number" name="heltLand2" min="0" title="2 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand3" min="0" title="3 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand4" min="0" title="4 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand5" min="0" title="5 ${ORD.steder}" style="width:3.6rem"></div><div class="hjelp">For ${ORD.regioner} med 1, 2, 3, 4 og 5 ${ORD.steder}. Gis når én gruppe eier alle ${ORD.stedene} i ${ORD.regionen}. Standard 5 · 10 · 20 · 30 · 40.</div></div>`;
-// Spillpakker uten parlør-diktat (Norge rundt): skjul diktatfeltene og -knappene
+// Diktaten heter noe annet i noen spill (Norge rundt: «Samisk språkoppdrag»)
+if (PAKKE.diktatNavn) {
+  for (const n of ['diktatMinutter', 'diktatBelopPerElev']) {
+    const lab = document.querySelector(`[name="${n}"]`)?.closest('.felt')?.querySelector('label');
+    if (lab) lab.textContent = lab.textContent.replace('Parlør-diktat', PAKKE.diktatNavn);
+  }
+  const hj = document.querySelector('[name="diktatBelopPerElev"]')?.closest('.felt')?.querySelector('.hjelp');
+  if (hj) hj.textContent = 'Gis for 5 av 5 riktige på nordsamisk, én gang per fylke (bare Troms og Finnmark). Gruppe på 4 får 4 × beløpet. 0 = av.';
+}
+// Spillpakker uten parlør-diktat: skjul diktatfeltene og -knappene
 if (PAKKE.diktat === false) {
   for (const n of ['diktatMinutter', 'diktatBelopPerElev']) { const el = document.querySelector(`[name="${n}"]`); if (el) el.closest('.felt').style.display = 'none'; }
   document.head.insertAdjacentHTML('beforeend', '<style>[data-diktat]{display:none!important}</style>');
@@ -663,7 +673,7 @@ function tegnOversikt() {
   $('#diktater').innerHTML = diktater.map(([gid, k]) => {
     const l = landEtterId[k.land];
     const igjen = k.aapnet && i.diktatMinutter ? Math.max(0, Math.ceil((k.aapnet + i.diktatMinutter * 60000 - Date.now()) / 1000)) : null;
-    return `<div class="oppgave"><span class="flagg">✍️</span><div class="vokser"><b>${prikk(gid)} ${esc(gnavn(gid))}</b> ber om parlør-diktat<br><span class="liten">${l.flagg} ${esc(l.navn)} · ${k.aapnet ? `<span class="merke gress">åpen${igjen != null ? ` – <span data-slutt="${k.aapnet + i.diktatMinutter * 60000}">${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}</span> igjen` : ''}</span>` : '<span class="merke sol">venter på deg</span>'}</span></div>
+    return `<div class="oppgave"><span class="flagg">✍️</span><div class="vokser"><b>${prikk(gid)} ${esc(gnavn(gid))}</b> ber om ${esc(DIKTATNAVN.toLowerCase())}<br><span class="liten">${l.flagg} ${esc(l.navn)} · ${k.aapnet ? `<span class="merke gress">åpen${igjen != null ? ` – <span data-slutt="${k.aapnet + i.diktatMinutter * 60000}">${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}</span> igjen` : ''}</span>` : '<span class="merke sol">venter på deg</span>'}</span></div>
       ${k.aapnet ? `<button class="knapp lys mini" data-lukkdk="${gid}">Lukk</button>` : `<button class="knapp gress mini" data-aapnedk="${gid}">Åpne diktat</button><button class="knapp lys mini" data-lukkdk="${gid}">Ikke nå</button>`}</div>`;
   }).join('');
   $$('[data-aapnedk]').forEach((b) => b.onclick = () => { b.disabled = true; aapneDiktat(spillId, b.dataset.aapnedk); });
@@ -861,7 +871,9 @@ function tegnLand() {
   const i = innst(spill);
   const sok = $('#landsok').value.trim().toLowerCase();
   const filter = $('#landfilter').value;
+  tegnVartSted(i);
   const rader = LAND.filter((l) => {
+    if (!erSynlig(l.id, i)) return false;   // valgfrie «Vårt sted»-steder vises først når de er åpnet
     if (sok && !l.navn.toLowerCase().includes(sok) && !l.by.toLowerCase().includes(sok) && !l.landNavn.toLowerCase().includes(sok)) return false;
     if (filter === 'eid' && !spill.eierskap?.[l.id]) return false;
     if (filter === 'stengt' && !erStengt(l.id, i)) return false;
@@ -874,7 +886,7 @@ function tegnLand() {
       if (erLaast(e, i)) status = '<span class="merke">🔒 låst</span>';
       else { const ms = laasesOm(e, i); status = `<span class="merke sol">åpen for utfordring${ms != null ? ' · låses om ' + nedtelling(ms) : ''}</span>`; }
     }
-    return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td>${PAKKE.modell === 'land' ? `<td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>` : `<td><b>${esc(l.navn)}</b>${l.hovedstad ? ' <span class="liten dempet">★</span>' : ''}</td><td class="liten">${esc(l.landNavn)}</td>`}
+    return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td>${PAKKE.modell === 'land' ? `<td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>` : `<td><b>${l.valgfri ? '🏠 ' : ''}${esc(l.navn)}</b>${l.hovedstad ? ' <span class="liten dempet">★</span>' : ''}${l.valgfri ? ' <span class="liten dempet">vårt sted</span>' : ''}</td><td class="liten">${esc(l.landNavn)}</td>`}
       <td>${e ? `<span class="gruppenavn">${prikk(e.gruppe)} ${esc(gnavn(e.gruppe))}</span>` : '<span class="dempet">–</span>'}</td>
       <td>${stengt ? `<span class="merke korall" title="${esc(l.stengt || 'stengt av lærer')}">stengt</span> ` : ''}${status}</td>
       <td style="white-space:nowrap;text-align:right">
@@ -900,6 +912,32 @@ function tegnLand() {
   });
 }
 $('#landsok').oninput = tegnLand; $('#landfilter').onchange = tegnLand;
+
+// ---------- «Vårt sted» (spillpakker med valgfrie steder, f.eks. Norge rundt) ----------
+// Valgfrie steder er stengt fra start. Læreren åpner klassens hjemsted, så blir det et vanlig sted i spillet.
+function tegnVartSted(i) {
+  const boks = $('#vartsted');
+  const valgfrie = LAND.filter((l) => l.valgfri);
+  if (!valgfrie.length) { boks.style.display = 'none'; return; }
+  const apne = valgfrie.filter((l) => !erStengt(l.id, i));
+  const lukket = valgfrie.filter((l) => erStengt(l.id, i));
+  const perFylke = {};
+  for (const l of lukket) (perFylke[l.landNavn] ||= []).push(l);
+  boks.style.display = '';
+  boks.innerHTML = `<b>🏠 Vårt sted</b> – legg til hjemstedet deres, så kan elevene reise dit og erobre det.
+    ${apne.length ? `<div class="rad" style="gap:.4rem;margin:.6rem 0;flex-wrap:wrap">${apne.map((l) => `<span class="merke sol">🏠 ${esc(l.navn)} <button class="knapp mini lys" data-vartfjern="${l.id}" title="Fjern ${esc(l.navn)} fra spillet" style="margin-left:.3rem">✕</button></span>`).join('')}</div>` : ''}
+    <div class="rad" style="gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
+      <select id="vartvalg" style="width:auto;min-width:14rem" aria-label="Velg hjemsted">${Object.keys(perFylke).sort((a, b) => a.localeCompare(b, 'nb')).map((f) => `<optgroup label="${esc(f)}">${perFylke[f].sort((a, b) => a.navn.localeCompare(b.navn, 'nb')).map((l) => `<option value="${l.id}">${esc(l.navn)}</option>`).join('')}</optgroup>`).join('')}</select>
+      <button class="knapp mini gress" id="vartleggtil">Legg til</button>
+    </div>
+    <p class="liten dempet" style="margin:.5rem 0 0">Står ikke stedet deres i lista? Velg det nærmeste. Hjemstedet teller som et vanlig ${ORD.sted} i ${ORD.regionen}.</p>`;
+  $('#vartleggtil').onclick = () => { const id = $('#vartvalg').value; if (id) set(r(`spill/${spillId}/innstillinger/stengte/${id}`), false); };
+  $$('[data-vartfjern]').forEach((b) => b.onclick = async () => {
+    const l = landEtterId[b.dataset.vartfjern];
+    if (spill.eierskap?.[l.id] && !(await bekreft(`Fjerne ${esc(l.navn)}?`, `En gruppe eier ${esc(l.navn)}. Stedet forsvinner fra spillet, men eierskapet blir liggende til du legger det til igjen.`, 'Fjern'))) return;
+    set(r(`spill/${spillId}/innstillinger/stengte/${l.id}`), null);
+  });
+}
 
 // ---------- dueller ----------
 // Eierens egne dueller kopieres inn i spillet (spill/<id>/egneDueller), så alle lærerne i spillet og tavla ser dem.

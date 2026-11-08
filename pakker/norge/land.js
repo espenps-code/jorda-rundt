@@ -16,9 +16,10 @@ export const LAND = STEDER.map((s) => {
   return {
     id: s.id, navn: s.navn, by: s.navn, flagg: '🇳🇴', lat: s.lat, lng: s.lng,
     kontinent: f.kontinent, valuta: 'NOK', valutaNavn: 'norske kroner', kurs: 1,
-    prisniva: s.pris, hub: s.knute, liten: false, stengt: null,
+    prisniva: s.pris, hub: s.knute, liten: false,
+    stengt: s.valgfri ? 'kan åpnes som «Vårt sted» under Steder' : null,   // valgfrie steder er stengt til læreren åpner dem
     landId: s.fylke, landNavn: f.navn, hovedstad: s.hs,
-    tog: s.tog, kyst: s.kyst, fly: s.fly, telt: s.telt, oy: false,
+    tog: s.tog, kyst: s.kyst, fly: s.fly, telt: s.telt, oy: s.oy, valgfri: s.valgfri,
   };
 });
 export const landEtterId = Object.fromEntries(LAND.map((l) => [l.id, l]));
@@ -28,3 +29,6 @@ export const KONTINENTER = LANDSDELER;
 export const landKode = (id) => landEtterId[id]?.landId || String(id || '').split('-')[0];
 /** Alle stedene i et fylke, administrasjonssenteret først */
 export const byerILand = (kode) => LAND.filter((l) => l.landId === kode).sort((a, b) => b.hovedstad - a.hovedstad);
+
+/** Skal stedet vises? Valgfrie «Vårt sted»-steder er skjult til læreren har åpnet dem. erStengt = (id) => bool */
+export const synlig = (l, erStengt) => !l.valgfri || !erStengt(l.id);

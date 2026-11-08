@@ -19,5 +19,6 @@ export const PAKKE = {
   },
   reisemater: ['fly', 'tog', 'buss', 'bat'],
   telt: true,
-  diktat: false,           // ingen parlør-diktat (feltene skjules på lærersiden)              // overnatting i telt med allemannsretten (se regler.js)
+  diktat: true,            // samisk språkoppdrag – bare i Troms og Finnmark (se parlor.js → harDiktat)
+  diktatNavn: 'Samisk språkoppdrag',
 };

@@ -66,6 +66,12 @@ export function erStengt(stedId, innstillinger) {
   return !!l.stengt;
 }
 
+/** Skal stedet vises på kart og i lister? Valgfrie «Vårt sted»-steder er skjult til læreren åpner dem. */
+export function erSynlig(stedId, innstillinger) {
+  const l = landEtterId[stedId]; if (!l) return false;
+  return !l.valgfri || !erStengt(stedId, innstillinger);
+}
+
 /** Er et eid land låst (kan ikke lenger utfordres)? */
 export function erLaast(eierskap, innstillinger, naa = Date.now()) {
   if (!eierskap) return false;
@@ -161,6 +167,8 @@ export const lagQuiz = REGLER.lagQuiz;
 export const teltQuiz = REGLER.teltQuiz || null;
 export const rettTeltQuiz = REGLER.rettTeltQuiz || null;
 export const TELTHENDELSER = REGLER.TELTHENDELSER || null;
+// ---------- natur- og værhendelser på reisen (bare spillpakker som har det, f.eks. Norge rundt) ----------
+export const reisehendelse = REGLER.reisehendelse || null;
 export function rettQuiz(fro, svar = []) {
   const q = lagQuiz(fro);
   return { riktige: q.filter((s, i) => svar[i] === s.svar).length, antall: q.length };
@@ -242,5 +250,7 @@ export function stedNavn(id) { const l = landEtterId[id]; return l ? `${l.by}, $
 export const stor = (t) => (t ? t[0].toUpperCase() + t.slice(1) : '');
 /** Ordene til spillpakken (land/by …), se pakker/<spill>/pakke.js */
 export const ORD = PAKKE.ord;
+/** Navnet på diktaten i dette spillet («Parlør-diktat», eller «Samisk språkoppdrag» i Norge rundt) */
+export const DIKTATNAVN = PAKKE.diktatNavn || 'Parlør-diktat';
 /** Nøkkel for lagring i nettleseren, f.eks. lagringsnokkel('spill') → 'jr-spill' / 'eu-spill' */
 export const lagringsnokkel = (navn) => `${PAKKE.prefiks}-${navn}`;

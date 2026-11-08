@@ -286,12 +286,13 @@
 <script type="module">
 import { auth, r, get, set, push, onValue, loggInnElev, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { flyTilbud, hoteller, formaterVarighet, iLokalValuta, avstandKm } from '#pakke/motor.js';
-import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, formaterKr, laasesVed, oppdaterNedtellinger, nedtelling, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER, landInfo, landKode, byerILand, heltLandBonus, PAKKE, ORD, stor, lagringsnokkel, teltQuiz } from './js/felles.js';
+import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, formaterKr, laasesVed, oppdaterNedtellinger, nedtelling, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER, landInfo, landKode, byerILand, heltLandBonus, PAKKE, ORD, stor, lagringsnokkel, teltQuiz, erSynlig, DIKTATNAVN } from './js/felles.js';
 fyllPakkeTekster();
 document.title = PAKKE.navn;
 import { lagKlode } from '#pakke/klode.js';
 import { fyllPakkeTekster } from './js/side.js';
 import { ORD as PARLOR_ORD, SPRAK, sprakFor } from '#pakke/parlor.js';
+import * as PARLOR from '#pakke/parlor.js';   // harDiktat finnes bare i noen spillpakker
 import { KATEGORIER, flySporsmal } from './data/flyquiz.js';
 import { visVelkommen, velkomstApen } from './js/velkommen.js';
 
@@ -438,7 +439,7 @@ function veiviserSider() {
     { ikon: '⛺', tittel: 'Først: overnatting', tekst: `<p>På hvert nytt sted må dere først ordne overnatting for <b>tre netter</b>. Uten overnatting kan dere ikke gjøre noe der.</p><div class="liste">${li('⛺', '<b>Telt er gratis!</b> Men først må dere vise at dere kan <b>allemannsretten</b> – tre spørsmål, alle må være riktige. Telt går bare der naturen er nær, ikke i byene.')}${li('⭐', '<b>Billig overnatting</b> = dårlig søvn: færre jobber per dag og lavere lønn.')}${li('🌟', '<b>Fint hotell</b> = uthvilte: flere jobber og høyere lønn.')}${li('🎲', 'I telt og på de billigste stedene kan det skje overraskelser – gode og dårlige!')}</div>` },
     { ikon: '📓', tittel: 'Reiseloggen gir dere stedet', tekst: `<div class="liste">${li('1️⃣', 'Fyll ut reiseloggen for stedet: fakta, severdigheter og en tegning.')}${li('2️⃣', 'Trykk <b>«Vi har levert reiseloggen»</b> under fanen Reiselogg.')}${li('3️⃣', 'Læreren godkjenner – og stedet blir deres! 🎉')}</div><p>Eier en annen gruppe stedet allerede? Da blir det <b>⚔️ duell</b> om det!</p>` },
     { ikon: '🧭', tittel: 'Reis videre', tekst: `<p>Trykk på et sted på kartet, eller søk under <b>Reis</b>. Prisen gjelder for hele gruppa.</p><div class="liste">${li('✈️', '<b>Fly</b> er dyrt, men raskt: <b>2 riktige</b> svar underveis (direkte) eller <b>4</b> (med stopp). Bare mellom steder med flyplass.')}${li('🚆', '<b>Tog</b> går bare der det finnes jernbane. Billigere enn fly, men flere spørsmål.')}${li('🚌', '<b>Buss</b> går nesten overalt – billig, men tar tid og gir mange spørsmål.')}${li('⛴️', '<b>Båt</b> går mellom steder ved kysten. Billig og vakkert, men tregt!')}${li('🌪️', 'Underveis spinner dere et hjul og svarer på spørsmål. Feil svar gir et nytt spørsmål.')}</div>` },
-    { ikon: '💰', tittel: 'Tjen penger', tekst: `<div class="liste">${li('💼', '<b>Jobb</b> – løs regnestykker. Lønna er høyere der alt er dyrt.')}${li('🧭', `<b>Norgesquiz</b> – ${formaterKr(i.quizBelop)} per riktig svar, ${i.quizPerDag} quizer per dag.`)}${i.diktatBelopPerElev ? li('✍️', `<b>Parlør-diktat</b> – skriv parlørordene på <b>nynorsk</b> (i Troms og Finnmark: <b>nordsamisk</b>). 5 av 5 riktige gir ${formaterKr(i.diktatBelopPerElev * (g.personer || 4))} – én gang per fylke. Be læreren åpne den når dere er klare.`) : ''}</div>` },
+    { ikon: '💰', tittel: 'Tjen penger', tekst: `<div class="liste">${li('💼', '<b>Jobb</b> – løs regnestykker. Lønna er høyere der alt er dyrt.')}${li('🧭', `<b>Norgesquiz</b> – ${formaterKr(i.quizBelop)} per riktig svar, ${i.quizPerDag} quizer per dag.`)}${i.diktatBelopPerElev ? li('✍️', `<b>Samisk språkoppdrag</b> – i Troms og Finnmark kan dere skrive fem ord på <b>nordsamisk</b>. 5 av 5 riktige gir ${formaterKr(i.diktatBelopPerElev * (g.personer || 4))} – én gang per fylke. Be læreren åpne oppdraget når dere er klare.`) : ''}${li('⛴️', '<b>Hurtigruta</b> går langs kysten fra Bergen til Kirkenes. Treg, men rolig: få spørsmål per kilometer.')}${li('🌦️', '<b>Vær og natur</b> kan gi overraskelser på reisen – snøstorm, nordlys, midnattssol og hval. Det følger årstiden!')}</div>` },
     { ikon: '🔒', tittel: 'Forsvar stedene deres', tekst: `<div class="liste">${i.laasDager ? li('⏳', `Et sted kan utfordres av andre i <b>${i.laasDager} dager</b> – så blir det låst og trygt.`) : ''}${i.laasDager ? li('🕒', 'Under <b>Våre steder</b> ser dere en nedtelling for hvert sted: så lenge har andre på seg.') : ''}${li('⚔️', `Duellene er morsomme oppgaver i klasserommet. Vinneren får stedet${i.duellPremie ? ` og ${formaterKr(i.duellPremie)}` : ''}.`)}</div>` },
     { ikon: '🇳🇴', tittel: 'Klar for avreise!', tekst: `<p>Boksen <b>«Neste steg»</b> øverst forteller dere alltid hva dere skal gjøre nå.</p><p>Trykk <b>❓ Hjelp</b> oppe til høyre hvis dere vil se denne guiden igjen.</p><p style="font:800 1.3rem var(--font-tittel);color:var(--hav);text-align:center;margin-top:1.2rem">God tur! ⛺🚆⛴️</p>` },
   ] : [
@@ -701,7 +702,7 @@ function tegnReis() {
   if (reiseMal && reiseMal !== g.posisjon) return tegnTilbud(el);
   klode?.velg(null); klode?.visReise(null, null);
   const her = landEtterId[g.posisjon];
-  const treff = LAND.filter((l) => l.id !== g.posisjon && (!sokTekst || l.navn.toLowerCase().includes(sokTekst) || l.by.toLowerCase().includes(sokTekst) || l.landNavn.toLowerCase().includes(sokTekst) || (l.kontinent || '').toLowerCase().includes(sokTekst)))
+  const treff = LAND.filter((l) => l.id !== g.posisjon && erSynlig(l.id, innst(spill)) && (!sokTekst || l.navn.toLowerCase().includes(sokTekst) || l.by.toLowerCase().includes(sokTekst) || l.landNavn.toLowerCase().includes(sokTekst) || (l.kontinent || '').toLowerCase().includes(sokTekst)))
     .sort((a, b) => avstandKm(her, a) - avstandKm(her, b));
   el.innerHTML = `
     ${!harHotell() ? '<div class="infoboks sol">🏨 Dere må booke hotell her før dere kan reise videre – men dere kan godt se på reiser!</div>' : ''}
@@ -737,7 +738,7 @@ function tegnTilbud(el) {
     ${tilbud.length ? `<h3>Reiser i dag for ${g.personer || 4} personer</h3>` : ''}${!stengt && (mal.oy || her.oy) ? '<p class="liten dempet">🏝️ Det går ikke tog eller buss hit – bare fly.</p>' : ''}
     ${tilbud.map((t, n) => {
       const ikon = { tog: '🚆', buss: '🚌', bat: '⛴️' }[t.type] || '✈️';
-      const via = t.type === 'tog' ? `🚆 Tog · ${t.krav} spørsmål underveis` : t.type === 'buss' ? `🚌 Buss · ${t.krav} spørsmål underveis` : t.type === 'bat' ? `⛴️ Båt · ${t.krav} spørsmål underveis` : `✈️ ${t.via.length ? `${t.stopp} stopp via ${t.via.map((v) => esc(v.by)).join(' og ')}` : 'Direktefly'} · ${t.krav} spørsmål`;
+      const via = t.type === 'tog' ? `🚆 Tog · ${t.krav} spørsmål underveis` : t.type === 'buss' ? `🚌 Buss · ${t.krav} spørsmål underveis` : t.type === 'bat' ? (t.hurtigruta ? `⛴️ Hurtigruta · ${t.stopp ? `${t.stopp} anløp på veien · ` : ''}${t.krav} spørsmål underveis` : `⛴️ Båt · ${t.krav} spørsmål underveis`) : `✈️ ${t.via.length ? `${t.stopp} stopp via ${t.via.map((v) => esc(v.by)).join(' og ')}` : 'Direktefly'} · ${t.krav} spørsmål`;
       const pris = flyPrisMedRabatt(t.totalt, g.hotell, g.posisjon, t.type); const rabatt = pris !== t.totalt;
       const rad = (g.saldo || 0) >= pris;
       return `<div class="billett ${rad ? '' : 'dyr'}"><div class="venstre"><div class="selskap">${ikon} ${esc(t.selskap)}</div>
@@ -821,12 +822,13 @@ function tegnHotell() {
 // ---------- REISELOGG ----------
 function diktatHtml(st, i, l) {
   if (!i.diktatBelopPerElev) return '';
+  if (PARLOR.harDiktat && !PARLOR.harDiktat(g.posisjon)) return '';   // f.eks. Norge rundt: bare i Troms og Finnmark
   const levert = ['levert', 'godkjent', 'duell', 'laast', 'tapt'].includes(st);
   const belop = formaterKr(i.diktatBelopPerElev * (g.personer || 4));
-  const tittel = `<h3 style="margin-top:1.4rem">✍️ Parlør-diktat <span class="merke sol">${belop}</span></h3>`;
+  const tittel = `<h3 style="margin-top:1.4rem">✍️ ${esc(DIKTATNAVN)} <span class="merke sol">${belop}</span></h3>`;
   const lk = landKode(g.posisjon); const ln = landInfo[lk];
   if (g.diktat?.[lk]) return `${tittel}<div class="infoboks gress">✅ Dere har klart diktaten for ${esc(ln.navn)}! (Diktaten gis én gang per land.)</div>`;
-  if (!levert) return `${tittel}<p class="liten dempet">Når reiseloggen er levert, kan dere ta diktaten: skriv parlørordene på landets språk. 5 av 5 riktige gir ${belop} – én gang per land.</p>`;
+  if (!levert) return `${tittel}<p class="liten dempet">Når reiseloggen er levert, kan dere ta diktaten: skriv parlørordene på ${esc(sprakFor(g.posisjon).map((k) => SPRAK[k].navn).join(' eller ') || 'landets språk')}. 5 av 5 riktige gir ${belop} – én gang per land.</p>`;
   if (g.diktatForsok?.[idag()]?.[lk]) return `${tittel}<div class="infoboks">Dere har prøvd diktaten i dag. Øv på parløren og prøv igjen i morgen!</div>`;
   const ko = spill.diktatKo?.[gid];
   if (!ko) return `${tittel}<p>Øv på parløren! Når dere kan ordene utenat, ber dere læreren om diktaten. Alle fem må være riktige for å få <b>${belop}</b>.</p>
@@ -880,7 +882,7 @@ function tegnLogg() {
 // ---------- KASSA (regnskap) ----------
 // Bygges fra spillets logg, der banken skriver beløpet for hver ting som koster eller gir penger.
 const KASSA_KAT = {
-  jobb: { ikon: '💼', navn: 'Jobb' }, quiz: { ikon: '🧭', navn: 'Quiz' }, diktat: { ikon: '✍️', navn: 'Parlør-diktat' },
+  jobb: { ikon: '💼', navn: 'Jobb' }, quiz: { ikon: '🧭', navn: 'Quiz' }, diktat: { ikon: '✍️', navn: DIKTATNAVN },
   duell: { ikon: '⚔️', navn: 'Duellpremier' }, heldig: { ikon: '🍀', navn: 'Heldige overraskelser' }, laererPluss: { ikon: '🧑‍🏫', navn: 'Fra læreren' },
   reise: { ikon: '🧳', navn: 'Reiser' }, hotell: { ikon: '🏨', navn: 'Overnatting' }, uheldig: { ikon: '🌧️', navn: 'Uheldige overraskelser' }, laererMinus: { ikon: '🧑‍🏫', navn: 'Trukket av læreren' },
 };

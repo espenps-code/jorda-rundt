@@ -1,6 +1,7 @@
 // Norge rundt – STEDER. id = fylkesnummer-stedsnavn.
 // hs = administrasjonssenter i fylket · tog = jernbanestasjon · kyst = båtanløp (ferje/kystrute) · fly = flyplass
 // telt = gode teltmuligheter i nærheten (allemannsretten) · pris = prisnivå (Oslo dyrest)
+// oy = bare fly (Svalbard) · valgfri = «Vårt sted»: stengt til læreren åpner det som klassens hjemsted
 // Narvik har tog, men Ofotbanen henger ikke sammen med resten av jernbanen (den går til Sverige) – se togNett.
 export const FYLKER = [
   { nr: '03', navn: 'Oslo', senter: 'Oslo', landsdel: 'Østlandet' },
@@ -18,11 +19,13 @@ export const FYLKER = [
   { nr: '50', navn: 'Trøndelag', senter: 'Steinkjer', landsdel: 'Trøndelag' },
   { nr: '55', navn: 'Troms', senter: 'Tromsø', landsdel: 'Nord-Norge' },
   { nr: '56', navn: 'Finnmark', senter: 'Vadsø', landsdel: 'Nord-Norge' },
+  { nr: '21', navn: 'Svalbard', senter: 'Longyearbyen', landsdel: 'Nord-Norge' },   // ikke et fylke, men egen region i spillet
 ];
 const S = (fylke, slug, navn, lat, lng, egenskaper = '', pris = 1) => ({
   id: `${fylke}-${slug}`, fylke, navn, lat, lng, pris,
   hs: egenskaper.includes('hs'), tog: egenskaper.includes('tog'), kyst: egenskaper.includes('kyst'),
   fly: egenskaper.includes('fly'), telt: egenskaper.includes('telt'), knute: egenskaper.includes('knute'),
+  oy: egenskaper.includes('oy'), valgfri: egenskaper.includes('valgfri'),
 });
 export const STEDER = [
   S('03', 'oslo', 'Oslo', 59.913, 10.752, 'hs tog fly kyst knute', 1.15),
@@ -79,6 +82,63 @@ export const STEDER = [
   S('56', 'kirkenes', 'Kirkenes', 69.727, 30.045, 'fly kyst', 1.0),
   S('56', 'honningsvag', 'Honningsvåg (Nordkapp)', 70.982, 25.970, 'fly kyst telt', 1.1),
   S('56', 'karasjok', 'Karasjok', 69.472, 25.511, 'telt', 0.9),
+  // --- nye steder 8. november 2026: jevnere fordeling, særlig i nord ---
+  S('18', 'reine', 'Reine (Lofoten)', 67.933, 13.088, 'kyst telt', 1.15),
+  S('18', 'stokmarknes', 'Stokmarknes', 68.565, 14.909, 'fly kyst', 1.0),
+  S('18', 'andenes', 'Andenes', 69.314, 16.119, 'fly kyst telt', 1.0),
+  S('18', 'bronnoysund', 'Brønnøysund', 65.474, 12.212, 'fly kyst', 0.95),
+  S('55', 'gryllefjord', 'Senja (Gryllefjord)', 69.363, 17.060, 'kyst telt', 1.0),
+  S('55', 'lyngseidet', 'Lyngseidet', 69.576, 20.218, 'kyst telt', 1.0),
+  S('55', 'bardufoss', 'Bardufoss', 69.065, 18.515, 'fly telt', 0.95),
+  S('46', 'floro', 'Florø', 61.600, 5.032, 'fly kyst', 0.95),
+  S('46', 'sogndal', 'Sogndal', 61.229, 7.097, 'fly telt', 1.0),
+  S('46', 'stryn', 'Stryn', 61.904, 6.716, 'telt', 1.05),
+  S('11', 'jorpeland', 'Jørpeland (Preikestolen)', 59.022, 6.040, 'kyst telt', 1.05),
+  S('11', 'sauda', 'Sauda', 59.650, 6.354, 'telt', 0.95),
+  S('11', 'skudeneshavn', 'Skudeneshavn', 59.148, 5.259, 'kyst', 1.0),
+  S('34', 'elverum', 'Elverum', 60.881, 11.564, 'tog telt', 0.9),
+  S('50', 'levanger', 'Levanger', 63.746, 11.300, 'tog kyst', 0.95),
+  S('50', 'rorvik', 'Rørvik', 64.860, 11.237, 'fly kyst', 0.95),
+  S('42', 'flekkefjord', 'Flekkefjord', 58.297, 6.663, 'kyst', 0.95),
+  S('21', 'longyearbyen', 'Longyearbyen', 78.223, 15.647, 'hs fly oy', 1.25),
+  // --- «VÅRT STED»: mindre steder som er stengt til læreren åpner dem (Steder → Vårt sted) ---
+  ...[
+    ['11', 'kopervik', 'Kopervik', 59.284, 5.307, 'kyst'], ['11', 'akrehamn', 'Åkrehamn', 59.260, 5.188, 'kyst'],
+    ['11', 'sandnes', 'Sandnes', 58.852, 5.735, 'tog'], ['11', 'bryne', 'Bryne', 58.736, 5.648, 'tog'], ['11', 'tau', 'Tau', 59.064, 5.917, 'kyst'],
+    ['46', 'leirvik', 'Leirvik (Stord)', 59.779, 5.500, 'kyst'], ['46', 'os', 'Osøyro', 60.188, 5.468, 'kyst'], ['46', 'knarvik', 'Knarvik', 60.546, 5.285, 'kyst'],
+    ['46', 'norheimsund', 'Norheimsund', 60.371, 6.143, 'kyst'], ['46', 'nordfjordeid', 'Nordfjordeid', 61.906, 5.987, 'kyst'], ['46', 'eidfjord', 'Eidfjord', 60.467, 7.071, 'kyst'],
+    ['15', 'volda', 'Volda', 62.147, 6.071, 'kyst'], ['15', 'orsta', 'Ørsta', 62.199, 6.130, 'kyst'], ['15', 'ulsteinvik', 'Ulsteinvik', 62.343, 5.849, 'kyst'],
+    ['15', 'fosnavag', 'Fosnavåg', 62.342, 5.633, 'kyst'], ['15', 'sunndalsora', 'Sunndalsøra', 62.675, 8.552, ''],
+    ['50', 'stjordal', 'Stjørdal', 63.470, 10.926, 'tog'], ['50', 'orkanger', 'Orkanger', 63.307, 9.850, 'kyst'], ['50', 'verdal', 'Verdal', 63.792, 11.483, 'tog'],
+    ['50', 'hommelvik', 'Hommelvik', 63.411, 10.795, 'tog'], ['50', 'straumen', 'Straumen (Inderøy)', 63.866, 11.300, ''], ['50', 'melhus', 'Melhus', 63.284, 10.278, 'tog'],
+    ['50', 'brekstad', 'Brekstad', 63.689, 9.667, 'kyst'],
+    ['18', 'fauske', 'Fauske', 67.259, 15.394, 'tog'], ['18', 'sortland', 'Sortland', 68.696, 15.414, 'kyst'], ['18', 'leknes', 'Leknes', 68.148, 13.611, 'fly'],
+    ['18', 'sandnessjoen', 'Sandnessjøen', 66.022, 12.631, 'fly kyst'],
+    ['55', 'storslett', 'Storslett', 69.770, 21.026, ''], ['55', 'skjervoy', 'Skjervøy', 70.033, 20.972, 'kyst'], ['55', 'setermoen', 'Setermoen', 68.861, 18.348, ''],
+    ['56', 'lakselv', 'Lakselv', 70.051, 24.971, 'fly'], ['56', 'tana', 'Tana bru', 70.198, 28.188, ''], ['56', 'vardo', 'Vardø', 70.371, 31.110, 'fly kyst'],
+    ['56', 'kautokeino', 'Kautokeino', 69.012, 23.042, ''], ['56', 'batsfjord', 'Båtsfjord', 70.634, 29.718, 'fly kyst'],
+    ['34', 'kongsvinger', 'Kongsvinger', 60.191, 11.998, 'tog'], ['34', 'fagernes', 'Fagernes', 60.986, 9.235, ''], ['34', 'tynset', 'Tynset', 62.276, 10.778, 'tog'],
+    ['34', 'brumunddal', 'Brumunddal', 60.881, 10.938, 'tog'], ['34', 'raufoss', 'Raufoss', 60.726, 10.613, ''], ['34', 'trysil', 'Trysil', 61.315, 12.264, ''],
+    ['34', 'dombas', 'Dombås', 62.074, 9.125, 'tog'],
+    ['32', 'asker', 'Asker', 59.833, 10.435, 'tog'], ['32', 'ski', 'Ski', 59.719, 10.836, 'tog'], ['32', 'jessheim', 'Jessheim', 60.143, 11.174, 'tog'],
+    ['32', 'sandvika', 'Sandvika', 59.890, 10.524, 'tog kyst'], ['32', 'lorenskog', 'Lørenskog', 59.928, 10.957, ''], ['32', 'as', 'Ås', 59.664, 10.791, 'tog'],
+    ['32', 'eidsvoll', 'Eidsvoll', 60.330, 11.260, 'tog'],
+    ['31', 'moss', 'Moss', 59.434, 10.659, 'tog kyst'], ['31', 'askim', 'Askim', 59.583, 11.162, 'tog'], ['31', 'mysen', 'Mysen', 59.567, 11.326, 'tog'],
+    ['33', 'honefoss', 'Hønefoss', 60.168, 10.256, 'tog'], ['33', 'gol', 'Gol', 60.700, 8.944, 'tog'], ['33', 'nesbyen', 'Nesbyen', 60.570, 9.110, 'tog'],
+    ['39', 'horten', 'Horten', 59.417, 10.483, 'kyst'], ['39', 'holmestrand', 'Holmestrand', 59.489, 10.312, 'tog kyst'],
+    ['40', 'porsgrunn', 'Porsgrunn', 59.141, 9.656, 'kyst'], ['40', 'notodden', 'Notodden', 59.561, 9.264, ''], ['40', 'bo', 'Bø', 59.411, 9.069, 'tog'],
+    ['40', 'seljord', 'Seljord', 59.485, 8.630, ''],
+    ['42', 'grimstad', 'Grimstad', 58.341, 8.594, 'kyst'], ['42', 'lillesand', 'Lillesand', 58.250, 8.377, 'kyst'], ['42', 'farsund', 'Farsund', 58.095, 6.804, 'kyst'],
+    ['42', 'vennesla', 'Vennesla', 58.268, 7.973, 'tog'], ['42', 'evje', 'Evje', 58.587, 7.795, ''], ['42', 'lyngdal', 'Lyngdal', 58.137, 7.073, ''],
+    ['42', 'tvedestrand', 'Tvedestrand', 58.622, 8.932, 'kyst'], ['42', 'risor', 'Risør', 58.721, 9.234, 'kyst'],
+  ].map(([f, slug, navn, lat, lng, eg]) => S(f, slug, navn, lat, lng, `${eg} valgfri`, 1.0)),
 ];
 /** Steder som henger sammen med den vanlige jernbanen (Narvik er med på tog, men bare til Sverige) */
 export const togNett = (sted) => sted.tog && sted.id !== '18-narvik';
+
+/** «Vårt sted»-katalogen: valgfrie steder som er stengt til læreren åpner dem */
+export const VALGFRIE = STEDER.filter((s) => s.valgfri);
+
+/** Hurtigruta: anløpene i rekkefølge fra Bergen til Kirkenes (bare de som er steder i spillet) */
+export const HURTIGRUTA = ['46-bergen', '46-floro', '15-alesund', '15-molde', '15-kristiansund', '50-trondheim', '50-rorvik', '18-bronnoysund',
+  '18-bodo', '18-svolvaer', '18-stokmarknes', '55-harstad', '55-finnsnes', '55-tromso', '56-hammerfest', '56-honningsvag', '56-vadso', '56-kirkenes'];

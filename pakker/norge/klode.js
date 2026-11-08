@@ -4,6 +4,8 @@
 // Fylkesgrenser: Kartverket (CC BY 4.0), via github.com/robhop/fylker-og-kommuner.
 import { LAND, landEtterId, LANDENE, byerILand } from './land.js';
 import { erLaast, erStengt, innst } from '#motor/felles.js';
+// Valgfrie «Vårt sted»-steder vises bare når læreren har åpnet dem (merket med 🏠).
+const vises = (b, spill, i) => !b.valgfri || (spill && !erStengt(b.id, i));
 
 const KART_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json';
 // Forenklet utgave av Fylker-S.geojson (færre kystpunkter, uten de minste holmene) – mye raskere å tegne
@@ -108,15 +110,15 @@ export async function lagKlode(el, valg = {}) {
     const l = LANDENE.find((x) => x.id === landId); if (!l) return '';
     const g = heltEid(landId);
     return `<div class="klode-etikett"><div style="font-size:1.4em">${l.flagg} <b>${esc(l.navn)}</b></div>
-      ${byerILand(landId).map((b) => `<div>${b.hovedstad ? '★ ' : ''}${esc(b.navn)} – ${byStatus(b)}</div>`).join('')}
+      ${byerILand(landId).filter((b) => vises(b, spill, i())).map((b) => `<div>${b.hovedstad ? '★ ' : b.valgfri ? '🏠 ' : ''}${esc(b.navn)} – ${byStatus(b)}</div>`).join('')}
       ${g ? `<div>🏆 Hele fylket eies av <b style="color:${spill.grupper[g].farge}">${esc(spill.grupper[g].navn)}</b></div>` : ''}</div>`;
   }
   function byEtikett(b) {
-    return `<div class="klode-etikett"><div style="font-size:1.3em">${b.flagg} <b>${esc(b.navn)}</b></div><div>${esc(b.landNavn)}${b.hovedstad ? ' · fylkessenter' : ''}</div><div>${byStatus(b)}</div></div>`;
+    return `<div class="klode-etikett"><div style="font-size:1.3em">${b.valgfri ? '🏠' : b.flagg} <b>${esc(b.navn)}</b></div><div>${esc(b.landNavn)}${b.hovedstad ? ' · fylkessenter' : ''}${b.valgfri ? ' · vårt sted' : ''}</div><div>${byStatus(b)}</div></div>`;
   }
 
   function tegnPunkter() {
-    const pkt = LAND.map((b) => {
+    const pkt = LAND.filter((b) => vises(b, spill, i())).map((b) => {
       const e = eier(b.id);
       const stengt = spill && erStengt(b.id, i());
       const farge = b.id === valgt ? '#F59E0B' : e ? (spill.grupper?.[e.gruppe]?.farge || '#888') : stengt ? '#6B7280' : '#FFFFFF';
