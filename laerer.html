@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lærer</title>
 <script src="js/pakke.js"></script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
+<link rel="icon" type="image/png" sizes="32x32" href="ikoner/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="ikoner/favicon-192.png">
+<link rel="apple-touch-icon" href="ikoner/apple-touch-icon.png">
 <link rel="stylesheet" href="css/felles.css">
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
 <style>
@@ -196,7 +198,7 @@
   <nav class="faner" role="tablist">
     <button role="tab" data-fane="oversikt" aria-selected="true">Oversikt <span id="badgeOppgaver" class="badge skjult"></span></button>
     <button role="tab" data-fane="grupper">Grupper</button>
-    <button role="tab" data-fane="land">Land</button>
+    <button role="tab" data-fane="land" data-p="ord.steder" data-stor>Land</button>
     <button role="tab" data-fane="dueller">Dueller</button>
     <button role="tab" data-fane="innstillinger">Innstillinger</button>
     <button role="tab" data-fane="logg">Logg</button>
@@ -308,7 +310,7 @@
       </div>
       <div class="kort" id="farligsone">
         <h3>Farlig sone</h3>
-        <p class="liten dempet">Nullstilling gir alle grupper startbeløpet og en ny tilfeldig startposisjon, og fjerner alle land, reiselogger, dueller og logg. Gruppene, kodene og PIN-ene beholdes.</p>
+        <p class="liten dempet">Nullstilling gir alle grupper startbeløpet og en ny tilfeldig startposisjon, og fjerner alle <span data-p="ord.steder">land</span>, reiselogger, dueller og logg. Gruppene, kodene og PIN-ene beholdes.</p>
         <button id="nullstill" class="knapp korall">Nullstill spillet</button>
       </div>
     </section>
@@ -674,7 +676,7 @@ function tegnOversikt() {
     const l = landEtterId[k.land];
     const igjen = k.aapnet && i.diktatMinutter ? Math.max(0, Math.ceil((k.aapnet + i.diktatMinutter * 60000 - Date.now()) / 1000)) : null;
     return `<div class="oppgave"><span class="flagg">✍️</span><div class="vokser"><b>${prikk(gid)} ${esc(gnavn(gid))}</b> ber om ${esc(DIKTATNAVN.toLowerCase())}<br><span class="liten">${l.flagg} ${esc(l.navn)} · ${k.aapnet ? `<span class="merke gress">åpen${igjen != null ? ` – <span data-slutt="${k.aapnet + i.diktatMinutter * 60000}">${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}</span> igjen` : ''}</span>` : '<span class="merke sol">venter på deg</span>'}</span></div>
-      ${k.aapnet ? `<button class="knapp lys mini" data-lukkdk="${gid}">Lukk</button>` : `<button class="knapp gress mini" data-aapnedk="${gid}">Åpne diktat</button><button class="knapp lys mini" data-lukkdk="${gid}">Ikke nå</button>`}</div>`;
+      ${k.aapnet ? `<button class="knapp lys mini" data-lukkdk="${gid}">Lukk</button>` : `<button class="knapp gress mini" data-aapnedk="${gid}">Åpne ${esc(DIKTATNAVN.toLowerCase())}</button><button class="knapp lys mini" data-lukkdk="${gid}">Ikke nå</button>`}</div>`;
   }).join('');
   $$('[data-aapnedk]').forEach((b) => b.onclick = () => { b.disabled = true; aapneDiktat(spillId, b.dataset.aapnedk); });
   $$('[data-lukkdk]').forEach((b) => b.onclick = () => { b.disabled = true; lukkDiktat(spillId, b.dataset.lukkdk); });
@@ -702,7 +704,7 @@ function tegnOversikt() {
   levert.sort((a, b) => a.tid - b.tid);
   $('#reiselogger').innerHTML = levert.length ? levert.map((x) => {
     const l = landEtterId[x.land]; const e = spill.eierskap?.[x.land];
-    const merknad = !e ? '<span class="merke gress">ledig land</span>' : e.gruppe === x.gid ? '<span class="merke">eier allerede</span>' : erLaast(e, i) ? '<span class="merke">låst – gir ikke landet</span>' : `<span class="merke korall">⚔️ gir duell mot ${esc(gnavn(e.gruppe))}</span>`;
+    const merknad = !e ? '<span class="merke gress">ledig ${ORD.sted}</span>' : e.gruppe === x.gid ? '<span class="merke">eier allerede</span>' : erLaast(e, i) ? '<span class="merke">låst – gir ikke ${ORD.stedet}</span>' : `<span class="merke korall">⚔️ gir duell mot ${esc(gnavn(e.gruppe))}</span>`;
     return `<div class="oppgave"><span class="flagg">${l.flagg}</span><div class="vokser"><b>${esc(l.navn)}</b><br><span class="liten">${prikk(x.gid)} ${esc(gnavn(x.gid))} · levert for ${Math.max(0, Math.round((Date.now() - x.tid) / 60000))} min siden</span> ${merknad}</div>
       <button class="knapp gress mini" data-godkjenn="${x.gid}|${x.land}">Godkjenn</button><button class="knapp lys mini" data-avvis="${x.gid}|${x.land}">Ikke godkjent</button></div>`;
   }).join('') : (dueller.length || diktater.length ? '' : '<p class="tom">Ingen reiselogger venter. 👍</p>');
@@ -781,7 +783,7 @@ function tegnGrupper() {
   });
   $$('[data-slett]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.slett; const g = spill.grupper[gid];
-    if (!await bekreft('Slette gruppa?', `<b>${esc(g.navn)}</b> og alle landene deres blir slettet. Dette kan ikke angres.`, 'Slett', true)) return;
+    if (!await bekreft('Slette gruppa?', `<b>${esc(g.navn)}</b> og alle ${ORD.stedene} deres blir slettet. Dette kan ikke angres.`, 'Slett', true)) return;
     const u = { [`spill/${spillId}/grupper/${gid}`]: null, [`pins/${spillId}/${gid}`]: null, [`gruppekoder/${g.kode}`]: null, [`spill/${spillId}/reiselogger/${gid}`]: null, [`spill/${spillId}/foresporsler/${gid}`]: null };
     for (const [land, e] of Object.entries(spill.eierskap || {})) if (e.gruppe === gid) u[`spill/${spillId}/eierskap/${land}`] = null;
     const medl = (await get(r(`medlem/${spillId}`))).val() || {};

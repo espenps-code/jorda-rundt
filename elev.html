@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Jorda rundt</title>
 <script src="js/pakke.js"></script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌍</text></svg>">
+<link rel="icon" type="image/png" sizes="32x32" href="ikoner/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="ikoner/favicon-192.png">
+<link rel="apple-touch-icon" href="ikoner/apple-touch-icon.png">
 <link rel="stylesheet" href="css/felles.css">
 <script src="https://cdn.jsdelivr.net/npm/globe.gl@2.45.3/dist/globe.gl.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
@@ -260,7 +262,7 @@
   </header>
   <div class="oppsett">
     <div id="klode"><div class="klode-laster" data-p="kart.laster">Laster kartet …</div>
-      <div class="tegnforklaring"><span><i class="prikk" style="background:#EFE6D2"></i> ledig</span><span><i class="prikk" style="background:#9AA3AD"></i> stengt</span><span>sterk farge = låst 🔒</span><span>trykk på et land for å reise dit</span></div>
+      <div class="tegnforklaring"><span><i class="prikk" style="background:#EFE6D2"></i> ledig</span><span><i class="prikk" style="background:#9AA3AD"></i> stengt</span><span>sterk farge = låst 🔒</span><span>trykk på <span data-p="ord.etSted">et land</span> for å reise dit</span></div>
     </div>
     <div class="deler" id="deler" role="separator" aria-label="Juster størrelsen på kartet og menyen" title="Dra for å endre størrelsen. Dobbeltklikk for å tilbakestille.">
       <div class="deler-knapper"><button type="button" id="deler-a" aria-label="Mindre kart, større meny">◀</button><button type="button" id="deler-b" aria-label="Større kart, mindre meny">▶</button></div>
@@ -693,7 +695,7 @@ function landStatus(id) {
   if (erStengt(id, i)) return { tekst: 'Stengt', klasse: 'korall' };
   const e = spill.eierskap?.[id];
   if (!e) return { tekst: 'Ledig', klasse: 'gress' };
-  if (e.gruppe === gid) return { tekst: 'Deres land', klasse: '' };
+  if (e.gruppe === gid) return { tekst: stor(ORD.deresSted), klasse: '' };
   if (erLaast(e, i)) return { tekst: '🔒 Låst', klasse: '' };
   return { tekst: `⚔️ ${spill.grupper[e.gruppe]?.navn || ''} · ${nedtell(e, i, '⏳ ', '🔒 låst')}`, klasse: 'sol' };
 }
@@ -838,7 +840,7 @@ function diktatHtml(st, i, l) {
   if (slutt && Date.now() > slutt + 30000) return `${tittel}<div class="infoboks korall">⏰ Tiden gikk ut. Be læreren om å åpne diktaten på nytt.</div>`;
   if (dk.land !== g.posisjon) dk = { land: g.posisjon, svar: [] };
   const sprak = sprakFor(g.posisjon).map((k) => SPRAK[k].navn);
-  return `${tittel}${slutt ? `<div class="infoboks hav" style="display:flex;justify-content:space-between;align-items:center"><span>⏱️ Tid igjen</span><b data-dkslutt="${slutt}" style="font:800 1.4rem var(--font-tittel)"></b></div>` : ''}<p>Skriv ordene på landets språk – med våre bokstaver. Alle fem må være riktige for å få <b>${belop}</b>. Dere har ett forsøk per dag.</p>
+  return `${tittel}${slutt ? `<div class="infoboks hav" style="display:flex;justify-content:space-between;align-items:center"><span>⏱️ Tid igjen</span><b data-dkslutt="${slutt}" style="font:800 1.4rem var(--font-tittel)"></b></div>` : ''}<p>Skriv ordene på ${esc(sprakFor(g.posisjon).map((k) => SPRAK[k].navn).join(' eller ') || 'landets språk')} – med våre bokstaver. Alle fem må være riktige for å få <b>${belop}</b>. Dere har ett forsøk per dag.</p>
     <p class="liten dempet">Språk som godtas i ${esc(ln.navn)}: ${sprak.map(esc).join(', ')}. Store/små bokstaver og aksenter spiller ingen rolle.</p>
     ${PARLOR_ORD.map((o, n) => `<div class="oppgavekort" style="display:grid;grid-template-columns:8.5rem 1fr;gap:.6rem;align-items:center;padding:.7rem 1rem"><b>${esc(o.norsk)}</b><input data-dk="${n}" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(dk.svar[n] ?? '')}" placeholder="På landets språk"></div>`).join('')}
     <button class="knapp sol" id="leverdk" ${venterPa.diktat ? 'disabled' : ''}>${venterPa.diktat ? '<span class="venter">Sender</span>' : 'Lever diktaten'}</button>`;

@@ -267,7 +267,7 @@ function rapport(gid) {
       </div>
       <div class="regnskap" style="margin-top:3mm"><span>Startet med <b>${formaterKr(startkr || 0)}</b></span><span>→</span><span>Igjen i reisekassa <b>${formaterKr(g.saldo)}</b></span></div></div>
     <div><h2 class="del">🛂 Landsamlingen <span class="strek"></span></h2>
-      <div class="flagg">${[...a.eide].map((id, n) => `<div class="stempel" style="--r:${rotasjon(n)}"><div><div class="fl">${L(id).flagg}</div><div class="nv">${esc(L(id).navn)}${a.laaste.has(id) ? ' 🔒' : ''}</div></div></div>`).join('') || '<p class="dempet">Ingen land ennå – men for en reise!</p>'}</div></div>
+      <div class="flagg">${[...a.eide].map((id, n) => `<div class="stempel" style="--r:${rotasjon(n)}"><div><div class="fl">${L(id).flagg}</div><div class="nv">${esc(L(id).navn)}${a.laaste.has(id) ? ' 🔒' : ''}</div></div></div>`).join('') || '<p class="dempet">Ingen ${ORD.steder} ennå – men for en reise!</p>'}</div></div>
     <div class="signatur"><div class="hilsen">Gratulerer med en fantastisk reise! 🌍</div><div class="linje">Lærer</div></div>
     ${bunn}
   </section>`;
