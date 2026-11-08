@@ -323,16 +323,18 @@
 </footer>
 
 <script type="module">
-import { lagKlode } from '#pakke/klode.js';
+// Forsiden viser samme 3D-jordklode som Jorda rundt (verdenspakken), bare med startpunkt over Europa.
+import { lagKlode } from '../pakker/verden/klode.js';
 const el = document.getElementById('klode');
 const ikkeAnimasjon = matchMedia('(prefers-reduced-motion: reduce)').matches;
 try {
-  const k = await lagKlode(el, { autoRoter: false });
+  const k = await lagKlode(el, { autoRoter: !ikkeAnimasjon });
   k.globe.controls().enableZoom = false;
-  k.oppdater({});
+  k.globe.controls().autoRotateSpeed = 0.6;
+  k.globe.pointOfView({ lat: 48, lng: 12, altitude: 2.0 });
   // en liten reiserute for stemningens skyld
-  k.visReise('AT-wien', 'CZ-praha');
-} catch (e) { console.warn('Kartet kunne ikke lastes', e); }
+  k.globe.arcsData([{ fraLat: 59.91, fraLng: 10.75, tilLat: 41.90, tilLng: 12.50 }]);
+} catch (e) { console.warn('Jordkloden kunne ikke lastes', e); }
 </script>
 <script type="module" src="../js/ikoner.js"></script>
 </body>
