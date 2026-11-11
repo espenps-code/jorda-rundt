@@ -1005,4 +1005,7 @@ export default {
   'En ting å veie': 'A thing to weigh',
   'Kjøkkenvekt': 'Kitchen scale',
   'To terninger': 'Two dice',
+  'Se regnskapet': 'See your money log',
+  'Se poengtavla': 'See the scoreboard',
+  'Åpne fotostudioet': 'Open the photo studio',
 };
