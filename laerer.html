@@ -476,7 +476,7 @@ function tegnSpillvelger() {
   const sel = $('#spillvelger');
   const ids = Object.keys(mineSpill);
   sel.classList.toggle('skjult', !ids.length);
-  sel.innerHTML = ids.map((id) => `<option value="${id}" ${id === spillId ? 'selected' : ''}>${esc(mineSpill[id])}</option>`).join('') + T('<option value="__nytt">＋ Nytt spill …</option><option value="__alle">📚 Alle mine spill …</option>');
+  sel.innerHTML = ids.map((id) => `<option value="${id}" ${id === spillId ? 'selected' : ''}>${esc(mineSpill[id])}</option>`).join('') + T('<option value="__nytt">＋ Nytt spill …</option><option value="__alle">Alle mine spill …</option>');
 }
 $('#spillvelger').onchange = (e) => {
   if (e.target.value === '__alle') { e.target.value = spillId; apneMineSpill(); return; }

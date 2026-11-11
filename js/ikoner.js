@@ -23,6 +23,34 @@ const BILDE = {
   '📺': 'tv', '🖨': 'printer', '📣': 'megafon', '🔊': 'megafon', '🔑': 'nokkel', '📋': 'liste', '🔍': 'lupe',
 };
 
+// Ikoner for steder, vær, dyr og resten (laget i samme stil som de over, november 2026). Filnavn = u + emojiens kodepunkt.
+// Ny emoji i en spillpakke? Lag et ikon, legg fila i ikoner/ og en linje her – ellers vises emojien som vanlig tegn.
+Object.assign(BILDE, {
+  '🃏': 'u1f0cf', '🌀': 'u1f300', '🌉': 'u1f309', '🌊': 'u1f30a', '🌋': 'u1f30b', '🌌': 'u1f30c', '🌙': 'u1f319', '🌞': 'u1f31e',
+  '🌦': 'u1f326', '🌧': 'u1f327', '🌫': 'u1f32b', '🌬': 'u1f32c', '🌲': 'u1f332', '🌴': 'u1f334', '🌵': 'u1f335', '🌺': 'u1f33a',
+  '🌻': 'u1f33b', '🌼': 'u1f33c', '🌽': 'u1f33d', '🌾': 'u1f33e', '🍁': 'u1f341', '🍂': 'u1f342', '🍄': 'u1f344', '🍇': 'u1f347',
+  '🍊': 'u1f34a', '🍌': 'u1f34c', '🍑': 'u1f351', '🍫': 'u1f36b', '🍴': 'u1f374', '🍽': 'u1f37d', '🎃': 'u1f383', '🎆': 'u1f386',
+  '🎈': 'u1f388', '🎓': 'u1f393', '🎠': 'u1f3a0', '🎡': 'u1f3a1', '🎢': 'u1f3a2', '🎣': 'u1f3a3', '🎨': 'u1f3a8', '🎪': 'u1f3aa',
+  '🎭': 'u1f3ad', '🎮': 'u1f3ae', '🎯': 'u1f3af', '🎵': 'u1f3b5', '🎷': 'u1f3b7', '🎸': 'u1f3b8', '🏄': 'u1f3c4', '🏈': 'u1f3c8',
+  '🏎': 'u1f3ce', '🏔': 'u1f3d4', '🏖': 'u1f3d6', '🏙': 'u1f3d9', '🏜': 'u1f3dc', '🏝': 'u1f3dd', '🏞': 'u1f3de', '🏠': 'u1f3e0',
+  '🏭': 'u1f3ed', '🏯': 'u1f3ef', '🏰': 'u1f3f0', '🏴‍☠': 'u1f3f4-200d-2620', '🏷': 'u1f3f7', '🏹': 'u1f3f9', '🏺': 'u1f3fa', '🐄': 'u1f404',
+  '🐉': 'u1f409', '🐊': 'u1f40a', '🐋': 'u1f40b', '🐎': 'u1f40e', '🐑': 'u1f411', '🐔': 'u1f414', '🐕': 'u1f415', '🐟': 'u1f41f',
+  '🐠': 'u1f420', '🐢': 'u1f422', '🐦': 'u1f426', '🐪': 'u1f42a', '🐬': 'u1f42c', '🐮': 'u1f42e', '🐻': 'u1f43b', '👥': 'u1f465',
+  '💌': 'u1f48c', '💎': 'u1f48e', '💱': 'u1f4b1', '💾': 'u1f4be', '📐': 'u1f4d0', '📖': 'u1f4d6', '📜': 'u1f4dc', '📦': 'u1f4e6',
+  '📮': 'u1f4ee', '📲': 'u1f4f2', '📸': 'u1f4f8', '🔄': 'u1f504', '🔔': 'u1f514', '🔥': 'u1f525', '🔦': 'u1f526', '🕍': 'u1f54d',
+  '🕒': 'u1f552', '🕵': 'u1f575', '🖌': 'u1f58c', '🖍': 'u1f58d', '🖼': 'u1f5bc', '🗣': 'u1f5e3', '🗳': 'u1f5f3', '🗽': 'u1f5fd',
+  '🗿': 'u1f5ff', '🚂': 'u1f682', '🚆': 'u1f686', '🚗': 'u1f697', '🚛': 'u1f69b', '🚠': 'u1f6a0', '🚢': 'u1f6a2', '🚧': 'u1f6a7',
+  '🚩': 'u1f6a9', '🚲': 'u1f6b2', '🛁': 'u1f6c1', '🛐': 'u1f6d0', '🛞': 'u1f6de', '🛡': 'u1f6e1', '🛢': 'u1f6e2', '🛩': 'u1f6e9',
+  '🛳': 'u1f6f3', '🛶': 'u1f6f6', '🤖': 'u1f916', '🤠': 'u1f920', '🥄': 'u1f944', '🥇': 'u1f947', '🥔': 'u1f954', '🥞': 'u1f95e',
+  '🥵': 'u1f975', '🥾': 'u1f97e', '🦀': 'u1f980', '🦆': 'u1f986', '🦈': 'u1f988', '🦉': 'u1f989', '🦊': 'u1f98a', '🦏': 'u1f98f',
+  '🦕': 'u1f995', '🦘': 'u1f998', '🦜': 'u1f99c', '🦝': 'u1f99d', '🦞': 'u1f99e', '🦟': 'u1f99f', '🦢': 'u1f9a2', '🦬': 'u1f9ac',
+  '🧀': 'u1f9c0', '🧊': 'u1f9ca', '🧑‍🌾': 'u1f9d1-200d-1f33e', '🧑‍🏫': 'u1f9d1-200d-1f3eb', '🧙': 'u1f9d9', '🧣': 'u1f9e3', '🧩': 'u1f9e9', '🧱': 'u1f9f1',
+  '🧽': 'u1f9fd', '🪨': 'u1faa8', '☀': 'u2600', '☕': 'u2615', '⚒': 'u2692', '⚓': 'u2693', '⚽': 'u26bd', '⛏': 'u26cf',
+  '⛓': 'u26d3', '⛪': 'u26ea', '⛰': 'u26f0', '⛴': 'u26f4', '⛵': 'u26f5', '⛷': 'u26f7', '⛺': 'u26fa', '✉': 'u2709',
+  '✋': 'u270b', '❄': 'u2744',
+  '🔎': 'lupe', '🛏': 'seng', '🪰': 'u1f99f', '🪄': 'stjerne', '📷': 'u1f4f8',
+});
+
 // små knappesymboler som strektegninger (følger tekstfargen)
 const sti = (d) => `<svg class="ik-sym" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const SYMBOL = {
@@ -35,6 +63,9 @@ const SYMBOL = {
   '▶': sti('<path d="M7 5l12 7-12 7z"/>'),
   '⛶': sti('<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/>'),
   '➖': sti('<path d="M5 12h14"/>'),
+  '➕': sti('<path d="M5 12h14M12 5v14"/>'),
+  '⬇': sti('<path d="M12 4v15M6 13l6 6 6-6"/>'),
+  '⚠': sti('<path d="M12 3.5L2.5 20h19z"/><path d="M12 10v4.5M12 17.4h.01"/>'),
 };
 
 // pynt vi bare fjerner
