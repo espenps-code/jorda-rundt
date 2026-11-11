@@ -1,23 +1,24 @@
+import { T } from './sprak.js';
 // Jorda rundt – felles innloggingsboks for lærere (lærerside, tavle og rapporter).
 // Google eller vanlig e-post + passord (f.eks. jobbmailen).
 import { loggInnLaerer, testLoggInnLaerer, loggInnEpost, lagEpostkonto, nyttPassord, brukerEmulator } from './fb.js';
 
 const FEIL = {
-  'auth/invalid-email': 'E-postadressen ser ikke riktig ut.',
-  'auth/missing-email': 'Skriv inn e-postadressen din.',
-  'auth/missing-password': 'Skriv inn passordet.',
-  'auth/invalid-credential': 'Feil e-post eller passord.',
-  'auth/wrong-password': 'Feil e-post eller passord.',
-  'auth/user-not-found': 'Fant ingen konto med den e-postadressen. Vil du lage en?',
-  'auth/email-already-in-use': 'Det finnes allerede en konto med denne e-postadressen. Logg inn i stedet.',
-  'auth/weak-password': 'Passordet må ha minst 6 tegn.',
-  'auth/too-many-requests': 'For mange forsøk. Vent litt og prøv igjen.',
-  'auth/popup-closed-by-user': 'Innloggingsvinduet ble lukket.',
-  'auth/popup-blocked': 'Nettleseren blokkerte innloggingsvinduet. Tillat sprettoppvinduer og prøv igjen.',
-  'auth/operation-not-allowed': 'E-postinnlogging er ikke slått på ennå.',
-  'auth/network-request-failed': 'Fikk ikke kontakt med nettet. Sjekk tilkoblingen.',
+  'auth/invalid-email': T('E-postadressen ser ikke riktig ut.'),
+  'auth/missing-email': T('Skriv inn e-postadressen din.'),
+  'auth/missing-password': T('Skriv inn passordet.'),
+  'auth/invalid-credential': T('Feil e-post eller passord.'),
+  'auth/wrong-password': T('Feil e-post eller passord.'),
+  'auth/user-not-found': T('Fant ingen konto med den e-postadressen. Vil du lage en?'),
+  'auth/email-already-in-use': T('Det finnes allerede en konto med denne e-postadressen. Logg inn i stedet.'),
+  'auth/weak-password': T('Passordet må ha minst 6 tegn.'),
+  'auth/too-many-requests': T('For mange forsøk. Vent litt og prøv igjen.'),
+  'auth/popup-closed-by-user': T('Innloggingsvinduet ble lukket.'),
+  'auth/popup-blocked': T('Nettleseren blokkerte innloggingsvinduet. Tillat sprettoppvinduer og prøv igjen.'),
+  'auth/operation-not-allowed': T('E-postinnlogging er ikke slått på ennå.'),
+  'auth/network-request-failed': T('Fikk ikke kontakt med nettet. Sjekk tilkoblingen.'),
 };
-const feiltekst = (e) => FEIL[e?.code] || 'Noe gikk galt: ' + (e?.message || e);
+const feiltekst = (e) => FEIL[e?.code] || T('Noe gikk galt: ') + (e?.message || e);
 
 const CSS = `
 .li-kort { background: #fff; color: #13283F; border-radius: 18px; padding: 22px 22px 18px; max-width: 380px; margin: 0 auto; text-align: left;
@@ -49,22 +50,22 @@ export function monterInnlogging(el) {
   let modus = 'inn'; // inn | ny | glemt
   const tegn = (melding = '', type = 'feil') => {
     const epost = el.querySelector('[name=epost]')?.value || '';
-    el.innerHTML = `<div class="li-kort">
-      ${modus === 'inn' ? `
+    el.innerHTML = T`<div class="li-kort">
+      ${modus === 'inn' ? T`
         <button type="button" class="knapp lys li-google" data-google>${GOOGLE} Logg inn med Google</button>
-        ${brukerEmulator ? '<button type="button" class="knapp lys mini" data-test style="margin-top:8px">Testinnlogging (emulator)</button>' : ''}
+        ${brukerEmulator ? T('<button type="button" class="knapp lys mini" data-test style="margin-top:8px">Testinnlogging (emulator)</button>') : ''}
         <div class="li-skille">eller med e-post</div>` : ''}
-      ${modus === 'ny' ? '<p class="li-tittel">Lag lærerkonto</p><p class="li-hjelp">Bruk gjerne jobbmailen. Elevene trenger ingen konto.</p>' : ''}
-      ${modus === 'glemt' ? '<p class="li-tittel">Glemt passord?</p><p class="li-hjelp">Vi sender deg en lenke for å lage nytt passord.</p>' : ''}
+      ${modus === 'ny' ? T('<p class="li-tittel">Lag lærerkonto</p><p class="li-hjelp">Bruk gjerne jobbmailen. Elevene trenger ingen konto.</p>') : ''}
+      ${modus === 'glemt' ? T('<p class="li-tittel">Glemt passord?</p><p class="li-hjelp">Vi sender deg en lenke for å lage nytt passord.</p>') : ''}
       <form novalidate>
-        ${modus === 'ny' ? '<label for="li-navn">Navn</label><input id="li-navn" name="navn" autocomplete="name" placeholder="F.eks. Kari Lærer">' : ''}
+        ${modus === 'ny' ? T('<label for="li-navn">Navn</label><input id="li-navn" name="navn" autocomplete="name" placeholder="F.eks. Kari Lærer">') : ''}
         <label for="li-epost">E-post</label><input id="li-epost" name="epost" type="email" autocomplete="email" placeholder="navn@skole.no" value="${epost.replace(/"/g, '&quot;')}">
-        ${modus !== 'glemt' ? `<label for="li-passord">Passord</label><input id="li-passord" name="passord" type="password" autocomplete="${modus === 'ny' ? 'new-password' : 'current-password'}" ${modus === 'ny' ? 'placeholder="Minst 6 tegn"' : ''}>` : ''}
-        <button class="knapp sol li-send">${modus === 'inn' ? 'Logg inn' : modus === 'ny' ? 'Lag konto og logg inn' : 'Send lenke'}</button>
+        ${modus !== 'glemt' ? T`<label for="li-passord">Passord</label><input id="li-passord" name="passord" type="password" autocomplete="${modus === 'ny' ? 'new-password' : 'current-password'}" ${modus === 'ny' ? 'placeholder="Minst 6 tegn"' : ''}>` : ''}
+        <button class="knapp sol li-send">${modus === 'inn' ? T('Logg inn') : modus === 'ny' ? T('Lag konto og logg inn') : T('Send lenke')}</button>
       </form>
       <p class="li-melding ${type}">${melding}</p>
       <div class="li-lenker">
-        ${modus === 'inn' ? '<button type="button" data-modus="ny">Lag ny konto</button><button type="button" data-modus="glemt">Glemt passord?</button>' : '<button type="button" data-modus="inn">← Tilbake til innlogging</button>'}
+        ${modus === 'inn' ? T('<button type="button" data-modus="ny">Lag ny konto</button><button type="button" data-modus="glemt">Glemt passord?</button>') : T('<button type="button" data-modus="inn">← Tilbake til innlogging</button>')}
       </div>
     </div>`;
     const vis = (t, ty = 'feil') => { const m = el.querySelector('.li-melding'); m.className = 'li-melding ' + ty; m.textContent = t; };
@@ -77,9 +78,9 @@ export function monterInnlogging(el) {
       try {
         if (modus === 'inn') await loggInnEpost(f.epost, f.passord);
         else if (modus === 'ny') {
-          if (!f.navn?.trim()) throw { code: 'mangler-navn', message: 'Skriv inn navnet ditt.' };
+          if (!f.navn?.trim()) throw { code: 'mangler-navn', message: T('Skriv inn navnet ditt.') };
           await lagEpostkonto(f.navn, f.epost, f.passord);
-        } else { await nyttPassord(f.epost); modus = 'inn'; tegn('Sjekk innboksen (og søppelpost). Lenken for nytt passord er sendt.', 'ok'); return; }
+        } else { await nyttPassord(f.epost); modus = 'inn'; tegn(T('Sjekk innboksen (og søppelpost). Lenken for nytt passord er sendt.'), 'ok'); return; }
       } catch (err) { vis(err.code === 'mangler-navn' ? err.message : feiltekst(err)); knapp.disabled = false; }
     });
   };

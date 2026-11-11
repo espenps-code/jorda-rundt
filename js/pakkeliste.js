@@ -5,6 +5,9 @@ export const SPILLPAKKER = [
   { id: 'verden', rot: '', steder: 'land', navn: 'Jorda rundt', ikon: '🌍', tekst: 'Reis jorden rundt og erobre land og kontinenter. Fly mellom hovedsteder.' },
   { id: 'europa', rot: 'europa', steder: 'byer', navn: 'Europa rundt', ikon: '🇪🇺', tekst: 'Erobre byer i Europa – og hele land. Fly, tog og buss.' },
   { id: 'norge', rot: 'norge', steder: 'steder', navn: 'Norge rundt', ikon: '🇳🇴', tekst: 'Erobre steder og hele fylker i Norge. Buss, tog, båt og fly – og telt med allemannsretten.' },
+  { id: 'uk', rot: 'uk', steder: 'steder', navn: 'Across the UK', ikon: '🇬🇧', tekst: 'På engelsk: erobre steder og regioner i England, Skottland, Wales og Nord-Irland. Fly, tog, buss og ferje.' },
+  { id: 'australia', rot: 'australia', steder: 'steder', navn: 'Across Australia', ikon: '🇦🇺', tekst: 'På engelsk: erobre steder og delstater i Australia – fra storbyene til outbacken. Fly, tog, buss og ferje.' },
+  { id: 'usa', rot: 'usa', steder: 'stater', navn: 'Across America', ikon: '🇺🇸', tekst: 'På engelsk: erobre stater og regioner i USA. Fly, tog og buss – og camping med «Leave No Trace».' },
 ];
 /** Adressen til en side for en spillpakke: pakkeAdresse('europa', 'laerer.html') → laerer.html?pakke=europa */
 export function pakkeAdresse(id, side = 'laerer.html', ekstra = '') {

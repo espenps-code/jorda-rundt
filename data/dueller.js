@@ -1,7 +1,8 @@
 // Jorda rundt – duellbank i Taskmaster-stil.
 // Hver gruppe sender én deltaker (eller det som står i oppgaven). Læreren er dommer.
 // tid = sekunder på nedtellingen (0 = ingen nedtelling). utstyr = det som trengs.
-export const DUELLER = [
+import { SPRAK } from '../js/sprak.js';
+const NORSKE = [
   { tittel: 'Papirkula', tekst: 'Kast en papirkule så nær veggen som mulig – uten å treffe den. Ett kast hver.', vinner: 'Nærmest veggen vinner. Treffer du veggen, er du ute.', tid: 0, utstyr: 'Ett ark per deltaker' },
   { tittel: 'Bokstavjakt', tekst: 'Skriv flest mulig ord som begynner på samme bokstav som landet dere kjemper om.', vinner: 'Flest godkjente ord vinner.', tid: 60, utstyr: 'Ark og blyant' },
   { tittel: 'Tårnet', tekst: 'Bygg det høyeste frittstående tårnet av ting dere finner i pennalet.', vinner: 'Høyeste tårn som står i 5 sekunder vinner.', tid: 90, utstyr: 'Pennal' },
@@ -27,3 +28,5 @@ export const DUELLER = [
   { tittel: 'Terningduellen', tekst: 'Kast to terninger tre ganger og legg sammen alle øynene.', vinner: 'Høyest sum vinner. Likt: ett nytt kast hver.', tid: 0, utstyr: 'To terninger' },
   { tittel: 'Reaksjonstesten', tekst: 'Læreren holder en linjal loddrett mellom tommel og pekefinger og slipper den uten forvarsel. Knip den så fort du kan. Tre forsøk hver.', vinner: 'Lavest tall der du knep (best av tre) vinner.', tid: 0, utstyr: 'Linjal (30 cm)' },
 ];
+// Spillpakker på engelsk (sprak: 'en') bruker duellene i dueller-en.js i stedet.
+export const DUELLER = SPRAK === 'en' ? (await import('./dueller-en.js')).DUELLER : NORSKE;

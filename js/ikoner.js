@@ -81,6 +81,12 @@ function gjennomga(rot) {
   liste.forEach(behandleTekst);
 }
 
+// Spillpakker på andre språk: vent til den faste teksten er oversatt (js/sprak.js fjerner «sprak-venter»),
+// så ordboka ser teksten med emojiene på plass. På norske sider finnes ikke klassen, og ingenting venter.
+if (document.documentElement.classList.contains('sprak-venter')) {
+  await new Promise((ferdig) => { const t = setInterval(() => { if (!document.documentElement.classList.contains('sprak-venter')) { clearInterval(t); ferdig(); } }, 20); });
+}
+
 // stripp emojier fra fanetittel
 document.title = document.title.replace(RE, '').trim();
 gjennomga(document.body);

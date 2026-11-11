@@ -164,6 +164,15 @@
   .reisekort .fakta { font: 500 .8rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--blekk-2); }
   .reisekort .ga { margin-top: .9rem; font-weight: 700; color: var(--hav-3); }
   @media (max-width: 860px) { .reisekort-rad { grid-template-columns: 1fr; } }
+  /* eget felt for spillene på engelsk (plass til flere: Storbritannia, Australia …) */
+  .engelsk { margin-top: 1.8rem; background: var(--hav); color: #fff; border-radius: 26px; padding: 1.8rem; display: grid; grid-template-columns: 1fr; gap: 1.4rem; position: relative; overflow: hidden; }
+  .engelsk::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: var(--luftpost); }
+  .engelsk .merkelapp { font: 500 .8rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--sol); }
+  .engelsk > div > h3 { color: #fff; font-size: 1.9rem; margin: .3rem 0 .5rem; }
+  .engelsk > div > p { margin: 0; color: #d7e6f2; line-height: 1.55; max-width: 62ch; }
+  .engelsk-kort { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+  .engelsk .reisekort { --f: var(--sol); }
+  @media (max-width: 860px) { .engelsk { padding: 1.6rem 1.2rem 1.2rem; } .engelsk-kort { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -176,9 +185,9 @@
       <p class="ingress">Reis verden rundt med 200 000 kroner i lomma. Book fly og hotell, fullfør reiseloggen – og erobre flest land før de andre gruppene!</p>
       <div class="cta">
         <a class="knapp sol" href="laerer.html">Logg inn som lærer</a>
-        <a class="knapp omriss" href="#reiser">Se alle tre reisene</a>
+        <a class="knapp omriss" href="#reiser">Se alle reisene</a>
       </div>
-      <div class="fordeler"><span>✓ Gratis</span><span>✓ Ingen elevkontoer</span><span>✓ Nettbrett og PC</span><span>✓ Verden, Europa og Norge</span></div>
+      <div class="fordeler"><span>✓ Gratis</span><span>✓ Ingen elevkontoer</span><span>✓ Nettbrett og PC</span><span>✓ Verden, Europa, Norge – og tre reiser på engelsk</span></div>
     </div>
     <div id="klode" aria-hidden="true">
       <div class="hero-nal" style="top:14%;left:4%">✈️ <b>Oslo → Tokyo</b><br>3 309 kr · 2 stopp</div>
@@ -217,6 +226,36 @@
           <span class="fakta">72 steder i 15 fylker + Svalbard · fly, tog, buss, båt</span>
           <span class="ga">Gå til Norge rundt →</span>
         </a>
+      </div>
+      <div class="engelsk" id="engelsk">
+        <div>
+          <span class="merkelapp">In English · til engelsktimene</span>
+          <h3>Reis på engelsk</h3>
+          <p>Samme spill – men her er <b>alt på engelsk</b>: spillet, quizene, jobbene, reiseloggen og lærersiden. Enkelt språk for elever som lærer engelsk, med dollar, pund, miles og nye ord underveis.</p>
+        </div>
+        <div class="engelsk-kort">
+            <a class="reisekort" href="usa/">
+              <span class="flagg">🇺🇸</span>
+              <h3>Across America</h3>
+              <p>Reis USA rundt med 20 000 dollar. Fly, tog eller buss – og camping med «Leave No Trace».</p>
+              <span class="fakta">50 stater i 7 regioner · fly, tog, buss</span>
+              <span class="ga">Gå til Across America →</span>
+            </a>
+            <a class="reisekort" href="uk/">
+              <span class="flagg">🇬🇧</span>
+              <h3>Across the UK</h3>
+              <p>Reis Storbritannia rundt med 8 000 pund. Fly, tog, buss eller ferje – og telt i det skotske høylandet.</p>
+              <span class="fakta">40 steder i 12 regioner · fly, tog, buss, ferje</span>
+              <span class="ga">Gå til Across the UK →</span>
+            </a>
+            <a class="reisekort" href="australia/">
+              <span class="flagg">🇦🇺</span>
+              <h3>Across Australia</h3>
+              <p>Reis Australia rundt med 12 000 dollar. Fly, tog, buss eller ferje – og telt under stjernene i outbacken.</p>
+              <span class="fakta">44 steder i 6 delstater og 2 territorier · fly, tog, buss, ferje</span>
+              <span class="ga">Gå til Across Australia →</span>
+            </a>
+        </div>
       </div>
     </div>
   </section>

@@ -1,3 +1,4 @@
+import { T } from './sprak.js';
 // MOTOREN – velkomst-slideshow når en gruppe kommer til et nytt sted.
 // Innholdet ligger i hver spillpakke: pakker/<spill>/velkommen.js (fakta + bildetitler)
 // og pakker/<spill>/velkommen-bilder.js (ferdig oppslåtte Wikimedia-bilder med fotograf og lisens,
@@ -16,10 +17,10 @@ async function hentData() {
 
 // Små «nysgjerrig»-setninger på slutten av faktasidene – sier ingenting som står i reiseloggen
 const TEASER = [
-  'Resten må dere finne ut selv i reiseloggen! 🔎',
-  'Hva mer finnes her? Det er deres oppdrag å finne ut! 🕵️',
-  'Dette er bare begynnelsen – reiseloggen venter! 📓',
-  'Hvor mye mer klarer dere å finne ut? 🧭',
+  T('Resten må dere finne ut selv i reiseloggen! 🔎'),
+  T('Hva mer finnes her? Det er deres oppdrag å finne ut! 🕵️'),
+  T('Dette er bare begynnelsen – reiseloggen venter! 📓'),
+  T('Hvor mye mer klarer dere å finne ut? 🧭'),
 ];
 
 function lagSider(sted, ord, info, bilder, telt) {
@@ -40,21 +41,21 @@ function lagSider(sted, ord, info, bilder, telt) {
 
   const sider = [{
     type: 'start', bilde: bilde(0),
-    html: `<div class="vk-flagg">${sted.flagg || '📍'}</div>
+    html: T`<div class="vk-flagg">${sted.flagg || '📍'}</div>
       <div class="vk-merke">Dere har kommet fram!</div>
       <h2>Velkommen til ${esc(sted.navn)}!</h2>
       ${under ? `<p class="vk-under">${under}</p>` : ''}`,
   }];
   fakta.forEach((f, n) => sider.push({
     type: 'fakta', bilde: bilde(n + 1),
-    html: `<div class="vk-merke">💡 Visste dere at …</div><p class="vk-fakta">${esc(f)}</p>
+    html: T`<div class="vk-merke">💡 Visste dere at …</div><p class="vk-fakta">${esc(f)}</p>
       ${n === fakta.length - 1 ? `<p class="vk-teaser">${TEASER[(sted.navn.length + n) % TEASER.length]}</p>` : ''}`,
   }));
   sider.push({
     type: 'slutt', bilde: null,
-    html: `<img class="vk-ikon" src="${window.SPILLROT || ''}ikoner/${telt ? 'seng' : 'hotell'}.webp" alt="">
+    html: T`<img class="vk-ikon" src="${window.SPILLROT || ''}ikoner/${telt ? 'seng' : 'hotell'}.webp" alt="">
       <h2>Nå må dere finne et sted å overnatte!</h2>
-      <p class="vk-under">Dere trenger tre netter i ${esc(sted.by || sted.navn)} før dere kan gjøre noe annet her.${telt && sted.telt ? ' Kanskje teltet er et godt valg?' : ''}</p>
+      <p class="vk-under">Dere trenger tre netter i ${esc(sted.by || sted.navn)} før dere kan gjøre noe annet her.${telt && sted.telt ? T(' Kanskje teltet er et godt valg?') : ''}</p>
       <button class="knapp sol vk-finn" data-vk="ferdig">🛏️ Finn overnatting</button>`,
   });
   return sider;
@@ -69,6 +70,9 @@ const CSS = `
 .vk-scene { position: absolute; inset: 0; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding: 16px 16px 84px; }
 .vk-bilde { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: vk-zoom 14s ease-out forwards; }
 @keyframes vk-zoom { from { transform: scale(1.0); } to { transform: scale(1.09); } }
+/* Høye bilder (portretter, tårn, statuer): vis HELE bildet over kortet, med en uskarp kopi som bakgrunn – ellers skjæres hode og føtter bort */
+.vk-uskarp { position: absolute; inset: -40px; background-size: cover; background-position: center; filter: blur(24px) brightness(.55); }
+.vk-bilde.vk-hel { object-fit: contain; object-position: center; inset: 12px 12px auto 12px; width: calc(100% - 24px); height: calc(100% - 24px); animation: vk-inn .4s ease; filter: drop-shadow(0 10px 30px rgba(0,0,0,.5)); }
 .vk-luftpost { position: absolute; inset: 0; background: radial-gradient(circle at 30% 20%, #1F5390, #0C2340 70%); }
 .vk-luftpost::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 12px; background: var(--luftpost); }
 .vk-skygge { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,16,31,.45) 0%, rgba(4,16,31,0) 25%, rgba(4,16,31,0) 45%, rgba(4,16,31,.75) 100%); pointer-events: none; }
@@ -113,7 +117,7 @@ export async function visVelkommen({ sted, ord = {}, telt = false, vedOvernattin
     let n = 0;
     const bg = document.createElement('div');
     bg.className = 'vk-bakgrunn';
-    bg.setAttribute('role', 'dialog'); bg.setAttribute('aria-modal', 'true'); bg.setAttribute('aria-label', `Velkommen til ${sted.navn}`);
+    bg.setAttribute('role', 'dialog'); bg.setAttribute('aria-modal', 'true'); bg.setAttribute('aria-label', T`Velkommen til ${sted.navn}`);
     apen = bg;
     const lukk = (grunn) => {
       document.removeEventListener('keydown', tast); bg.classList.add('vk-ut');
@@ -130,12 +134,12 @@ export async function visVelkommen({ sted, ord = {}, telt = false, vedOvernattin
 
     function tegn() {
       const s = sider[n]; const b = s.bilde;
-      const kreditt = b ? `<a class="vk-kreditt" href="${esc(b.s)}" target="_blank" rel="noopener">📷 ${esc(b.tekst)} · Foto: ${esc(b.a || 'ukjent')} · ${esc(b.l || 'Wikimedia Commons')}</a>` : '';
-      bg.innerHTML = `
+      const kreditt = b ? T`<a class="vk-kreditt" href="${esc(b.s)}" target="_blank" rel="noopener">📷 ${esc(b.tekst)} · Foto: ${esc(!b.a || b.a === 'ukjent' ? T('ukjent') : b.a)} · ${esc(b.l || T('Wikimedia Commons'))}</a>` : '';
+      bg.innerHTML = T`
         <div class="vk-scene ${b ? '' : 'vk-uten-bilde'}">
           ${b ? `<img class="vk-bilde" src="${esc(b.u)}" alt="${esc(b.tekst)}">` : `<div class="vk-luftpost"></div>`}
           <div class="vk-skygge"></div>
-          <button class="vk-hopp" data-vk="hopp">${n === sider.length - 1 ? 'Lukk' : 'Hopp over'} ✕</button>
+          <button class="vk-hopp" data-vk="hopp">${n === sider.length - 1 ? T('Lukk') : T('Hopp over')} ✕</button>
           <div class="vk-kort vk-${s.type}">${s.html}</div>
           ${kreditt}
           <div class="vk-bunn">
@@ -145,6 +149,19 @@ export async function visVelkommen({ sted, ord = {}, telt = false, vedOvernattin
           </div>
         </div>`;
       const img = bg.querySelector('.vk-bilde');
+      // Blir mer enn en firedel av høyden skåret bort? Da vises hele bildet i plassen over kortet i stedet.
+      const tilpassBilde = () => {
+        if (!img.isConnected || !img.naturalWidth) return;
+        const scene = img.parentElement, kort = scene.querySelector('.vk-kort');
+        const synlig = (scene.clientHeight / scene.clientWidth) / (img.naturalHeight / img.naturalWidth);
+        if (synlig >= 0.75) return;
+        const bak = Object.assign(document.createElement('div'), { className: 'vk-uskarp' });
+        bak.style.backgroundImage = `url("${img.src}")`;
+        img.before(bak); img.classList.add('vk-hel');
+        const plass = kort ? kort.getBoundingClientRect().top - scene.getBoundingClientRect().top - 24 : 0;
+        if (plass > 160) img.style.height = plass + 'px';
+      };
+      if (img) { if (img.complete) tilpassBilde(); else img.onload = tilpassBilde; }
       if (img) img.onerror = () => { img.replaceWith(Object.assign(document.createElement('div'), { className: 'vk-luftpost' })); bg.querySelector('.vk-kreditt')?.remove(); };
       bg.querySelectorAll('[data-vk]').forEach((k) => k.onclick = (e) => {
         e.stopPropagation(); const v = k.dataset.vk;

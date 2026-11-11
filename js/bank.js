@@ -1,3 +1,4 @@
+import { T } from './sprak.js';
 // MOTOREN – BANKEN (felles for alle spillpakkene). Steder (posisjon, hotell, reiselogg, eierskap) er stedene i
 // spillpakken (land i Jorda rundt, byer i Europa rundt). Diktat gjelder per region (landKode).
 // Elevforespørslene behandles i SKYEN (functions/index.js kaller behandle() under).
@@ -12,7 +13,7 @@ import { rettFlyquiz, kravFor, MAKS_SPORSMAL } from '../data/flyquiz.js';
 import { landKode, landInfo } from '#pakke/land.js';
 import {
   innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, landEtterId, formaterKr, nyId,
-  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER, duellPulje, reisehendelse, DIKTATNAVN,
+  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER, duellPulje, reisehendelse, DIKTATNAVN, rund10, hendelseBelop,
 } from './felles.js';
 
 const iArbeid = new Set();
@@ -45,13 +46,13 @@ export async function behandle(spillId, gid, fid, f) {
 
   const spill = (await get(r(`spill/${spillId}`))).val() || {};
   const i = innst(spill);
-  let resultat = { ok: false, melding: 'Ukjent forespørsel.' };
+  let resultat = { ok: false, melding: T('Ukjent forespørsel.') };
 
   try {
-    if (i.pause) resultat = { ok: false, melding: 'Spillet er satt på pause av læreren.' };
-    else if (!spill.grupper?.[gid]) resultat = { ok: false, melding: 'Gruppa finnes ikke.' };
+    if (i.pause) resultat = { ok: false, melding: T('Spillet er satt på pause av læreren.') };
+    else if (!spill.grupper?.[gid]) resultat = { ok: false, melding: T('Gruppa finnes ikke.') };
     else if (f.type === 'landing') resultat = await landing(spillId, gid, f.data || {});
-    else if (spill.grupper[gid].iLufta) resultat = { ok: false, melding: 'Dere er i lufta! Svar på spørsmålene for å lande først. ✈️' };
+    else if (spill.grupper[gid].iLufta) resultat = { ok: false, melding: T('Dere er i lufta! Svar på spørsmålene for å lande først. ✈️') };
     else if (f.type === 'fly') resultat = await fly(spillId, gid, f.data || {}, i, spill);
     else if (f.type === 'hotell') resultat = await hotell(spillId, gid, f.data || {}, i);
     else if (f.type === 'jobb') resultat = await jobb(spillId, gid, f.data || {}, i);
@@ -59,10 +60,10 @@ export async function behandle(spillId, gid, fid, f) {
     else if (f.type === 'reiselogg') resultat = await reiselogg(spillId, gid, spill);
     else if (f.type === 'diktat') resultat = await diktat(spillId, gid, f.data || {}, i, spill);
     else if (f.type === 'diktatbe') resultat = await diktatBe(spillId, gid, i, spill);
-    else if (f.type === 'landquiz') resultat = { ok: false, melding: 'Landquiz finnes ikke lenger. Land låses automatisk etter noen dager.' };
+    else if (f.type === 'landquiz') resultat = { ok: false, melding: T('Landquiz finnes ikke lenger. Land låses automatisk etter noen dager.') };
   } catch (e) {
     console.error(e);
-    resultat = { ok: false, melding: 'Noe gikk galt i banken. Prøv igjen.' };
+    resultat = { ok: false, melding: T('Noe gikk galt i banken. Prøv igjen.') };
   }
 
   const oppdatering = {
@@ -86,9 +87,9 @@ async function medGruppe(spillId, gid, endre) {
     if (u.feil) return;                     // avbryt uten endring
     return g;
   });
-  if (!utfall) return { ok: false, melding: 'Fant ikke gruppa.' };
+  if (!utfall) return { ok: false, melding: T('Fant ikke gruppa.') };
   if (utfall.feil) return { ok: false, melding: utfall.feil };
-  if (!res.committed) return { ok: false, melding: 'Banken var opptatt. Prøv igjen.' };
+  if (!res.committed) return { ok: false, melding: T('Banken var opptatt. Prøv igjen.') };
   return { ok: true, melding: utfall.melding, logg: utfall.logg };
 }
 
@@ -100,21 +101,21 @@ export const LOGG_GODKJENT = ['godkjent', 'duell', 'laast', 'tapt'];
 
 function fly(spillId, gid, d, i, spill) {
   return medGruppe(spillId, gid, (g) => {
-    if (!harHotellHer(g)) return { feil: 'Dere må booke hotell (3 netter) der dere er før dere kan reise videre.' };
+    if (!harHotellHer(g)) return { feil: T('Dere må booke hotell (3 netter) der dere er før dere kan reise videre.') };
     const loggStatus = spill?.reiselogger?.[gid]?.[g.posisjon]?.status;
     if (!LOGG_GODKJENT.includes(loggStatus)) {
       const her = landEtterId[g.posisjon]?.navn || O.stedet;
-      return { feil: loggStatus === 'levert' ? `Læreren må godkjenne reiseloggen for ${her} før dere kan reise videre.` : `Dere må levere reiseloggen for ${her} og få den godkjent før dere kan reise videre.` };
+      return { feil: loggStatus === 'levert' ? T`Læreren må godkjenne reiseloggen for ${her} før dere kan reise videre.` : T`Dere må levere reiseloggen for ${her} og få den godkjent før dere kan reise videre.` };
     }
-    if (!landEtterId[d.til]) return { feil: 'Ukjent reisemål.' };
-    if (d.til === g.posisjon) return { feil: 'Dere er allerede her!' };
-    if (erStengt(d.til, i)) return { feil: `${landEtterId[d.til].navn} er stengt for reiser i spillet.` };
-    if (d.dato !== idag() && d.dato !== igaar()) return { feil: 'Prisen er utgått. Søk på nytt.' };
+    if (!landEtterId[d.til]) return { feil: T('Ukjent reisemål.') };
+    if (d.til === g.posisjon) return { feil: T('Dere er allerede her!') };
+    if (erStengt(d.til, i)) return { feil: T`${landEtterId[d.til].navn} er stengt for reiser i spillet.` };
+    if (d.dato !== idag() && d.dato !== igaar()) return { feil: T('Prisen er utgått. Søk på nytt.') };
     const tilbud = flyTilbud(g.posisjon, d.til, d.dato, g.personer || 4)[d.valg];
-    if (!tilbud) return { feil: 'Fant ikke flyreisen. Søk på nytt.' };
+    if (!tilbud) return { feil: T('Fant ikke flyreisen. Søk på nytt.') };
     const pris = flyPrisMedRabatt(tilbud.totalt, g.hotell, g.posisjon, tilbud.type);
-    if (d.pris !== pris) return { feil: 'Prisen har endret seg. Søk på nytt.' };
-    if ((g.saldo || 0) < pris) return { feil: `Dere har ikke råd. Billettene koster ${formaterKr(pris)}.` };
+    if (d.pris !== pris) return { feil: T('Prisen har endret seg. Søk på nytt.') };
+    if ((g.saldo || 0) < pris) return { feil: T`Dere har ikke råd. Billettene koster ${formaterKr(pris)}.` };
     const fra = g.posisjon;
     const krav = tilbud.krav ?? kravFor(tilbud.stopp);
     const type = tilbud.type || 'fly';
@@ -129,8 +130,8 @@ function fly(spillId, gid, d, i, spill) {
     const til = landEtterId[d.til];
     const ikon = { fly: '✈️', tog: '🚆', buss: '🚌', bat: '⛴️' }[type];
     return {
-      melding: `God tur! Svar riktig på ${krav} spørsmål underveis for å komme fram til ${til.by}.`,
-      logg: { type: 'billett', belop: -pris, fra, til: d.til, reisemate: type, tekst: `${tilbud.hurtigruta ? 'tok Hurtigruta mot' : ({ fly: 'tok av mot', tog: 'tok toget mot', buss: 'tok bussen mot', bat: 'tok båten mot' }[type] || 'reiste mot')} ${til.flagg} ${til.navn} ${ikon}` },
+      melding: T`God tur! Svar riktig på ${krav} spørsmål underveis for å komme fram til ${til.by}.`,
+      logg: { type: 'billett', belop: -pris, fra, til: d.til, reisemate: type, tekst: `${tilbud.hurtigruta ? T('tok Hurtigruta mot') : ({ fly: T('tok av mot'), tog: T('tok toget mot'), buss: T('tok bussen mot'), bat: T('tok båten mot') }[type] || T('reiste mot'))} ${til.flagg} ${til.navn} ${ikon}` },
     };
   });
 }
@@ -138,10 +139,10 @@ function fly(spillId, gid, d, i, spill) {
 function landing(spillId, gid, d) {
   return medGruppe(spillId, gid, (g) => {
     const f = g.iLufta;
-    if (!f) return { feil: 'Dere er ikke i lufta.' };
+    if (!f) return { feil: T('Dere er ikke i lufta.') };
     const svar = Array.isArray(d.svar) ? d.svar.slice(0, MAKS_SPORSMAL) : [];
     const riktige = rettFlyquiz(f.fro, svar);
-    if (riktige < f.krav) return { feil: `Dere har ${riktige} av ${f.krav} riktige. Fortsett å svare!` };
+    if (riktige < f.krav) return { feil: T`Dere har ${riktige} av ${f.krav} riktige. Fortsett å svare!` };
     const til = landEtterId[f.til];
     g.posisjon = f.til;
     g.iLufta = null;
@@ -150,30 +151,30 @@ function landing(spillId, gid, d) {
     const h = reisehendelse ? reisehendelse({ type: f.type || 'fly', fra: f.fra, til: f.til, dato: idag() }) : null;
     let hKr = 0, hTekst = '';
     if (h) {
-      hKr = h.kr ? Math.max(50, Math.round(Math.abs(h.kr) * Math.pow(til.prisniva || 1, 0.8) / 10) * 10) * Math.sign(h.kr) : 0;
+      hKr = hendelseBelop(h.kr, til.prisniva || 1);
       if (hKr) g.saldo = Math.max(0, (g.saldo || 0) + hKr);
       hTekst = ` ${h.tekst}${hKr ? ` (${hKr > 0 ? '+' : '−'}${formaterKr(Math.abs(hKr))})` : ''}`;
     }
     return {
-      melding: `${f.type && f.type !== 'fly' ? '🏁' : '🛬'} Velkommen til ${til.by}, ${til.landNavn}! Husk å booke hotell.${hTekst}`,
-      logg: { type: 'fly', reisemate: f.type || 'fly', fra: f.fra, til: f.til, turbulens: svar.length - riktige, stopp: f.stopp, ...(hKr ? { belop: hKr } : {}), ...(h ? { hendelse: h.tekst } : {}), tekst: `${f.type && f.type !== 'fly' ? 'kom fram til' : 'landet i'} ${til.flagg} ${til.navn} (${svar.length - riktige} ${f.type && f.type !== 'fly' ? 'feil' : 'turbulens'})${hTekst ? ' –' + hTekst : ''}` },
+      melding: T`${f.type && f.type !== 'fly' ? '🏁' : '🛬'} Velkommen til ${til.by}, ${til.landNavn}! Husk å booke hotell.${hTekst}`,
+      logg: { type: 'fly', reisemate: f.type || 'fly', fra: f.fra, til: f.til, turbulens: svar.length - riktige, stopp: f.stopp, ...(hKr ? { belop: hKr } : {}), ...(h ? { hendelse: h.tekst } : {}), tekst: `${f.type && f.type !== 'fly' ? T('kom fram til') : T('landet i')} ${til.flagg} ${til.navn} (${svar.length - riktige} ${f.type && f.type !== 'fly' ? T('feil') : T('turbulens')})${hTekst ? ' –' + hTekst : ''}` },
     };
   });
 }
 
 function hotell(spillId, gid, d, i) {
   return medGruppe(spillId, gid, (g) => {
-    if (harHotellHer(g)) return { feil: 'Dere har allerede hotell her.' };
+    if (harHotellHer(g)) return { feil: T('Dere har allerede hotell her.') };
     const h = hoteller(g.posisjon).find((x) => x.id === d.hotellId);
-    if (!h) return { feil: 'Fant ikke hotellet.' };
+    if (!h) return { feil: T('Fant ikke hotellet.') };
     // Telt: gruppa må kunne allemannsretten (alle spørsmålene riktige)
     if (h.telt) {
-      if (!rettTeltQuiz || !gyldigFro(d.fro)) return { feil: 'Svar på spørsmålene om allemannsretten først.' };
+      if (!rettTeltQuiz || !gyldigFro(d.fro)) return { feil: T('Svar på spørsmålene om allemannsretten først.') };
       const res = rettTeltQuiz(d.fro, d.svar || []);
-      if (res.riktige < res.antall) return { feil: `Dere hadde ${res.riktige} av ${res.antall} riktige om allemannsretten. Les reglene og prøv igjen!` };
+      if (res.riktige < res.antall) return { feil: T`Dere hadde ${res.riktige} av ${res.antall} riktige om allemannsretten. Les reglene og prøv igjen!` };
     }
     const pris = h.prisNatt * 3;
-    if ((g.saldo || 0) < pris) return { feil: `Dere har ikke råd. Tre netter koster ${formaterKr(pris)}.` };
+    if ((g.saldo || 0) < pris) return { feil: T`Dere har ikke råd. Tre netter koster ${formaterKr(pris)}.` };
     g.saldo -= pris;
     g.hotell = { land: g.posisjon, navn: h.navn, stjerner: h.stjerner, pris, fasiliteter: h.fasiliteter, ...(h.telt ? { telt: true } : {}) };
     g.besokt = g.besokt || {}; g.besokt[g.posisjon] = true;
@@ -183,35 +184,35 @@ function hotell(spillId, gid, d, i) {
     if (!g.hotell.hendelse && Math.random() < (HENDELSE_SJANSE[h.stjerner] || 0)) {
       const liste = h.telt && TELTHENDELSER ? TELTHENDELSER : HOTELLHENDELSER;
       const e = liste[Math.floor(Math.random() * liste.length)];
-      const kr = e.kr ? Math.max(50, Math.round(Math.abs(e.kr) * Math.pow(l.prisniva, 0.8) / 10) * 10) * Math.sign(e.kr) : 0;
+      const kr = hendelseBelop(e.kr, l.prisniva);
       g.hotell.hendelse = { tekst: e.tekst, kr, jobb: e.jobb || 0 };
       if (kr) g.saldo = Math.max(0, g.saldo + kr);
       hendelseTekst = ` ${e.tekst}${kr ? ` (${kr > 0 ? '+' : '−'}${formaterKr(Math.abs(kr))})` : ''}`;
     }
     return {
-      melding: h.telt ? `⛺ Teltet er slått opp! Husk allemannsretten: maks to netter på samme sted i lavlandet, og ta med all søpla.${hendelseTekst}` : `Velkommen til ${h.navn}! Tre netter er booket.${hendelseTekst}`,
-      logg: { type: 'hotell', belop: -pris + (g.hotell.hendelse?.kr || 0), pris, navn: h.navn, stjerner: h.stjerner, hendelse: g.hotell.hendelse || null, land: g.posisjon, tekst: `${h.telt ? `slår opp telt ved ${l.by} ⛺` : `sjekker inn på ${h.navn} i ${l.by}`}${hendelseTekst ? ' –' + hendelseTekst : ''}` },
+      melding: h.telt ? T`⛺ Teltet er slått opp! Husk allemannsretten: maks to netter på samme sted i lavlandet, og ta med all søpla.${hendelseTekst}` : T`Velkommen til ${h.navn}! Tre netter er booket.${hendelseTekst}`,
+      logg: { type: 'hotell', belop: -pris + (g.hotell.hendelse?.kr || 0), pris, navn: h.navn, stjerner: h.stjerner, hendelse: g.hotell.hendelse || null, land: g.posisjon, tekst: `${h.telt ? T`slår opp telt ved ${l.by} ⛺` : T`sjekker inn på ${h.navn} i ${l.by}`}${hendelseTekst ? ' –' + hendelseTekst : ''}` },
     };
   });
 }
 
 function jobb(spillId, gid, d, i) {
   return medGruppe(spillId, gid, (g) => {
-    if (!harHotellHer(g)) return { feil: `Dere må bo på hotell i ${O.stedet} for å kunne jobbe der.` };
+    if (!harHotellHer(g)) return { feil: T`Dere må bo på hotell i ${O.stedet} for å kunne jobbe der.` };
     const dag = idag();
     const antall = g.jobber?.[dag] || 0;
     const eff = hotellEffekt(g.hotell, i);
-    if (antall >= eff.jobber) return { feil: `Dere har jobbet nok i dag (maks ${eff.jobber} ${eff.jobber === 1 ? 'jobb' : 'jobber'} per dag på dette hotellet).` };
-    if (!gyldigFro(d.fro)) return { feil: 'Ugyldig jobb. Last inn siden på nytt.' };
-    if (g.brukteFro?.[d.fro]) return { feil: 'Denne jobben er allerede levert.' };
+    if (antall >= eff.jobber) return { feil: T`Dere har jobbet nok i dag (maks ${eff.jobber} ${eff.jobber === 1 ? T('jobb') : T('jobber')} per dag på dette hotellet).` };
+    if (!gyldigFro(d.fro)) return { feil: T('Ugyldig jobb. Last inn siden på nytt.') };
+    if (g.brukteFro?.[d.fro]) return { feil: T('Denne jobben er allerede levert.') };
     const res = rettJobb(g.posisjon, d.fro, d.svar);
     g.jobber = { [dag]: antall + 1 };              // bare dagens teller trengs
     g.brukteFro = { ...(g.brukteFro || {}), [d.fro]: true };
-    const lonn = Math.round(res.utbetaling * eff.lonn / 10) * 10;
+    const lonn = rund10(res.utbetaling * eff.lonn);
     g.saldo = (g.saldo || 0) + lonn;
     return {
-      melding: `${res.riktige} av ${res.antall} riktige. Dere tjente ${formaterKr(lonn)}${eff.lonn !== 1 ? ` (${eff.lonn > 1 ? '+' : '−'}${Math.round(Math.abs(eff.lonn - 1) * 100)} % fra hotellet)` : ''}.`,
-      logg: { type: 'jobb', belop: lonn, land: g.posisjon, tekst: `jobbet i ${landEtterId[g.posisjon].navn} (${res.riktige}/${res.antall})` },
+      melding: T`${res.riktige} av ${res.antall} riktige. Dere tjente ${formaterKr(lonn)}${eff.lonn !== 1 ? T` (${eff.lonn > 1 ? '+' : '−'}${Math.round(Math.abs(eff.lonn - 1) * 100)} % fra hotellet)` : ''}.`,
+      logg: { type: 'jobb', belop: lonn, land: g.posisjon, tekst: T`jobbet i ${landEtterId[g.posisjon].navn} (${res.riktige}/${res.antall})` },
     };
   });
 }
@@ -220,77 +221,77 @@ function quiz(spillId, gid, d, i) {
   return medGruppe(spillId, gid, (g) => {
     const dag = idag();
     const antall = g.quiz?.[dag] || 0;
-    if (antall >= i.quizPerDag) return { feil: `Dere har tatt nok quizer i dag (maks ${i.quizPerDag}).` };
-    if (!gyldigFro(d.fro)) return { feil: 'Ugyldig quiz. Last inn siden på nytt.' };
-    if (g.brukteFro?.[d.fro]) return { feil: 'Denne quizen er allerede levert.' };
+    if (antall >= i.quizPerDag) return { feil: T`Dere har tatt nok quizer i dag (maks ${i.quizPerDag}).` };
+    if (!gyldigFro(d.fro)) return { feil: T('Ugyldig quiz. Last inn siden på nytt.') };
+    if (g.brukteFro?.[d.fro]) return { feil: T('Denne quizen er allerede levert.') };
     const res = rettQuiz(d.fro, d.svar);
     const belop = res.riktige * i.quizBelop;
     g.quiz = { [dag]: antall + 1 };
     g.brukteFro = { ...(g.brukteFro || {}), [d.fro]: true };
     g.saldo = (g.saldo || 0) + belop;
     return {
-      melding: `${res.riktige} av ${res.antall} riktige! Dere fikk ${formaterKr(belop)}.`,
-      logg: { type: 'quiz', belop, tekst: `geografiquiz ${res.riktige}/${res.antall}` },
+      melding: T`${res.riktige} av ${res.antall} riktige! Dere fikk ${formaterKr(belop)}.`,
+      logg: { type: 'quiz', belop, tekst: T`geografiquiz ${res.riktige}/${res.antall}` },
     };
   });
 }
 
 async function reiselogg(spillId, gid, spill) {
   const g = spill.grupper[gid];
-  if (!harHotellHer(g)) return { ok: false, melding: `Dere må bo på hotell i ${O.stedet} før dere kan levere reiseloggen.` };
+  if (!harHotellHer(g)) return { ok: false, melding: T`Dere må bo på hotell i ${O.stedet} før dere kan levere reiseloggen.` };
   const status = spill.reiselogger?.[gid]?.[g.posisjon]?.status;
-  if (status === 'levert') return { ok: false, melding: 'Reiseloggen er allerede levert. Vent på læreren.' };
-  if (status === 'godkjent') return { ok: false, melding: `Reiseloggen for ${O.detteStedet} er allerede godkjent.` };
+  if (status === 'levert') return { ok: false, melding: T('Reiseloggen er allerede levert. Vent på læreren.') };
+  if (status === 'godkjent') return { ok: false, melding: T`Reiseloggen for ${O.detteStedet} er allerede godkjent.` };
   await update(r(`spill/${spillId}/reiselogger/${gid}/${g.posisjon}`), { status: 'levert', tid: Date.now() });
   const l = landEtterId[g.posisjon];
-  return { ok: true, melding: 'Reiseloggen er levert! Gi den fysiske reiseloggen til læreren.', logg: { type: 'reiselogg', land: g.posisjon, tekst: `leverte reiselogg for ${l.flagg} ${l.navn}` } };
+  return { ok: true, melding: T('Reiseloggen er levert! Gi den fysiske reiseloggen til læreren.'), logg: { type: 'reiselogg', land: g.posisjon, tekst: T`leverte reiselogg for ${l.flagg} ${l.navn}` } };
 }
 
 const LEVERT = ['levert', 'godkjent', 'duell', 'laast', 'tapt'];
 // Diktaten tas på et sted (stedId), men pengene gis én gang per LAND (g.diktat[landkode]). I Jorda rundt er sted = land.
 function kanTaDiktat(spill, gid, stedId, i) {
   const g = spill.grupper[gid]; const l = landEtterId[stedId]; const lk = landKode(stedId); const ln = landInfo[lk]?.navn || 'landet';
-  if (!i.diktatBelopPerElev) return 'Diktat er slått av av læreren.';
-  if (!l) return `Ukjent ${O.sted}.`;
-  if (PARLOR.harDiktat && !PARLOR.harDiktat(stedId)) return `Det er ikke noe ${DIKTATNAVN.toLowerCase()} her.`;
-  if (!LEVERT.includes(spill.reiselogger?.[gid]?.[stedId]?.status)) return `Dere må levere reiseloggen for ${O.stedet} før dere kan ta diktaten.`;
-  if (g.diktat?.[lk]) return `Dere har allerede klart diktaten for ${ln}.`;
-  if (g.diktatForsok?.[idag()]?.[lk]) return `Dere har allerede prøvd diktaten for ${ln} i dag. Prøv igjen i morgen!`;
+  if (!i.diktatBelopPerElev) return T('Diktat er slått av av læreren.');
+  if (!l) return T`Ukjent ${O.sted}.`;
+  if (PARLOR.harDiktat && !PARLOR.harDiktat(stedId)) return T`Det er ikke noe ${DIKTATNAVN.toLowerCase()} her.`;
+  if (!LEVERT.includes(spill.reiselogger?.[gid]?.[stedId]?.status)) return T`Dere må levere reiseloggen for ${O.stedet} før dere kan ta diktaten.`;
+  if (g.diktat?.[lk]) return T`Dere har allerede klart diktaten for ${ln}.`;
+  if (g.diktatForsok?.[idag()]?.[lk]) return T`Dere har allerede prøvd diktaten for ${ln} i dag. Prøv igjen i morgen!`;
   return null;
 }
 async function diktatBe(spillId, gid, i, spill) {
   const land = spill.grupper[gid].posisjon;
   const hindring = kanTaDiktat(spill, gid, land, i);
   if (hindring) return { ok: false, melding: hindring };
-  if (spill.diktatKo?.[gid]) return { ok: false, melding: 'Læreren har allerede fått beskjed. Vent litt!' };
+  if (spill.diktatKo?.[gid]) return { ok: false, melding: T('Læreren har allerede fått beskjed. Vent litt!') };
   await update(r(`spill/${spillId}/diktatKo/${gid}`), { land, tid: Date.now() });
-  return { ok: true, melding: 'Læreren har fått beskjed. Legg bort notatene – diktaten åpnes snart!' };
+  return { ok: true, melding: T('Læreren har fått beskjed. Legg bort notatene – diktaten åpnes snart!') };
 }
 async function diktat(spillId, gid, d, i, spill) {
   const lk = landKode(d.land); const ln = landInfo[lk];
   const hindring = kanTaDiktat(spill, gid, d.land, i);
   if (hindring) return { ok: false, melding: hindring };
   const ko = spill.diktatKo?.[gid];
-  if (!ko?.aapnet || ko.land !== d.land) return { ok: false, melding: 'Diktaten er ikke åpnet av læreren.' };
+  if (!ko?.aapnet || ko.land !== d.land) return { ok: false, melding: T('Diktaten er ikke åpnet av læreren.') };
   if (i.diktatMinutter && Date.now() - ko.aapnet > i.diktatMinutter * 60000 + 30000) {
     await update(r(`spill/${spillId}/diktatKo`), { [gid]: null });
-    return { ok: false, melding: 'Tiden gikk ut. Be læreren om en ny diktat.' };
+    return { ok: false, melding: T('Tiden gikk ut. Be læreren om en ny diktat.') };
   }
   await update(r(`spill/${spillId}/diktatKo`), { [gid]: null });
   const dag = idag();
   return medGruppe(spillId, gid, (g) => {
-    if (g.diktat?.[lk]) return { feil: `Dere har allerede klart diktaten for ${ln.navn}.` };
-    if (g.diktatForsok?.[dag]?.[lk]) return { feil: `Dere har allerede prøvd diktaten for ${ln.navn} i dag. Prøv igjen i morgen!` };
+    if (g.diktat?.[lk]) return { feil: T`Dere har allerede klart diktaten for ${ln.navn}.` };
+    if (g.diktatForsok?.[dag]?.[lk]) return { feil: T`Dere har allerede prøvd diktaten for ${ln.navn} i dag. Prøv igjen i morgen!` };
     const res = rettDiktat(d.land, d.svar);
     if (res.riktige === res.antall) {
       const belop = i.diktatBelopPerElev * (g.personer || 4);
       g.diktat = { ...(g.diktat || {}), [lk]: true };
       g.saldo = (g.saldo || 0) + belop;
-      return { melding: `5 av 5 riktige! Dere fikk ${formaterKr(belop)}. 🎉`, logg: { type: 'diktat', belop, land: d.land, tekst: `klarte ${DIKTATNAVN.toLowerCase()} for ${ln.flagg} ${ln.navn} (5/5) ✍️` } };
+      return { melding: T`5 av 5 riktige! Dere fikk ${formaterKr(belop)}. 🎉`, logg: { type: 'diktat', belop, land: d.land, tekst: T`klarte ${DIKTATNAVN.toLowerCase()} for ${ln.flagg} ${ln.navn} (5/5) ✍️` } };
     }
     g.diktatForsok = { [dag]: { ...(g.diktatForsok?.[dag] || {}), [lk]: true } };
     const feil = ORD.filter((_, n) => !res.resultat[n]).map((o) => `«${o.norsk}»`).join(', ');
-    return { melding: `${res.riktige} av ${res.antall} riktige. Sjekk ${feil} og prøv igjen i morgen!`, logg: { type: 'diktat', land: d.land, tekst: `prøvde ${DIKTATNAVN.toLowerCase()} for ${ln.flagg} ${ln.navn} (${res.riktige}/${res.antall})` } };
+    return { melding: T`${res.riktige} av ${res.antall} riktige. Sjekk ${feil} og prøv igjen i morgen!`, logg: { type: 'diktat', land: d.land, tekst: T`prøvde ${DIKTATNAVN.toLowerCase()} for ${ln.flagg} ${ln.navn} (${res.riktige}/${res.antall})` } };
   });
 }
 
@@ -306,13 +307,13 @@ export async function lukkDiktat(spillId, gid) {
 export async function godkjennDiktatManuelt(spillId, gid, stedId) {
   const spill = (await get(r(`spill/${spillId}`))).val() || {};
   const i = innst(spill); const g = spill.grupper?.[gid]; const lk = landKode(stedId); const l = landInfo[lk]; const landId = stedId;
-  if (!g || !l) return 'Fant ikke gruppa eller landet.';
-  if (g.diktat?.[lk]) return `${g.navn} har allerede fått diktat-pengene for ${l.navn}.`;
+  if (!g || !l) return T('Fant ikke gruppa eller landet.');
+  if (g.diktat?.[lk]) return T`${g.navn} har allerede fått diktat-pengene for ${l.navn}.`;
   const belop = i.diktatBelopPerElev * (g.personer || 4);
   await update(r(`spill/${spillId}/grupper/${gid}/diktat`), { [lk]: true });
   await runTransaction(r(`spill/${spillId}/grupper/${gid}/saldo`), (s) => (s || 0) + belop);
-  await logg(spillId, { gruppe: gid, type: 'diktat', belop, land: landId, tekst: `fikk ${DIKTATNAVN.toLowerCase()} for ${l.flagg} ${l.navn} godkjent av læreren ✍️` });
-  return `${g.navn} fikk ${formaterKr(belop)} for diktaten i ${l.navn}.`;
+  await logg(spillId, { gruppe: gid, type: 'diktat', belop, land: landId, tekst: T`fikk ${DIKTATNAVN.toLowerCase()} for ${l.flagg} ${l.navn} godkjent av læreren ✍️` });
+  return T`${g.navn} fikk ${formaterKr(belop)} for diktaten i ${l.navn}.`;
 }
 
 // =====================================================================
@@ -334,18 +335,18 @@ export async function godkjennReiselogg(spillId, gid, landId) {
   if (!e) {
     u[`spill/${spillId}/eierskap/${landId}`] = { gruppe: gid, siden: Date.now() };
     u[`spill/${spillId}/reiselogger/${gid}/${landId}`] = { status: 'godkjent', tid: Date.now() };
-    tekst = `erobret ${l.flagg} ${l.navn}!`;
+    tekst = T`erobret ${l.flagg} ${l.navn}!`;
   } else if (e.gruppe === gid) {
     u[`spill/${spillId}/reiselogger/${gid}/${landId}`] = { status: 'godkjent', tid: Date.now() };
-    tekst = `fikk reiselogg for ${l.flagg} ${l.navn} godkjent (eier ${O.stedet} allerede)`;
+    tekst = T`fikk reiselogg for ${l.flagg} ${l.navn} godkjent (eier ${O.stedet} allerede)`;
   } else if (erLaast(e, i)) {
     u[`spill/${spillId}/reiselogger/${gid}/${landId}`] = { status: 'laast', tid: Date.now() };
-    tekst = `besøkte ${l.flagg} ${l.navn}, men ${O.stedet} er låst`;
+    tekst = T`besøkte ${l.flagg} ${l.navn}, men ${O.stedet} er låst`;
   } else {
     const duellId = push(r(`spill/${spillId}/dueller`)).key;
     u[`spill/${spillId}/dueller/${duellId}`] = { land: landId, utfordrer: gid, forsvarer: e.gruppe, status: 'venter', tid: Date.now() };
     u[`spill/${spillId}/reiselogger/${gid}/${landId}`] = { status: 'duell', tid: Date.now(), duell: duellId };
-    tekst = `utfordrer ${spill.grupper[e.gruppe]?.navn || 'en gruppe'} om ${l.flagg} ${l.navn}! ⚔️`;
+    tekst = T`utfordrer ${spill.grupper[e.gruppe]?.navn || T('en gruppe')} om ${l.flagg} ${l.navn}! ⚔️`;
   }
   u[`spill/${spillId}/logg/${push(r(`spill/${spillId}/logg`)).key}`] = { tid: Date.now(), gruppe: gid, type: 'erobring', land: landId, tekst };
   await update(r('/'), u);
@@ -354,7 +355,7 @@ export async function godkjennReiselogg(spillId, gid, landId) {
 
 export async function avvisReiselogg(spillId, gid, landId) {
   await update(r(`spill/${spillId}/reiselogger/${gid}/${landId}`), { status: 'avvist', tid: Date.now() });
-  await logg(spillId, { gruppe: gid, type: 'reiselogg', land: landId, tekst: `må gjøre reiseloggen for ${landEtterId[landId].navn} på nytt` });
+  await logg(spillId, { gruppe: gid, type: 'reiselogg', land: landId, tekst: T`må gjøre reiseloggen for ${landEtterId[landId].navn} på nytt` });
 }
 
 /** Avgjør en duell. vinner = gruppe-id. */
@@ -373,7 +374,7 @@ export async function avgjorDuell(spillId, duellId, vinner) {
   const taper = vinner === d.utfordrer ? d.forsvarer : d.utfordrer;
   u[`spill/${spillId}/logg/${push(r(`spill/${spillId}/logg`)).key}`] = {
     tid: Date.now(), gruppe: vinner, type: 'duell', land: d.land, belop: i.duellPremie,
-    tekst: `vant duellen om ${l.flagg} ${l.navn} mot ${spill.grupper[taper]?.navn || ''}! 🏆`,
+    tekst: T`vant duellen om ${l.flagg} ${l.navn} mot ${spill.grupper[taper]?.navn || ''}! 🏆`,
   };
   await update(r('/'), u);
   if (i.duellPremie) await runTransaction(r(`spill/${spillId}/grupper/${vinner}/saldo`), (s) => (s || 0) + i.duellPremie);
@@ -381,7 +382,7 @@ export async function avgjorDuell(spillId, duellId, vinner) {
 
 export async function justerSaldo(spillId, gid, belop, grunn) {
   await runTransaction(r(`spill/${spillId}/grupper/${gid}/saldo`), (s) => (s || 0) + belop);
-  await logg(spillId, { gruppe: gid, type: 'lærer', belop, tekst: `${belop >= 0 ? 'fikk' : 'mistet'} ${formaterKr(Math.abs(belop))} fra læreren${grunn ? ': ' + grunn : ''}` });
+  await logg(spillId, { gruppe: gid, type: T('lærer'), belop, tekst: T`${belop >= 0 ? T('fikk') : T('mistet')} ${formaterKr(Math.abs(belop))} fra læreren${grunn ? ': ' + grunn : ''}` });
 }
 
 export async function settLaas(spillId, landId, laast) {

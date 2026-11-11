@@ -2,7 +2,11 @@
 // Format: [spørsmål, riktig svar, feil1, feil2, feil3]
 // Du kan legge til eller bytte spørsmål – bare hold formatet.
 
-export const KATEGORIER = [
+import { SPRAK } from '../js/sprak.js';
+// Spillpakker på engelsk (sprak: 'en') bruker spørsmålene i flyquiz-en.js i stedet.
+const EN = SPRAK === 'en' ? await import('./flyquiz-en.js') : null;
+
+const NORSKE_KATEGORIER = [
   { id: 'natur', navn: 'Natur og dyr', ikon: '🐾', farge: '#30A46C' },
   { id: 'sport', navn: 'Sport', ikon: '🏅', farge: '#3E63DD' },
   { id: 'kultur', navn: 'Film, musikk og kultur', ikon: '🎬', farge: '#8E4EC6' },
@@ -11,7 +15,7 @@ export const KATEGORIER = [
   { id: 'historie', navn: 'Historie og oppfinnelser', ikon: '🏛️', farge: '#A07553' },
 ];
 
-export const SPORSMAL = {
+const NORSKE_SPORSMAL = {
   natur: [
     ['Hva er verdens største dyr?', 'Blåhval', 'Elefant', 'Hvalhai', 'Kjempeblekksprut'],
     ['Hvilket dyr er det raskeste på land?', 'Gepard', 'Løve', 'Antilope', 'Struts'],
@@ -265,6 +269,9 @@ export const SPORSMAL = {
     ['Hvem oppdaget penicillin i 1928?', 'Alexander Fleming', 'Louis Pasteur', 'Marie Curie', 'Charles Darwin'],
   ],
 };
+
+export const KATEGORIER = EN ? EN.KATEGORIER : NORSKE_KATEGORIER;
+export const SPORSMAL = EN ? EN.SPORSMAL : NORSKE_SPORSMAL;
 
 // ---------- trekking (lik i elevsiden og banken) ----------
 function hash(str) { let h = 2166136261; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }

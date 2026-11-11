@@ -106,13 +106,14 @@
 </div>
 
 <script type="module">
+import { T, LOKALE } from './js/sprak.js';
 import { monterInnlogging } from './js/laererinn.js';
 import { r, get, onValue, loggInnLaerer, testLoggInnLaerer, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { innst, poengtavle, formaterKr, landEtterId, KONTINENTER, landInfo, PAKKE, ORD } from './js/felles.js';
 import { lagKlode } from '#pakke/klode.js';
 import { fyllPakkeTekster } from './js/side.js';
 fyllPakkeTekster();
-document.title = `${PAKKE.navn} – Tavle`;
+document.title = T`${PAKKE.navn} – Tavle`;
 document.documentElement.style.setProperty('--tavle-tittel', JSON.stringify(PAKKE.kart.tavle));
 import { duellOppgave, duellPulje } from './js/felles.js';
 
@@ -127,7 +128,7 @@ monterInnlogging($('#laererinn'));
 
 vedInnlogging(async (u) => {
   if (!u || u.isAnonymous) { $('#innlogging').classList.remove('skjult'); $('#scene').classList.add('skjult'); return; }
-  if (!spillId) { $('#melding').textContent = 'Mangler spill. Åpne tavla fra lærersiden.'; $('#innlogging').classList.remove('skjult'); return; }
+  if (!spillId) { $('#melding').textContent = T('Mangler spill. Åpne tavla fra lærersiden.'); $('#innlogging').classList.remove('skjult'); return; }
   $('#innlogging').classList.add('skjult'); $('#scene').classList.remove('skjult');
   try {
     klode = await lagKlode($('#klode'), { autoRoter: true });
@@ -135,10 +136,10 @@ vedInnlogging(async (u) => {
   } catch (e) { console.error(e); }
   onValue(r(`spill/${spillId}`), (snap) => {
     spill = snap.val();
-    if (!spill) { $('#melding').textContent = 'Fant ikke spillet, eller du er ikke lærer i det.'; return; }
+    if (!spill) { $('#melding').textContent = T('Fant ikke spillet, eller du er ikke lærer i det.'); return; }
     tegn(); klode?.oppdater(spill);
     nyeHendelser(); tegnDuell();
-  }, (e) => { $('#scene').classList.add('skjult'); $('#innlogging').classList.remove('skjult'); $('#melding').textContent = 'Du har ikke tilgang til dette spillet.'; });
+  }, (e) => { $('#scene').classList.add('skjult'); $('#innlogging').classList.remove('skjult'); $('#melding').textContent = T('Du har ikke tilgang til dette spillet.'); });
 });
 
 function tegn() {
@@ -147,7 +148,7 @@ function tegn() {
   if (i.sluttdato) {
     const dager = Math.ceil((new Date(i.sluttdato + 'T15:00:00') - Date.now()) / 86400000);
     $('#dager').textContent = dager > 0 ? dager : '🏁';
-    $('#dagertekst').textContent = dager > 1 ? 'dager igjen' : dager === 1 ? 'dag igjen' : 'spillet er slutt';
+    $('#dagertekst').textContent = dager > 1 ? T('dager igjen') : dager === 1 ? T('dag igjen') : T('spillet er slutt');
     $('#nedtelling').classList.remove('skjult');
   } else $('#nedtelling').classList.add('skjult');
 
@@ -156,26 +157,26 @@ function tegn() {
   $('#tavle').classList.toggle('tett', mange); $('#tavle').closest('.side')?.classList.toggle('mange', mange);
   $('#tavle').innerHTML = rader.map((g, n) => {
     const her = landEtterId[g.posisjon];
-    return `<div class="rad-g ${n === 0 && g.poeng > 0 ? 'forst' : ''}" style="--f:${esc(g.farge)}">
+    return T`<div class="rad-g ${n === 0 && g.poeng > 0 ? 'forst' : ''}" style="--f:${esc(g.farge)}">
       <div class="nr">${n === 0 && g.poeng > 0 ? '👑' : n + 1}</div>
       <div style="min-width:0"><div class="navn">${esc(g.navn)}</div>
-        <div class="detaljer"><span>${g.iLufta ? `${{ tog: '🚆', buss: '🚌', bat: '⛴️' }[g.iLufta.type] || '✈️'} på vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}` : `📍 ${her ? her.flagg + ' ' + esc(her.navn) : ''}`}</span>${PAKKE.modell === 'land' ? `<span>🏳️ ${g.land.length} land</span>
-        <span class="kont" title="Kontinenter">${KONTINENTER.map((k) => `<i class="${g.kontinenter.includes(k) ? 'har' : ''}" title="${k}">${{ Europa: 'EU', Asia: 'AS', Afrika: 'AF', 'Nord-Amerika': 'NA', 'Sør-Amerika': 'SA', Oseania: 'OS', Antarktis: 'AN' }[k]}</i>`).join('')}</span>` : `<span>🏙️ ${g.byer.length} ${g.byer.length === 1 ? ORD.sted : ORD.steder}</span>`}
-        ${g.heleLand.length ? `<span title="Hele ${ORD.regioner}">🏆 ${g.heleLand.map((k) => landInfo[k]?.flagg || '').join(' ')}</span>` : ''}</div></div>
+        <div class="detaljer"><span>${g.iLufta ? T`${{ tog: '🚆', buss: '🚌', bat: '⛴️' }[g.iLufta.type] || '✈️'} på vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}` : `📍 ${her ? her.flagg + ' ' + esc(her.navn) : ''}`}</span>${PAKKE.modell === 'land' ? T`<span>🏳️ ${g.land.length} land</span>
+        <span class="kont" title="Kontinenter">${KONTINENTER.map((k) => `<i class="${g.kontinenter.includes(k) ? 'har' : ''}" title="${k}">${{ Europa: 'EU', Asia: 'AS', Afrika: 'AF', 'Nord-Amerika': 'NA', 'Sør-Amerika': 'SA', Oseania: 'OS', Antarktis: 'AN', ...(PAKKE.regionKort || {}) }[k] || k.slice(0, 2).toUpperCase()}</i>`).join('')}</span>` : `<span>🏙️ ${g.byer.length} ${g.byer.length === 1 ? ORD.sted : ORD.steder}</span>`}
+        ${g.heleLand.length ? T`<span title="Hele ${ORD.regioner}">🏆 ${g.heleLand.map((k) => landInfo[k]?.flagg || '').join(' ')}</span>` : ''}</div></div>
       <div class="penger">${formaterKr(g.saldo)}</div>
       <div class="poeng">${g.poeng}<small>poeng</small></div></div>`;
-  }).join('') || '<p style="color:#9fd3ef">Ingen grupper ennå.</p>';
+  }).join('') || T('<p style="color:#9fd3ef">Ingen grupper ennå.</p>');
 
   const dueller = Object.values(spill.dueller || {}).filter((d) => d.status === 'venter');
   $('#dueller').innerHTML = dueller.map((d) => {
     const l = landEtterId[d.land]; const a = spill.grupper[d.utfordrer], b = spill.grupper[d.forsvarer];
-    return `<div class="duell-kort">⚔️ <b>DUELL om ${l.flagg} ${esc(l.navn)}</b><br><span style="color:${esc(a?.farge)}">●</span> ${esc(a?.navn)} utfordrer <span style="color:${esc(b?.farge)}">●</span> ${esc(b?.navn)}</div>`;
+    return T`<div class="duell-kort">⚔️ <b>DUELL om ${l.flagg} ${esc(l.navn)}</b><br><span style="color:${esc(a?.farge)}">●</span> ${esc(a?.navn)} utfordrer <span style="color:${esc(b?.farge)}">●</span> ${esc(b?.navn)}</div>`;
   }).join('');
 
   const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 8);
   $('#nytt').innerHTML = logg.map((h) => {
     const g = spill.grupper?.[h.gruppe];
-    return `<div><span class="tid">${new Date(h.tid).toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' })}</span>${g ? `<b style="color:${esc(g.farge)}">${esc(g.navn)}</b> ` : ''}${esc(h.tekst)}</div>`;
+    return `<div><span class="tid">${new Date(h.tid).toLocaleTimeString(LOKALE, { hour: '2-digit', minute: '2-digit' })}</span>${g ? `<b style="color:${esc(g.farge)}">${esc(g.navn)}</b> ` : ''}${esc(h.tekst)}</div>`;
   }).join('');
 }
 
@@ -209,7 +210,7 @@ function visNeste() {
 }
 
 $('#fullskjerm').onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
-if (PAKKE.kart.roterer) $('#rotering').onclick = () => { roter = !roter; klode?.autoRoter(roter); $('#rotering').textContent = roter ? '⏸ Stopp rotasjon' : '▶ Roter'; };
+if (PAKKE.kart.roterer) $('#rotering').onclick = () => { roter = !roter; klode?.autoRoter(roter); $('#rotering').textContent = roter ? T('⏸ Stopp rotasjon') : T('▶ Roter'); };
 else $('#rotering').style.display = 'none'; // kart som ikke roterer (Europa …)
 setInterval(() => spill && tegn(), 60000);
 
@@ -226,7 +227,7 @@ function tegnDuell() {
   const o = duellOppgave(d);
   el.classList.remove('skjult');
   const nyTrekning = visteTrekk !== `${id}-${d.trukket}`;
-  el.innerHTML = `<div class="duellinnhold"><div class="overskrift">⚔️ DUELL ⚔️</div><div class="landet">${l.flagg} ${esc(l.navn)}</div>
+  el.innerHTML = T`<div class="duellinnhold"><div class="overskrift">⚔️ DUELL ⚔️</div><div class="landet">${l.flagg} ${esc(l.navn)}</div>
     <div class="lag"><span class="lagnavn" style="background:${esc(a?.farge)}">${esc(a?.navn)}</span><span class="vs">mot</span><span class="lagnavn" style="background:${esc(b?.farge)}">${esc(b?.navn)}</span></div>
     <div class="oppgave"><div class="otittel" id="otittel">${esc(o.tittel)}</div><div id="orest"><div class="otekst">${esc(o.tekst)}</div><div class="ovinner"><b>Vinner:</b> ${esc(o.vinner)} &nbsp;·&nbsp; <b>Utstyr:</b> ${esc(o.utstyr)}</div></div></div>
     <div class="klokke" id="klokke"></div></div>`;
@@ -243,9 +244,9 @@ function tegnDuell() {
   const oppdaterKlokke = () => {
     const k = $('#klokke'); if (!k) return;
     if (!o.tid) { k.textContent = ''; return; }
-    if (!d.startet) { k.textContent = `${o.tid} sek`; k.classList.remove('ute'); return; }
+    if (!d.startet) { k.textContent = T`${o.tid} sek`; k.classList.remove('ute'); return; }
     const igjen = Math.max(0, Math.ceil(o.tid - (Date.now() - d.startet) / 1000));
-    k.textContent = igjen > 0 ? `${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}` : 'TIDEN ER UTE! ⏰';
+    k.textContent = igjen > 0 ? `${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}` : T('TIDEN ER UTE! ⏰');
     k.classList.toggle('ute', igjen === 0);
   };
   oppdaterKlokke(); klokkeTimer = setInterval(oppdaterKlokke, 250);

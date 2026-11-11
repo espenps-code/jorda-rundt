@@ -268,12 +268,13 @@
 </div>
 
 <script type="module">
+import { T, LOKALE } from './js/sprak.js';
 import { PAKKE } from '#pakke/pakke.js';
 import { LAND } from '#pakke/land.js';
 import { fyllPakkeTekster, lenke } from '#motor/side.js';
 
 fyllPakkeTekster();
-document.title = 'Fotostudio – ' + PAKKE.navn;
+document.title = T('Fotostudio – ') + PAKKE.navn;
 $('tilbake').href = lenke('elev.html');
 // Åpnet fra spillet i en egen fane? Da lukker «Tilbake» bare denne fanen.
 $('tilbake').addEventListener('click', (e) => {
@@ -327,9 +328,9 @@ const status = { p: 0, klar: false, feil: null };
 const statusLyttere = new Set();
 function meldStatus() {
   const chip = $('status-chip');
-  if (status.feil) chip.textContent = '⚠️ Magien er utilgjengelig';
-  else if (status.klar) chip.textContent = '✨ Magien er klar';
-  else chip.textContent = `✈️ Magien lastes: ${Math.round(status.p * 100)} %`;
+  if (status.feil) chip.textContent = T('⚠️ Magien er utilgjengelig');
+  else if (status.klar) chip.textContent = T('✨ Magien er klar');
+  else chip.textContent = T`✈️ Magien lastes: ${Math.round(status.p * 100)} %`;
   statusLyttere.forEach((f) => f(status));
 }
 
@@ -379,14 +380,14 @@ setTimeout(() => hentSegmenter().catch(() => {}), 600);
    ===================================================================== */
 const MELDINGER = {
   last: [
-    'Pakker kofferten …', 'Leter etter passene …', 'Smører matpakker til turen …',
-    'Lader teleporteringsmaskinen …', 'Spør piloten om veien …', 'Henter magistøv fra lageret …',
-    'Pumper opp redningsvestene …', 'Sjekker at alle har tannbørste …',
+    T('Pakker kofferten …'), T('Leter etter passene …'), T('Smører matpakker til turen …'),
+    T('Lader teleporteringsmaskinen …'), T('Spør piloten om veien …'), T('Henter magistøv fra lageret …'),
+    T('Pumper opp redningsvestene …'), T('Sjekker at alle har tannbørste …'),
   ],
   klipp: [
-    'Ber alle si «appelsin»! …', 'Klipper forsiktig rundt ørene …', 'Teller nesetipper …',
-    'Børster bort klasserommet …', 'Pakker gruppa inn i bobleplast …', 'Sjekker at ingen ble igjen …',
-    'Flyr over skyene …', 'Snart framme i {sted} …',
+    T('Ber alle si «appelsin»! …'), T('Klipper forsiktig rundt ørene …'), T('Teller nesetipper …'),
+    T('Børster bort klasserommet …'), T('Pakker gruppa inn i bobleplast …'), T('Sjekker at ingen ble igjen …'),
+    T('Flyr over skyene …'), T('Snart framme i {sted} …'),
   ],
 };
 const Reise = {
@@ -395,10 +396,10 @@ const Reise = {
     this.fase = fase; this.i = 0;
     $('reise').classList.remove('skjult');
     $('stempel').className = 'stempel';
-    $('stempel').textContent = 'Landet!';
-    $('reise-til').textContent = S.sted || 'Et nytt sted';
-    $('reise-fase').textContent = fase === 'last' ? 'Laster ned magien' : 'Teleporterer gruppa';
-    $('reise-gate').textContent = fase === 'last' ? 'Bare første gang' : 'Gate 7B · Sete 3A';
+    $('stempel').textContent = T('Landet!');
+    $('reise-til').textContent = S.sted || T('Et nytt sted');
+    $('reise-fase').textContent = fase === 'last' ? T('Laster ned magien') : T('Teleporterer gruppa');
+    $('reise-gate').textContent = fase === 'last' ? T('Bare første gang') : T('Gate 7B · Sete 3A');
     $('skanner').classList.toggle('skjult', fase !== 'klipp' || !bildeUrl);
     if (bildeUrl) $('skanner-bilde').src = bildeUrl;
     this.fremdrift(0);
@@ -429,12 +430,12 @@ const Reise = {
     const vinkel = Math.atan2(b.y - c.y, b.x - c.x) * 180 / Math.PI;
     $('fly').setAttribute('transform', `translate(${a.x.toFixed(1)} ${a.y.toFixed(1)}) rotate(${vinkel.toFixed(1)})`);
   },
-  async ferdig(tekst = 'Landet!', feil = false) {
+  async ferdig(tekst = T('Landet!'), feil = false) {
     clearInterval(this.timer);
     if (!feil) this.fremdrift(1);
     const st = $('stempel');
     st.textContent = tekst;
-    st.className = 'stempel vis' + (feil ? ' feil' : '');
+    st.className = T('stempel vis') + (feil ? ' feil' : '');
     await vent(feil ? 2200 : 900);
     $('reise').classList.add('skjult');
   },
@@ -458,7 +459,7 @@ function lesBilde(fil, maks) {
       URL.revokeObjectURL(url);
       ok(c);
     };
-    img.onerror = () => { URL.revokeObjectURL(url); feil(new Error('Bildet kunne ikke åpnes')); };
+    img.onerror = () => { URL.revokeObjectURL(url); feil(new Error(T('Bildet kunne ikke åpnes'))); };
     img.src = url;
   });
 }
@@ -467,7 +468,7 @@ $('fil-gruppe').addEventListener('change', async (e) => {
   const fil = e.target.files?.[0]; e.target.value = '';
   if (!fil) return;
   let c;
-  try { c = await lesBilde(fil, MAKS_GRUPPE); } catch { return hint('Det bildet kunne ikke åpnes. Prøv et annet.'); }
+  try { c = await lesBilde(fil, MAKS_GRUPPE); } catch { return hint(T('Det bildet kunne ikke åpnes. Prøv et annet.')); }
   const url = c.toDataURL('image/jpeg', 0.7);
   $('mini-gruppe').src = url; $('mini-gruppe').classList.add('vis');
   const orig = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
@@ -485,16 +486,16 @@ $('fil-gruppe').addEventListener('change', async (e) => {
 $('fil-sted').addEventListener('change', async (e) => {
   const fil = e.target.files?.[0]; e.target.value = '';
   if (!fil) return;
-  try { S.bakgrunn = await lesBilde(fil, MAKS_STED); } catch { return hint('Det bildet kunne ikke åpnes. Prøv et annet.'); }
+  try { S.bakgrunn = await lesBilde(fil, MAKS_STED); } catch { return hint(T('Det bildet kunne ikke åpnes. Prøv et annet.')); }
   $('mini-sted').src = S.bakgrunn.toDataURL('image/jpeg', 0.6); $('mini-sted').classList.add('vis');
   $('steg2').classList.add('ferdig');
-  if (S.gruppe) { plasser(); autoFarge(false); hint('Dra gruppa på plass med én finger. Knip med to fingre for å endre størrelsen.'); }
+  if (S.gruppe) { plasser(); autoFarge(false); hint(T('Dra gruppa på plass med én finger. Knip med to fingre for å endre størrelsen.')); }
   tegn(); oppdaterSteg();
 });
 
 $('sted').addEventListener('input', (e) => {
   S.sted = e.target.value.trim();
-  if (!S.tekstEndret) { S.tekst = S.sted ? `Hilsen fra ${S.sted}!` : ''; $('tekst').value = S.tekst; }
+  if (!S.tekstEndret) { S.tekst = S.sted ? T`Hilsen fra ${S.sted}!` : ''; $('tekst').value = S.tekst; }
   planlegg();
 });
 $('kilde').addEventListener('input', (e) => { S.kilde = e.target.value.trim(); planlegg(); });
@@ -515,8 +516,8 @@ async function kjorKI(miniUrl) {
     seg = await hentSegmenter();
   } catch {
     statusLyttere.delete(lytter);
-    await Reise.ferdig('Ingen magi i dag', true);
-    hint('Magien kunne ikke lastes (kanskje nettet stopper den). Bruk «Trykk på veggen» under «Ble utklippet rart?».');
+    await Reise.ferdig(T('Ingen magi i dag'), true);
+    hint(T('Magien kunne ikke lastes (kanskje nettet stopper den). Bruk «Trykk på veggen» under «Ble utklippet rart?».'));
     $('hjelp').open = true;
     ferdigUtklipp(false);
     return;
@@ -545,8 +546,8 @@ async function kjorKI(miniUrl) {
     }
   } catch (e) {
     console.error(e);
-    await Reise.ferdig('Oi! Noe gikk galt', true);
-    hint('Utklippet feilet. Prøv igjen, eller bruk «Trykk på veggen».');
+    await Reise.ferdig(T('Oi! Noe gikk galt'), true);
+    hint(T('Utklippet feilet. Prøv igjen, eller bruk «Trykk på veggen».'));
     $('hjelp').open = true;
     ferdigUtklipp(false);
     return;
@@ -561,7 +562,7 @@ async function kjorKI(miniUrl) {
   S.alfaKI = a;
   S.alfa = a.slice();
   S.metode = 'ki';
-  await Reise.ferdig('Landet!');
+  await Reise.ferdig(T('Landet!'));
   ferdigUtklipp(true);
 }
 
@@ -599,7 +600,7 @@ function ferdigUtklipp(ok) {
   lerret.classList.remove('skjult');
   oppdaterSteg();
   tegn();
-  if (ok) hint(S.bakgrunn ? 'Dra gruppa på plass med én finger. Knip med to fingre for å endre størrelsen.' : 'Flott! Velg et bilde av stedet i steg 2.');
+  if (ok) hint(S.bakgrunn ? T('Dra gruppa på plass med én finger. Knip med to fingre for å endre størrelsen.') : T('Flott! Velg et bilde av stedet i steg 2.'));
 }
 
 /* =====================================================================
@@ -797,8 +798,8 @@ function tilpassSkrift(tekst, vekt, familie, storrelse, maksBredde) {
   while (st > 10 && ctx.measureText(tekst).width > maksBredde) { st *= 0.92; ctx.font = `${vekt} ${st}px ${familie}`; }
   return st;
 }
-const TITTEL = '"Bricolage Grotesque", system-ui, sans-serif';
-const MONO = '"DM Mono", ui-monospace, monospace';
+const TITTEL = T('"Bricolage Grotesque", system-ui, sans-serif');
+const MONO = T('"DM Mono", ui-monospace, monospace');
 
 function tegnRamme(W, H) {
   const k = Math.min(W, H);
@@ -820,7 +821,7 @@ function tegnRamme(W, H) {
     // liten etikett øverst
     ctx.save();
     ctx.font = `500 ${Math.round(k * 0.022)}px ${MONO}`;
-    const etikett = `${PAKKE.navn.toUpperCase()} · LUFTPOST`;
+    const etikett = T`${PAKKE.navn.toUpperCase()} · LUFTPOST`;
     const ew = ctx.measureText(etikett).width;
     ctx.fillStyle = 'rgba(12,35,64,.82)';
     rundRekt(b * 1.5, b * 1.5, ew + k * 0.04, k * 0.045, k * 0.012); ctx.fill();
@@ -884,7 +885,7 @@ function tegnRamme(W, H) {
     tilpassSkrift(sted, 800, TITTEL, R * 0.32, R * 1.4);
     ctx.fillText(sted, 0, -R * 0.22);
     ctx.font = `500 ${R * 0.2}px ${MONO}`;
-    ctx.fillText(new Date().toLocaleDateString('nb-NO', { day: '2-digit', month: '2-digit', year: 'numeric' }), 0, R * 0.2);
+    ctx.fillText(new Date().toLocaleDateString(LOKALE, { day: '2-digit', month: '2-digit', year: 'numeric' }), 0, R * 0.2);
     ctx.font = `500 ${R * 0.13}px ${MONO}`;
     ctx.fillText(PAKKE.navn.toUpperCase(), 0, R * 0.48);
     // bølgestreker
@@ -909,7 +910,7 @@ function tegnKilde(W, H) {
   ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = k * 0.004;
   ctx.fillStyle = 'rgba(255,255,255,.9)';
   const y = H - innrykk;
-  ctx.fillText('Foto: ' + S.kilde, W - innrykk, y);
+  ctx.fillText(T('Foto: ') + S.kilde, W - innrykk, y);
   ctx.restore();
 }
 
@@ -1025,7 +1026,7 @@ $('angre').addEventListener('click', () => {
 function velgFarge(p) {
   const g = S.gruppe, q = tilGruppe(p);
   const cx = Math.round(q.x), cy = Math.round(q.y);
-  if (cx < 0 || cy < 0 || cx >= g.w || cy >= g.h) { hint('Trykk på veggen bak dere, inne i gruppebildet.'); return; }
+  if (cx < 0 || cy < 0 || cx >= g.w || cy >= g.h) { hint(T('Trykk på veggen bak dere, inne i gruppebildet.')); return; }
   let r = 0, gg = 0, b = 0, n = 0;
   for (let y = cy - 3; y <= cy + 3; y++) for (let x = cx - 3; x <= cx + 3; x++) {
     if (x < 0 || y < 0 || x >= g.w || y >= g.h) continue;
@@ -1038,12 +1039,12 @@ function velgFarge(p) {
   S.boks = finnBoks();
   $('toleranse-rad').classList.remove('skjult');
   settModus('flytt');
-  hint('Er det rester av veggen igjen? Skyv «Hvor mye» mot høyre. Forsvinner noen av dere? Skyv mot venstre.');
+  hint(T('Er det rester av veggen igjen? Skyv «Hvor mye» mot høyre. Forsvinner noen av dere? Skyv mot venstre.'));
   planlegg(null, true);
 }
 $('pipette').addEventListener('click', () => {
   settModus('pipette');
-  hint('🎯 Trykk på veggen bak dere i bildet.');
+  hint(T('🎯 Trykk på veggen bak dere i bildet.'));
   lerret.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
 $('bruk-ki').addEventListener('click', () => {
@@ -1052,7 +1053,7 @@ $('bruk-ki').addEventListener('click', () => {
   S.alfa = S.alfaKI.slice(); S.metode = 'ki';
   $('toleranse-rad').classList.add('skjult');
   S.boks = finnBoks(); planlegg(null, true);
-  hint('KI-utklippet er tilbake.');
+  hint(T('KI-utklippet er tilbake.'));
 });
 
 /* =====================================================================
@@ -1063,8 +1064,8 @@ function settModus(m) {
   document.querySelectorAll('.verktoy button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.modus === m)));
   $('pensel-rad').classList.toggle('skjult', m !== 'visk' && m !== 'hent');
   lerret.style.cursor = m === 'flytt' ? 'grab' : 'crosshair';
-  if (m === 'visk') hint('🧽 Mal over det som ikke skal være med. To fingre flytter fortsatt bildet.');
-  else if (m === 'hent') hint('🖌️ Mal over det som forsvant ved et uhell.');
+  if (m === 'visk') hint(T('🧽 Mal over det som ikke skal være med. To fingre flytter fortsatt bildet.'));
+  else if (m === 'hent') hint(T('🖌️ Mal over det som forsvant ved et uhell.'));
   else if (m === 'flytt') hint('');
   planlegg();
 }
@@ -1090,8 +1091,8 @@ glider('kant', (v) => { S.kant = v; planlegg(null, true); });
 glider('toleranse', (v) => { S.toleranse = v; if (S.nokkel) { fargeUtklipp(); S.boks = finnBoks(); planlegg(null, true); } });
 
 $('auto-farge').addEventListener('click', () => {
-  if (!S.bakgrunn) { hint('Velg et bilde av stedet først, så kan fargene tilpasses.'); return; }
-  autoFarge(); hint('🪄 Fargene er tilpasset stedet. Juster med Lys og Varme hvis det ble for mye.');
+  if (!S.bakgrunn) { hint(T('Velg et bilde av stedet først, så kan fargene tilpasses.')); return; }
+  autoFarge(); hint(T('🪄 Fargene er tilpasset stedet. Juster med Lys og Varme hvis det ble for mye.'));
 });
 $('speil').addEventListener('click', () => {
   const g = S.gruppe, b = S.boks; if (!g) return;
@@ -1105,7 +1106,7 @@ $('speil').addEventListener('click', () => {
 document.querySelectorAll('.rammevalg button').forEach((b) => b.addEventListener('click', async () => {
   S.ramme = b.dataset.ramme;
   document.querySelectorAll('.rammevalg button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-  if (S.ramme !== 'ingen' && !S.tekst && S.sted) { S.tekst = `Hilsen fra ${S.sted}!`; $('tekst').value = S.tekst; }
+  if (S.ramme !== 'ingen' && !S.tekst && S.sted) { S.tekst = T`Hilsen fra ${S.sted}!`; $('tekst').value = S.tekst; }
   planlegg();
 }));
 
@@ -1122,7 +1123,7 @@ $('lagre').addEventListener('click', async () => {
   if (S.modus === 'pipette') settModus('flytt');
   tegn();
   const blob = await new Promise((r) => lerret.toBlob(r, 'image/jpeg', 0.9));
-  if (!blob) { hint('Bildet kunne ikke lagres. Prøv igjen.'); return; }
+  if (!blob) { hint(T('Bildet kunne ikke lagres. Prøv igjen.')); return; }
   const navn = 'reisebilde-' + (S.sted || 'jorda-rundt').toLowerCase().replace(/[^a-z0-9æøå]+/g, '-').replace(/^-|-$/g, '') + '.jpg';
   ferdigFil = new File([blob], navn, { type: 'image/jpeg' });
   if (ferdigUrl) URL.revokeObjectURL(ferdigUrl);
@@ -1132,19 +1133,19 @@ $('lagre').addEventListener('click', async () => {
   const kanDele = !!(navigator.canShare && navigator.canShare({ files: [ferdigFil] }));
   $('del').classList.toggle('skjult', !kanDele);
   $('lagre-tekst').textContent = kanDele
-    ? 'Trykk på «Lagre i Bilder / del». Du kan også holde fingeren på bildet og velge «Legg til i Bilder».'
-    : 'Hold fingeren på bildet og velg «Legg til i Bilder», eller trykk «Last ned».';
+    ? T('Trykk på «Lagre i Bilder / del». Du kan også holde fingeren på bildet og velge «Legg til i Bilder».')
+    : T('Hold fingeren på bildet og velg «Legg til i Bilder», eller trykk «Last ned».');
   $('lagre-modal').classList.remove('skjult');
 });
 $('del').addEventListener('click', () => {
   if (!ferdigFil) return;
-  navigator.share({ files: [ferdigFil], title: 'Reisebilde' }).catch(() => {});
+  navigator.share({ files: [ferdigFil], title: T('Reisebilde') }).catch(() => {});
 });
 $('lukk-lagre').addEventListener('click', () => $('lagre-modal').classList.add('skjult'));
 $('lagre-modal').addEventListener('click', (e) => { if (e.target.id === 'lagre-modal') $('lagre-modal').classList.add('skjult'); });
 
 $('nytt').addEventListener('click', () => {
-  if (!confirm('Vil du starte på nytt? Bildet du har laget forsvinner hvis du ikke har lagret det.')) return;
+  if (!confirm(T('Vil du starte på nytt? Bildet du har laget forsvinner hvis du ikke har lagret det.'))) return;
   location.reload();
 });
 

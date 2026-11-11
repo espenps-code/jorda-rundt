@@ -1,0 +1,63 @@
+// Across the UK – PLACES and REGIONS (data).
+// The 12 regions are the 9 regions of England + Scotland, Wales and Northern Ireland (the same areas as in regioner.json).
+// land = which of the four countries of the UK the region belongs to.
+// hs = the main city of the region (the capital in Scotland, Wales and Northern Ireland) · fly = has an airport · knute = big airport
+// ferje = ferry port across the Irish Sea · telt = wild camping is allowed nearby (only in Scotland) · pris = price level (London is the most expensive)
+// flagg = a symbol for the place.
+export const REGIONER = [
+  { id: 'TLI', navn: 'London', land: 'England' },
+  { id: 'TLJ', navn: 'South East England', land: 'England' },
+  { id: 'TLK', navn: 'South West England', land: 'England' },
+  { id: 'TLH', navn: 'East of England', land: 'England' },
+  { id: 'TLF', navn: 'East Midlands', land: 'England' },
+  { id: 'TLG', navn: 'West Midlands', land: 'England' },
+  { id: 'TLE', navn: 'Yorkshire', land: 'England' },
+  { id: 'TLD', navn: 'North West England', land: 'England' },
+  { id: 'TLC', navn: 'North East England', land: 'England' },
+  { id: 'TLM', navn: 'Scotland', land: 'Scotland' },
+  { id: 'TLL', navn: 'Wales', land: 'Wales' },
+  { id: 'TLN', navn: 'Northern Ireland', land: 'Northern Ireland' },
+];
+const s = (id, navn, flagg, lat, lng, pris, x = {}) => ({ id, navn, flagg, fylke: id.split('-')[0], lat, lng, pris, hs: false, fly: false, knute: false, ferje: false, telt: false, ...x });
+export const STEDER = [
+  s('TLI-london', 'London', '🎡', 51.507, -0.128, 1.5, { hs: true, fly: true, knute: true }),
+  s('TLJ-brighton', 'Brighton', '🎠', 50.822, -0.137, 1.2),
+  s('TLJ-oxford', 'Oxford', '🎓', 51.752, -1.258, 1.25),
+  s('TLJ-canterbury', 'Canterbury', '⛪', 51.280, 1.079, 1.05),
+  s('TLJ-southampton', 'Southampton', '🚢', 50.909, -1.404, 1.05, { hs: true, fly: true }),
+  s('TLK-bristol', 'Bristol', '🎈', 51.455, -2.588, 1.1, { hs: true, fly: true }),
+  s('TLK-bath', 'Bath', '🛁', 51.381, -2.359, 1.2),
+  s('TLK-plymouth', 'Plymouth', '⚓', 50.375, -4.143, 0.95),
+  s('TLK-penzance', 'Penzance', '🏴‍☠️', 50.118, -5.537, 0.95),
+  s('TLH-cambridge', 'Cambridge', '📚', 52.205, 0.119, 1.25, { hs: true }),
+  s('TLH-norwich', 'Norwich', '🦆', 52.630, 1.297, 0.95, { fly: true }),
+  s('TLF-nottingham', 'Nottingham', '🏹', 52.954, -1.158, 0.9, { hs: true }),
+  s('TLF-leicester', 'Leicester', '🦊', 52.637, -1.139, 0.9),
+  s('TLF-lincoln', 'Lincoln', '🏰', 53.230, -0.540, 0.85),
+  s('TLG-birmingham', 'Birmingham', '🍫', 52.486, -1.890, 0.95, { hs: true, fly: true }),
+  s('TLG-coventry', 'Coventry', '🚲', 52.407, -1.510, 0.9),
+  s('TLG-stratford', 'Stratford-upon-Avon', '🎭', 52.192, -1.708, 1.1),
+  s('TLG-stoke', 'Stoke-on-Trent', '🏺', 53.003, -2.179, 0.8),
+  s('TLE-leeds', 'Leeds', '🦉', 53.801, -1.549, 0.95, { hs: true, fly: true }),
+  s('TLE-sheffield', 'Sheffield', '🍴', 53.381, -1.470, 0.9),
+  s('TLE-york', 'York', '🧙', 53.960, -1.087, 1.1),
+  s('TLE-hull', 'Hull', '🐟', 53.745, -0.336, 0.8),
+  s('TLD-manchester', 'Manchester', '⚽', 53.481, -2.242, 1.05, { hs: true, fly: true, knute: true }),
+  s('TLD-liverpool', 'Liverpool', '🎸', 53.408, -2.992, 0.95, { fly: true, ferje: true }),
+  s('TLD-blackpool', 'Blackpool', '🎢', 53.817, -3.036, 0.85),
+  s('TLD-keswick', 'Keswick', '⛰️', 54.601, -3.135, 1.0),
+  s('TLC-newcastle', 'Newcastle', '🌉', 54.978, -1.618, 0.9, { hs: true, fly: true }),
+  s('TLC-durham', 'Durham', '🕍', 54.776, -1.576, 0.9),
+  s('TLM-edinburgh', 'Edinburgh', '🏯', 55.953, -3.189, 1.25, { hs: true, fly: true, knute: true }),
+  s('TLM-glasgow', 'Glasgow', '🎨', 55.864, -4.252, 1.0, { fly: true, ferje: true }),
+  s('TLM-aberdeen', 'Aberdeen', '🛢️', 57.149, -2.094, 1.0, { fly: true }),
+  s('TLM-inverness', 'Inverness', '🦕', 57.478, -4.224, 1.0, { fly: true, telt: true }),
+  s('TLM-fortwilliam', 'Fort William', '🥾', 56.820, -5.105, 1.0, { telt: true }),
+  s('TLL-cardiff', 'Cardiff', '🐉', 51.481, -3.179, 0.95, { hs: true, fly: true }),
+  s('TLL-swansea', 'Swansea', '🏖️', 51.621, -3.944, 0.85),
+  s('TLL-aberystwyth', 'Aberystwyth', '🚠', 52.415, -4.083, 0.85),
+  s('TLL-bangor', 'Bangor', '🐑', 53.228, -4.129, 0.85),
+  s('TLN-belfast', 'Belfast', '🛳️', 54.597, -5.930, 0.95, { hs: true, fly: true, ferje: true }),
+  s('TLN-derry', 'Derry/Londonderry', '🧱', 54.997, -7.309, 0.85, { fly: true }),
+  s('TLN-enniskillen', 'Enniskillen', '🛶', 54.344, -7.632, 0.85),
+];

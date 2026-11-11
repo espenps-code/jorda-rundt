@@ -356,6 +356,7 @@
 <div id="varsler" aria-live="polite"></div>
 
 <script type="module">
+import { T, LOKALE, SPRAK } from './js/sprak.js';
 import { monterInnlogging } from './js/laererinn.js';
 import { auth, db, ref, r, get, set, update, remove, push, onValue, loggInnLaerer, testLoggInnLaerer, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { godkjennReiselogg, avvisReiselogg, avgjorDuell, justerSaldo, settLaas, fjernEierskap, trekkDuellOppgave, startDuellNedtelling, godkjennDiktatManuelt, aapneDiktat, lukkDiktat } from './js/bank.js';
@@ -372,16 +373,16 @@ const qs = brukerEmulator ? '?emulator' : '';
 
 // ---------- spillpakke: tekster og felt som er ulike i spillene ----------
 fyllPakkeTekster();
-document.title = `${PAKKE.navn} – Lærer`;
+document.title = T`${PAKKE.navn} – Lærer`;
 $('#veiledningslenke').href = lenke(PAKKE.sider.forside + '#veiledning');
 for (const a of document.querySelectorAll('[data-reiselogg]')) a.href = lenke(PAKKE.sider.reiselogg);
-$('#valgAlle').textContent = `Alle ${ORD.steder}`; $('#valgEid').textContent = `Eide ${ORD.steder}`; $('#valgStengt').textContent = `Stengte ${ORD.steder}`;
-$('#landsok').placeholder = PAKKE.modell === 'land' ? 'Søk etter land …' : `Søk etter ${ORD.sted} eller ${ORD.region} …`;
-$('#kolSted').textContent = stor(ORD.sted); $('#kolRegion').textContent = PAKKE.modell === 'land' ? 'Kontinent' : stor(ORD.region);
-$('#landhjelp').textContent = `Stengte ${ORD.steder} kan ikke reises til. Låste ${ORD.steder} kan ikke utfordres – eieren beholder dem.` + (PAKKE.modell === 'land' ? '' : ` «Steng ${ORD.region}» stenger alle ${ORD.stedene} i ${ORD.regionen}.`);
-$('#poengfelt').innerHTML = PAKKE.modell === 'land' ? `
+$('#valgAlle').textContent = T`Alle ${ORD.steder}`; $('#valgEid').textContent = T`Eide ${ORD.steder}`; $('#valgStengt').textContent = T`Stengte ${ORD.steder}`;
+$('#landsok').placeholder = PAKKE.modell === 'land' ? T('Søk etter land …') : T`Søk etter ${ORD.sted} eller ${ORD.region} …`;
+$('#kolSted').textContent = stor(ORD.sted); $('#kolRegion').textContent = PAKKE.modell === 'land' ? T('Kontinent') : stor(ORD.region);
+$('#landhjelp').textContent = T`Stengte ${ORD.steder} kan ikke reises til. Låste ${ORD.steder} kan ikke utfordres – eieren beholder dem.` + (PAKKE.modell === 'land' ? '' : T` «Steng ${ORD.region}» stenger alle ${ORD.stedene} i ${ORD.regionen}.`);
+$('#poengfelt').innerHTML = PAKKE.modell === 'land' ? T`
             <div class="felt"><label>Poeng per land</label><input type="number" name="poengLand" min="0"></div>
-            <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>` : `
+            <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>` : T`
             <div class="felt"><label>Poeng per ${ORD.sted}</label><input type="number" name="poengBy" min="0"></div>
             <div class="felt"><label>Bonus for hele ${ORD.regionen}</label><div class="rad" style="gap:.3rem;flex-wrap:nowrap"><input type="number" name="heltLand1" min="0" title="1 ${ORD.sted}" style="width:3.6rem"><input type="number" name="heltLand2" min="0" title="2 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand3" min="0" title="3 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand4" min="0" title="4 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand5" min="0" title="5 ${ORD.steder}" style="width:3.6rem"></div><div class="hjelp">For ${ORD.regioner} med 1, 2, 3, 4 og 5 ${ORD.steder}. Gis når én gruppe eier alle ${ORD.stedene} i ${ORD.regionen}. Standard 5 · 10 · 20 · 30 · 40.</div></div>`;
 // Diktaten heter noe annet i noen spill (Norge rundt: «Samisk språkoppdrag»)
@@ -391,7 +392,7 @@ if (PAKKE.diktatNavn) {
     if (lab) lab.textContent = lab.textContent.replace('Parlør-diktat', PAKKE.diktatNavn);
   }
   const hj = document.querySelector('[name="diktatBelopPerElev"]')?.closest('.felt')?.querySelector('.hjelp');
-  if (hj) hj.textContent = 'Gis for 5 av 5 riktige på nordsamisk, én gang per fylke (bare Troms og Finnmark). Gruppe på 4 får 4 × beløpet. 0 = av.';
+  if (hj) hj.textContent = T('Gis for 5 av 5 riktige på nordsamisk, én gang per fylke (bare Troms og Finnmark). Gruppe på 4 får 4 × beløpet. 0 = av.');
 }
 // Spillpakker uten parlør-diktat: skjul diktatfeltene og -knappene
 if (PAKKE.diktat === false) {
@@ -408,7 +409,7 @@ let startSpill = new URLSearchParams(location.search).get('spill');
 const ekstraParam = brukerEmulator ? 'emulator' : '';
 $('#pakkevelger').innerHTML = SPILLPAKKER.map((p) => `<option value="${p.id}" ${p.id === PAKKE.id ? 'selected' : ''}>${p.ikon} ${esc(p.navn)}</option>`).join('');
 $('#pakkevelger').onchange = (e) => { location.href = pakkeAdresse(e.target.value, 'laerer.html', ekstraParam); };
-$('#pakkekort').innerHTML = SPILLPAKKER.map((p) => `<button type="button" data-pakkevalg="${p.id}" aria-pressed="${p.id === PAKKE.id}"><span class="i">${p.ikon}</span><span><b>${esc(p.navn)}</b><small>${esc(p.tekst)}</small></span></button>`).join('');
+$('#pakkekort').innerHTML = SPILLPAKKER.map((p) => `<button type="button" data-pakkevalg="${p.id}" aria-pressed="${p.id === PAKKE.id}"><span class="i">${p.ikon}</span><span><b>${esc(p.navn)}</b><small>${esc(T(p.tekst))}</small></span></button>`).join('');
 for (const b of document.querySelectorAll('[data-pakkevalg]')) b.onclick = () => {
   if (b.dataset.pakkevalg !== PAKKE.id) location.href = pakkeAdresse(b.dataset.pakkevalg, 'laerer.html', ekstraParam + (ekstraParam ? '&' : '') + 'nytt');
 };
@@ -416,7 +417,7 @@ for (const b of document.querySelectorAll('[data-pakkevalg]')) b.onclick = () =>
 
 let bruker = null, spillId = null, spill = null, pins = {}, stoppSpill = null, stoppPins = null, stoppBank = null, stoppLaerere = null, mineSpill = {}, laerere = {}, mineDueller = {}, stoppMineDueller = null;
 const erEier = () => !!spill && !!bruker && spill.eier === bruker.uid;
-const mittNavn = () => bruker?.displayName || bruker?.email || 'Lærer';
+const mittNavn = () => bruker?.displayName || bruker?.email || T('Lærer');
 
 function varsle(tekst, type = '') {
   const el = document.createElement('div'); el.className = 'varsel ' + type; el.textContent = tekst;
@@ -425,18 +426,18 @@ function varsle(tekst, type = '') {
 function vis(id) { for (const s of ['innlogging', 'nyttspill', 'spillvisning', 'minespilloversikt']) $('#' + s).classList.toggle('skjult', s !== id); }
 
 // Bekreftelse uten nettleserens dialogboks
-function bekreft(tittel, tekst, knappetekst = 'Ja', farlig = false) {
+function bekreft(tittel, tekst, knappetekst = T('Ja'), farlig = false) {
   return new Promise((ok) => {
     const bg = document.createElement('div'); bg.className = 'modal-bakgrunn';
-    bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><h3>${esc(tittel)}</h3><p>${tekst}</p><div class="rad" style="justify-content:flex-end"><button class="knapp lys" data-v="0">Avbryt</button><button class="knapp ${farlig ? 'korall' : ''}" data-v="1">${esc(knappetekst)}</button></div></div>`;
+    bg.innerHTML = T`<div class="modal" role="dialog" aria-modal="true"><h3>${esc(tittel)}</h3><p>${tekst}</p><div class="rad" style="justify-content:flex-end"><button class="knapp lys" data-v="0">Avbryt</button><button class="knapp ${farlig ? 'korall' : ''}" data-v="1">${esc(knappetekst)}</button></div></div>`;
     bg.addEventListener('click', (e) => { const v = e.target.dataset?.v; if (v !== undefined || e.target === bg) { bg.remove(); ok(v === '1'); } });
     document.body.append(bg); $('[data-v="1"]', bg).focus();
   });
 }
-function skjemaModal(tittel, html, knappetekst = 'Lagre') {
+function skjemaModal(tittel, html, knappetekst = T('Lagre')) {
   return new Promise((ok) => {
     const bg = document.createElement('div'); bg.className = 'modal-bakgrunn';
-    bg.innerHTML = `<form class="modal"><h3>${esc(tittel)}</h3>${html}<div class="rad" style="justify-content:flex-end;margin-top:1rem"><button type="button" class="knapp lys" data-avbryt>Avbryt</button><button class="knapp">${esc(knappetekst)}</button></div></form>`;
+    bg.innerHTML = T`<form class="modal"><h3>${esc(tittel)}</h3>${html}<div class="rad" style="justify-content:flex-end;margin-top:1rem"><button type="button" class="knapp lys" data-avbryt>Avbryt</button><button class="knapp">${esc(knappetekst)}</button></div></form>`;
     const f = $('form', bg);
     f.addEventListener('submit', (e) => { e.preventDefault(); const d = Object.fromEntries(new FormData(f)); bg.remove(); ok(d); });
     $('[data-avbryt]', bg).onclick = () => { bg.remove(); ok(null); };
@@ -474,7 +475,7 @@ function tegnSpillvelger() {
   const sel = $('#spillvelger');
   const ids = Object.keys(mineSpill);
   sel.classList.toggle('skjult', !ids.length);
-  sel.innerHTML = ids.map((id) => `<option value="${id}" ${id === spillId ? 'selected' : ''}>${esc(mineSpill[id])}</option>`).join('') + '<option value="__nytt">＋ Nytt spill …</option><option value="__alle">📚 Alle mine spill …</option>';
+  sel.innerHTML = ids.map((id) => `<option value="${id}" ${id === spillId ? 'selected' : ''}>${esc(mineSpill[id])}</option>`).join('') + T('<option value="__nytt">＋ Nytt spill …</option><option value="__alle">📚 Alle mine spill …</option>');
 }
 $('#spillvelger').onchange = (e) => {
   if (e.target.value === '__alle') { e.target.value = spillId; apneMineSpill(); return; }
@@ -491,8 +492,8 @@ $('#lagspill').onclick = async () => {
     [`mineSpill/${bruker.uid}/${id}`]: navn,
   });
   spillId = null; velgSpill(id);
-  varsle('Spillet er laget! Lag gruppene under «Grupper».', 'ok');
-  visUtstyrsliste(DUELLER, '<p>Spillet er klart! Én ting før du begynner: Når to grupper vil ha samme sted, blir det duell i klasserommet. Her er det du trenger til duellene.</p>');
+  varsle(T('Spillet er laget! Lag gruppene under «Grupper».'), 'ok');
+  visUtstyrsliste(DUELLER, T('<p>Spillet er klart! Én ting før du begynner: Når to grupper vil ha samme sted, blir det duell i klasserommet. Her er det du trenger til duellene.</p>'));
 };
 
 function stoppAlt() { stoppSpill?.(); stoppPins?.(); stoppBank?.(); stoppLaerere?.(); stoppSpill = stoppPins = stoppBank = stoppLaerere = null; laerere = {}; }
@@ -524,10 +525,10 @@ $('#msnytt').onclick = () => { vis('nyttspill'); $('#avbrytnytt').classList.remo
 function siden(tid) {
   if (!tid) return 'ukjent';
   const min = Math.round((Date.now() - tid) / 60000);
-  if (min < 2) return 'akkurat nå';
-  if (min < 60) return `for ${min} min siden`;
-  const t = Math.round(min / 60); if (t < 24) return `for ${t} ${t === 1 ? 'time' : 'timer'} siden`;
-  const d = Math.round(t / 24); if (d < 14) return `for ${d} ${d === 1 ? 'dag' : 'dager'} siden`;
+  if (min < 2) return T('akkurat nå');
+  if (min < 60) return T`for ${min} min siden`;
+  const t = Math.round(min / 60); if (t < 24) return T`for ${t} ${t === 1 ? T('time') : T('timer')} siden`;
+  const d = Math.round(t / 24); if (d < 14) return T`for ${d} ${d === 1 ? T('dag') : T('dager')} siden`;
   return new Date(tid).toLocaleDateString('no-NO', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 /** Leser ett spill og regner ut nøkkeltall (fungerer for alle spillpakkene) */
@@ -547,7 +548,7 @@ async function apneMineSpill() {
   if (!bruker) return;
   vis('minespilloversikt');
   const nr = ++msTeller;
-  $('#msinnhold').innerHTML = '<p class="tom">Henter spillene dine …</p>';
+  $('#msinnhold').innerHTML = T('<p class="tom">Henter spillene dine …</p>');
   const lister = await Promise.all(SPILLPAKKER.map(async (p) => {
     const pre = p.rot ? p.rot + '/' : '';
     const mine = (await get(ref(db, `${pre}mineSpill/${bruker.uid}`)).catch(() => null))?.val() || {};
@@ -560,34 +561,34 @@ async function apneMineSpill() {
   if (nr !== msTeller) return;   // en nyere oppdatering er på vei
   const alle = lister.flatMap((l) => l.spill).filter((x) => !x.borte);
   if (!alle.length && !lister.some((l) => l.spill.length)) {
-    $('#msinnhold').innerHTML = '<p class="tom">Du har ingen spill ennå. Trykk «＋ Nytt spill» for å lage det første.</p>';
+    $('#msinnhold').innerHTML = T('<p class="tom">Du har ingen spill ennå. Trykk «＋ Nytt spill» for å lage det første.</p>');
     return;
   }
   const sumVenter = alle.reduce((n, x) => n + x.venter, 0);
-  const ekstra = (x) => `spill=${x.id}${brukerEmulator ? '&emulator' : ''}`;
+  const ekstra = (x) => `spill=${x.id}${brukerEmulator ? T('&emulator') : ''}`;
   const kort = (x) => {
-    if (x.borte) return `<div class="ms-kort"><h3>${esc(x.navn)}</h3><p class="liten dempet">Fant ikke spillet – det kan være slettet, eller du har mistet tilgangen.</p></div>`;
+    if (x.borte) return T`<div class="ms-kort"><h3>${esc(x.navn)}</h3><p class="liten dempet">Fant ikke spillet – det kan være slettet, eller du har mistet tilgangen.</p></div>`;
     const her = x.p.id === PAKKE.id && x.id === spillId;
-    return `<div class="ms-kort ${x.venter ? 'venter' : ''} ${her ? 'aktivt' : ''}">
-      <div class="rad" style="justify-content:space-between;gap:.5rem;align-items:flex-start"><h3>${esc(x.navn)}</h3><span class="ms-rolle">${x.eier ? 'Eier' : 'Medlærer'}</span></div>
+    return T`<div class="ms-kort ${x.venter ? 'venter' : ''} ${her ? 'aktivt' : ''}">
+      <div class="rad" style="justify-content:space-between;gap:.5rem;align-items:flex-start"><h3>${esc(x.navn)}</h3><span class="ms-rolle">${x.eier ? T('Eier') : T('Medlærer')}</span></div>
       <div class="ms-tall">
-        <span>👥 <b>${x.grupper}</b> ${x.grupper === 1 ? 'gruppe' : 'grupper'}</span>
+        <span>👥 <b>${x.grupper}</b> ${x.grupper === 1 ? T('gruppe') : T('grupper')}</span>
         <span>📍 <b>${x.steder}</b> ${x.p.steder} erobret</span>
-        <span style="grid-column:1/-1">🏆 ${x.leder ? `Leder: <b style="color:${esc(x.leder.farge || 'inherit')}">${esc(x.leder.navn)}</b> (${x.leder.antall} ${x.p.steder})` : '<span class="dempet">Ingen har erobret noe ennå</span>'}</span>
-        <span style="grid-column:1/-1">${x.venter ? `<span class="ms-venter">⏳ ${x.venter} venter på deg</span>` : '✅ Ingenting venter'}${x.pause ? ' · ⏸️ <b>Pause</b>' : ''}</span>
-        <span class="liten dempet" style="grid-column:1/-1">Sist aktivitet ${siden(x.sist)}${!x.eier && x.eierNavn ? ` · eies av ${esc(x.eierNavn)}` : ''}</span>
+        <span style="grid-column:1/-1">🏆 ${x.leder ? T`Leder: <b style="color:${esc(x.leder.farge || 'inherit')}">${esc(x.leder.navn)}</b> (${x.leder.antall} ${x.p.steder})` : T('<span class="dempet">Ingen har erobret noe ennå</span>')}</span>
+        <span style="grid-column:1/-1">${x.venter ? T`<span class="ms-venter">⏳ ${x.venter} venter på deg</span>` : T('✅ Ingenting venter')}${x.pause ? T(' · ⏸️ <b>Pause</b>') : ''}</span>
+        <span class="liten dempet" style="grid-column:1/-1">Sist aktivitet ${siden(x.sist)}${!x.eier && x.eierNavn ? T` · eies av ${esc(x.eierNavn)}` : ''}</span>
       </div>
       <div class="ms-knapper">
-        <button class="knapp mini sol" data-msapne="${x.p.id}|${x.id}">${her ? 'Tilbake til spillet' : 'Åpne'}</button>
+        <button class="knapp mini sol" data-msapne="${x.p.id}|${x.id}">${her ? T('Tilbake til spillet') : T('Åpne')}</button>
         <a class="knapp mini lys" target="_blank" href="${pakkeAdresse(x.p.id, 'tavle.html', ekstra(x))}">📺 Tavle</a>
       </div></div>`;
   };
-  $('#msinnhold').innerHTML = `<div class="ms-sum"><span>🎮 ${alle.length} ${alle.length === 1 ? 'spill' : 'spill'}</span><span>👥 ${alle.reduce((n, x) => n + x.grupper, 0)} grupper</span><span class="${sumVenter ? 'varsel-sum' : ''}">⏳ ${sumVenter} venter på deg</span></div>`
+  $('#msinnhold').innerHTML = T`<div class="ms-sum"><span>🎮 ${alle.length} ${alle.length === 1 ? T('spill') : T('spill')}</span><span>👥 ${alle.reduce((n, x) => n + x.grupper, 0)} grupper</span><span class="${sumVenter ? 'varsel-sum' : ''}">⏳ ${sumVenter} venter på deg</span></div>`
     + lister.filter((l) => l.spill.length).map((l) => `<div class="ms-pakke">${l.p.ikon} ${esc(l.p.navn)}</div><div class="ms-rutenett">${l.spill.map(kort).join('')}</div>`).join('');
   $$('[data-msapne]').forEach((b) => b.onclick = () => {
     const [pid, id] = b.dataset.msapne.split('|');
     if (pid === PAKKE.id) { if (id === spillId) vis('spillvisning'); else velgSpill(id); }
-    else location.href = pakkeAdresse(pid, 'laerer.html', `spill=${id}${brukerEmulator ? '&emulator' : ''}`);
+    else location.href = pakkeAdresse(pid, 'laerer.html', `spill=${id}${brukerEmulator ? T('&emulator') : ''}`);
   });
 }
 
@@ -598,12 +599,12 @@ function qrSvg(tekst, celle = 4) {
   return q.createSvgTag({ cellSize: celle, margin: 0, scalable: false });
 }
 $('#kopierlenke').onclick = async () => {
-  try { await navigator.clipboard.writeText($('#elevlenke').href); varsle('Lenken er kopiert!', 'ok'); }
-  catch { varsle('Kunne ikke kopiere – merk lenken og kopier den selv.', 'feil'); }
+  try { await navigator.clipboard.writeText($('#elevlenke').href); varsle(T('Lenken er kopiert!'), 'ok'); }
+  catch { varsle(T('Kunne ikke kopiere – merk lenken og kopier den selv.'), 'feil'); }
 };
 $('#storqr').onclick = () => {
   const bg = document.createElement('div'); bg.className = 'modal-bakgrunn';
-  bg.innerHTML = `<div class="modal" style="text-align:center;width:min(100%,560px)"><h2>${PAKKE.ikon} ${esc(PAKKE.navn)}</h2><p class="dempet">Skann koden – eller gå til</p><p style="word-break:break-all"><b>${esc($('#elevlenke').href)}</b></p><div style="background:#fff;padding:16px;border-radius:14px;display:inline-block;line-height:0">${qrSvg($('#elevlenke').href, 9)}</div><p><button class="knapp lys">Lukk</button></p></div>`;
+  bg.innerHTML = T`<div class="modal" style="text-align:center;width:min(100%,560px)"><h2>${PAKKE.ikon} ${esc(PAKKE.navn)}</h2><p class="dempet">Skann koden – eller gå til</p><p style="word-break:break-all"><b>${esc($('#elevlenke').href)}</b></p><div style="background:#fff;padding:16px;border-radius:14px;display:inline-block;line-height:0">${qrSvg($('#elevlenke').href, 9)}</div><p><button class="knapp lys">Lukk</button></p></div>`;
   bg.onclick = (e) => { if (e.target === bg || e.target.tagName === 'BUTTON') bg.remove(); };
   document.body.append(bg);
 };
@@ -628,7 +629,7 @@ function lukkTavle() {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
 }
 function oppdaterSkuffknapp(antall) {
-  $('#skufftekst').textContent = antall ? `${antall} venter` : 'Ingenting venter';
+  $('#skufftekst').textContent = antall ? T`${antall} venter` : T('Ingenting venter');
   $('#skuffknapp').classList.toggle('har', !!antall);
 }
 $('#tavlemodus').onclick = aapneTavle;
@@ -643,12 +644,12 @@ $$('nav.faner button[data-fane]').forEach((b) => b.onclick = () => {
 });
 
 // ---------- tegning ----------
-const gnavn = (gid) => spill?.grupper?.[gid]?.navn || '(slettet gruppe)';
+const gnavn = (gid) => spill?.grupper?.[gid]?.navn || T('(slettet gruppe)');
 const gfarge = (gid) => spill?.grupper?.[gid]?.farge || '#999';
 const prikk = (gid) => `<span class="prikk" style="background:${esc(gfarge(gid))}"></span>`;
 
 function tegnAlt() {
-  mineSpill[spillId] = spill.info?.navn || 'Spill';
+  mineSpill[spillId] = spill.info?.navn || T('Spill');
   tegnOversikt(); tegnGrupper(); tegnLand(); tegnInnstillinger(); tegnLogg(); tegnLaerere(); tegnDueller(); synkEgneDueller();
   if (erEier() && !spill.info?.eierNavn) update(r(`spill/${spillId}/info`), { eierNavn: mittNavn() });
 }
@@ -656,18 +657,18 @@ function tegnAlt() {
 function tegnOversikt() {
   const i = innst(spill);
   const rader = poengtavle(spill);
-  $('#poengtavle').innerHTML = rader.length ? `<table class="rangering"><thead><tr><th>#</th><th>Gruppe</th>${PAKKE.modell === 'land' ? '<th>Land</th><th>Kontinenter</th>' : `<th>${stor(ORD.steder)}</th><th>Hele ${ORD.regioner}</th>`}<th>Poeng</th><th style="text-align:right">Penger</th><th>Er nå</th></tr></thead><tbody>${
+  $('#poengtavle').innerHTML = rader.length ? T`<table class="rangering"><thead><tr><th>#</th><th>Gruppe</th>${PAKKE.modell === 'land' ? T('<th>Land</th><th>Kontinenter</th>') : T`<th>${stor(ORD.steder)}</th><th>Hele ${ORD.regioner}</th>`}<th>Poeng</th><th style="text-align:right">Penger</th><th>Er nå</th></tr></thead><tbody>${
     rader.map((g, n) => {
       const her = landEtterId[g.posisjon];
       const hotell = g.hotell && g.hotell.land === g.posisjon;
-      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td>${PAKKE.modell === 'land' ? `<td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td>` : `<td class="tall">${g.byer.length}</td><td class="tall" title="${esc(g.heleLand.map((k) => landInfo[k]?.navn).join(', '))}">${g.heleLand.length ? g.heleLand.map((k) => landInfo[k]?.flagg).join(' ') : '–'}</td>`}<td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${g.iLufta ? `<span class="merke">${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} på vei → ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}</span>` : `${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? '<span class="merke gress">🏨</span>' : '<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>'}`}</td></tr>`;
-    }).join('')}</tbody></table>` : '<p class="tom">Ingen grupper ennå. Gå til «Grupper» og lag dem.</p>';
+      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td>${PAKKE.modell === 'land' ? `<td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td>` : `<td class="tall">${g.byer.length}</td><td class="tall" title="${esc(g.heleLand.map((k) => landInfo[k]?.navn).join(', '))}">${g.heleLand.length ? g.heleLand.map((k) => landInfo[k]?.flagg).join(' ') : '–'}</td>`}<td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${g.iLufta ? T`<span class="merke">${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} på vei → ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}</span>` : `${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? T('<span class="merke gress">🏨</span>') : T('<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>')}`}</td></tr>`;
+    }).join('')}</tbody></table>` : T('<p class="tom">Ingen grupper ennå. Gå til «Grupper» og lag dem.</p>');
 
   // nedtelling
   const nt = $('#nedtelling');
   if (i.sluttdato) {
     const dager = Math.ceil((new Date(i.sluttdato + 'T15:00:00') - Date.now()) / 86400000);
-    nt.textContent = dager > 0 ? `${dager} dager igjen` : 'Spillet er slutt'; nt.classList.remove('skjult');
+    nt.textContent = dager > 0 ? T`${dager} dager igjen` : T('Spillet er slutt'); nt.classList.remove('skjult');
   } else nt.classList.add('skjult');
 
   // diktater
@@ -675,8 +676,8 @@ function tegnOversikt() {
   $('#diktater').innerHTML = diktater.map(([gid, k]) => {
     const l = landEtterId[k.land];
     const igjen = k.aapnet && i.diktatMinutter ? Math.max(0, Math.ceil((k.aapnet + i.diktatMinutter * 60000 - Date.now()) / 1000)) : null;
-    return `<div class="oppgave"><span class="flagg">✍️</span><div class="vokser"><b>${prikk(gid)} ${esc(gnavn(gid))}</b> ber om ${esc(DIKTATNAVN.toLowerCase())}<br><span class="liten">${l.flagg} ${esc(l.navn)} · ${k.aapnet ? `<span class="merke gress">åpen${igjen != null ? ` – <span data-slutt="${k.aapnet + i.diktatMinutter * 60000}">${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}</span> igjen` : ''}</span>` : '<span class="merke sol">venter på deg</span>'}</span></div>
-      ${k.aapnet ? `<button class="knapp lys mini" data-lukkdk="${gid}">Lukk</button>` : `<button class="knapp gress mini" data-aapnedk="${gid}">Åpne ${esc(DIKTATNAVN.toLowerCase())}</button><button class="knapp lys mini" data-lukkdk="${gid}">Ikke nå</button>`}</div>`;
+    return T`<div class="oppgave"><span class="flagg">✍️</span><div class="vokser"><b>${prikk(gid)} ${esc(gnavn(gid))}</b> ber om ${esc(DIKTATNAVN.toLowerCase())}<br><span class="liten">${l.flagg} ${esc(l.navn)} · ${k.aapnet ? T`<span class="merke gress">åpen${igjen != null ? T` – <span data-slutt="${k.aapnet + i.diktatMinutter * 60000}">${Math.floor(igjen / 60)}:${String(igjen % 60).padStart(2, '0')}</span> igjen` : ''}</span>` : T('<span class="merke sol">venter på deg</span>')}</span></div>
+      ${k.aapnet ? T`<button class="knapp lys mini" data-lukkdk="${gid}">Lukk</button>` : T`<button class="knapp gress mini" data-aapnedk="${gid}">Åpne ${esc(DIKTATNAVN.toLowerCase())}</button><button class="knapp lys mini" data-lukkdk="${gid}">Ikke nå</button>`}</div>`;
   }).join('');
   $$('[data-aapnedk]').forEach((b) => b.onclick = () => { b.disabled = true; aapneDiktat(spillId, b.dataset.aapnedk); });
   $$('[data-lukkdk]').forEach((b) => b.onclick = () => { b.disabled = true; lukkDiktat(spillId, b.dataset.lukkdk); });
@@ -686,16 +687,16 @@ function tegnOversikt() {
   $('#dueller').innerHTML = dueller.map(([id, d]) => {
     const l = landEtterId[d.land];
     const o = duellOppgave(d);
-    return `<div class="duell"><b>⚔️ Duell om ${l.flagg} ${esc(l.navn)}</b><p class="liten" style="margin:.3em 0 .6em">${prikk(d.utfordrer)} ${esc(gnavn(d.utfordrer))} utfordrer ${prikk(d.forsvarer)} ${esc(gnavn(d.forsvarer))}.</p>
-      ${o ? `<div style="background:#fff;border-radius:10px;padding:.6rem .8rem;margin-bottom:.6rem"><b>${esc(o.tittel)}</b><br>${esc(o.tekst)}<br><span class="liten"><b>Vinner:</b> ${esc(o.vinner)}<br><b>Utstyr:</b> ${esc(o.utstyr)}${o.tid ? ` · <b>Tid:</b> ${o.tid} sek` : ''}</span></div>` : '<p class="liten dempet">Trekk en oppgave – den vises stort på tavla.</p>'}
-      <div class="rad" style="margin-bottom:.5rem"><button class="knapp mini sol" data-trekk="${id}">🎲 ${o ? 'Trekk ny' : 'Trekk oppgave'}</button>${o && o.tid ? `<button class="knapp mini" data-start="${id}">▶ Start nedtelling</button>` : ''}</div>
+    return T`<div class="duell"><b>⚔️ Duell om ${l.flagg} ${esc(l.navn)}</b><p class="liten" style="margin:.3em 0 .6em">${prikk(d.utfordrer)} ${esc(gnavn(d.utfordrer))} utfordrer ${prikk(d.forsvarer)} ${esc(gnavn(d.forsvarer))}.</p>
+      ${o ? T`<div style="background:#fff;border-radius:10px;padding:.6rem .8rem;margin-bottom:.6rem"><b>${esc(o.tittel)}</b><br>${esc(o.tekst)}<br><span class="liten"><b>Vinner:</b> ${esc(o.vinner)}<br><b>Utstyr:</b> ${esc(o.utstyr)}${o.tid ? T` · <b>Tid:</b> ${o.tid} sek` : ''}</span></div>` : T('<p class="liten dempet">Trekk en oppgave – den vises stort på tavla.</p>')}
+      <div class="rad" style="margin-bottom:.5rem"><button class="knapp mini sol" data-trekk="${id}">🎲 ${o ? T('Trekk ny') : T('Trekk oppgave')}</button>${o && o.tid ? T`<button class="knapp mini" data-start="${id}">▶ Start nedtelling</button>` : ''}</div>
       <div class="liten dempet" style="margin-bottom:.3rem">Hvem vant?</div>
       <div class="rad"><button class="knapp mini gress" data-duell="${id}" data-vinner="${d.utfordrer}">${esc(gnavn(d.utfordrer))} vant</button><button class="knapp mini gress" data-duell="${id}" data-vinner="${d.forsvarer}">${esc(gnavn(d.forsvarer))} vant</button></div></div>`;
   }).join('');
-  $$('[data-trekk]').forEach((b) => b.onclick = async () => { b.disabled = true; const o = await trekkDuellOppgave(spillId, b.dataset.trekk); varsle(`Trukket: ${o.tittel}`, 'ok'); });
+  $$('[data-trekk]').forEach((b) => b.onclick = async () => { b.disabled = true; const o = await trekkDuellOppgave(spillId, b.dataset.trekk); varsle(T`Trukket: ${o.tittel}`, 'ok'); });
   $$('[data-start]').forEach((b) => b.onclick = () => startDuellNedtelling(spillId, b.dataset.start));
   $$('[data-duell]').forEach((b) => b.onclick = async () => {
-    b.disabled = true; await avgjorDuell(spillId, b.dataset.duell, b.dataset.vinner); varsle('Duellen er avgjort!', 'ok');
+    b.disabled = true; await avgjorDuell(spillId, b.dataset.duell, b.dataset.vinner); varsle(T('Duellen er avgjort!'), 'ok');
   });
 
   // reiselogger til godkjenning
@@ -704,23 +705,23 @@ function tegnOversikt() {
   levert.sort((a, b) => a.tid - b.tid);
   $('#reiselogger').innerHTML = levert.length ? levert.map((x) => {
     const l = landEtterId[x.land]; const e = spill.eierskap?.[x.land];
-    const merknad = !e ? '<span class="merke gress">ledig ${ORD.sted}</span>' : e.gruppe === x.gid ? '<span class="merke">eier allerede</span>' : erLaast(e, i) ? '<span class="merke">låst – gir ikke ${ORD.stedet}</span>' : `<span class="merke korall">⚔️ gir duell mot ${esc(gnavn(e.gruppe))}</span>`;
-    return `<div class="oppgave"><span class="flagg">${l.flagg}</span><div class="vokser"><b>${esc(l.navn)}</b><br><span class="liten">${prikk(x.gid)} ${esc(gnavn(x.gid))} · levert for ${Math.max(0, Math.round((Date.now() - x.tid) / 60000))} min siden</span> ${merknad}</div>
+    const merknad = !e ? T`<span class="merke gress">ledig ${ORD.sted}</span>` : e.gruppe === x.gid ? T('<span class="merke">eier allerede</span>') : erLaast(e, i) ? T`<span class="merke">låst – gir ikke ${ORD.stedet}</span>` : T`<span class="merke korall">⚔️ gir duell mot ${esc(gnavn(e.gruppe))}</span>`;
+    return T`<div class="oppgave"><span class="flagg">${l.flagg}</span><div class="vokser"><b>${esc(l.navn)}</b><br><span class="liten">${prikk(x.gid)} ${esc(gnavn(x.gid))} · levert for ${Math.max(0, Math.round((Date.now() - x.tid) / 60000))} min siden</span> ${merknad}</div>
       <button class="knapp gress mini" data-godkjenn="${x.gid}|${x.land}">Godkjenn</button><button class="knapp lys mini" data-avvis="${x.gid}|${x.land}">Ikke godkjent</button></div>`;
-  }).join('') : (dueller.length || diktater.length ? '' : '<p class="tom">Ingen reiselogger venter. 👍</p>');
+  }).join('') : (dueller.length || diktater.length ? '' : T('<p class="tom">Ingen reiselogger venter. 👍</p>'));
   $$('[data-godkjenn]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.godkjenn.split('|'); const t = await godkjennReiselogg(spillId, g, l); varsle(`${gnavn(g)} ${t}`, 'ok'); });
-  $$('[data-avvis]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.avvis.split('|'); await avvisReiselogg(spillId, g, l); varsle('Reiseloggen ble sendt tilbake.'); });
+  $$('[data-avvis]').forEach((b) => b.onclick = async () => { b.disabled = true; const [g, l] = b.dataset.avvis.split('|'); await avvisReiselogg(spillId, g, l); varsle(T('Reiseloggen ble sendt tilbake.')); });
   const antall = levert.length + dueller.length + diktater.filter(([, k]) => !k.aapnet).length;
   $('#badgeOppgaver').textContent = antall; $('#badgeOppgaver').classList.toggle('skjult', !antall);
   $('#venterTeller').textContent = antall; $('#venterpanel').classList.toggle('aktiv', !!antall);
   oppdaterSkuffknapp(antall);
-  document.title = (antall ? `(${antall}) ` : '') + `${PAKKE.navn} – lærer`;
+  document.title = (antall ? `(${antall}) ` : '') + T`${PAKKE.navn} – lærer`;
 
   // strøm
   const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 40);
-  $('#strom').innerHTML = logg.length ? logg.map((h) => `<div>${tid(h.tid)} · ${h.gruppe ? prikk(h.gruppe) + ' <b>' + esc(gnavn(h.gruppe)) + '</b> ' : ''}${esc(h.tekst)}${h.belop ? ` <span class="${h.belop < 0 ? 'dempet' : ''}">(${h.belop > 0 ? '+' : ''}${formaterKr(h.belop)})</span>` : ''}</div>`).join('') : '<p class="tom">Ingenting har skjedd ennå.</p>';
+  $('#strom').innerHTML = logg.length ? logg.map((h) => `<div>${tid(h.tid)} · ${h.gruppe ? prikk(h.gruppe) + ' <b>' + esc(gnavn(h.gruppe)) + '</b> ' : ''}${esc(h.tekst)}${h.belop ? ` <span class="${h.belop < 0 ? 'dempet' : ''}">(${h.belop > 0 ? '+' : ''}${formaterKr(h.belop)})</span>` : ''}</div>`).join('') : T('<p class="tom">Ingenting har skjedd ennå.</p>');
 }
-function tid(t) { const d = new Date(t); const idag = new Date().toDateString() === d.toDateString(); return d.toLocaleTimeString('nb-NO', { hour: '2-digit', minute: '2-digit' }) + (idag ? '' : ' ' + d.toLocaleDateString('nb-NO', { day: 'numeric', month: 'short' })); }
+function tid(t) { const d = new Date(t); const idag = new Date().toDateString() === d.toDateString(); return d.toLocaleTimeString(LOKALE, { hour: '2-digit', minute: '2-digit' }) + (idag ? '' : ' ' + d.toLocaleDateString(LOKALE, { day: 'numeric', month: 'short' })); }
 
 // ---------- grupper ----------
 function tegnGrupper() {
@@ -728,7 +729,7 @@ function tegnGrupper() {
   $('#grupperliste').innerHTML = grupper.length ? grupper.map(([gid, g]) => {
     const her = landEtterId[g.posisjon];
     const antallLand = Object.values(spill.eierskap || {}).filter((e) => e.gruppe === gid).length;
-    return `<div class="kort gruppekort" style="--farge:${esc(g.farge)}">
+    return T`<div class="kort gruppekort" style="--farge:${esc(g.farge)}">
       <div class="rad" style="justify-content:space-between"><h3 style="margin:0">${esc(g.navn)}</h3><span class="merke">${g.personer} elever</span></div>
       <p class="liten" style="margin:.4em 0">${her ? `${her.flagg} ${esc(her.by)}, ${esc(her.landNavn)}` : ''} · ${antallLand} ${antallLand === 1 ? ORD.sted : ORD.steder} · <b>${formaterKr(g.saldo)}</b></p>
       <div class="rad" style="margin:.6rem 0"><div><div class="liten dempet">Gruppekode</div><span class="kodeboks">${esc(g.kode)}</span></div><div><div class="liten dempet">PIN</div><span class="kodeboks">${esc(pins[gid] || '······')}</span></div></div>
@@ -740,67 +741,69 @@ function tegnGrupper() {
         <button class="knapp mini lys" data-diktat="${gid}" title="Godkjenn parlør-diktat manuelt">✍️ Diktat</button>
         <button class="knapp mini lys" data-slett="${gid}" title="Slett gruppa">🗑️</button>
       </div></div>`;
-  }).join('') : `<div class="kort"><p class="tom">Ingen grupper ennå. Trykk «Ny gruppe». Hver gruppe får ${PAKKE.startsted}.</p></div>`;
+  }).join('') : T`<div class="kort"><p class="tom">Ingen grupper ennå. Trykk «Ny gruppe». Hver gruppe får ${PAKKE.startsted}.</p></div>`;
 
   $$('[data-penger]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.penger;
-    const d = await skjemaModal(`Juster penger – ${gnavn(gid)}`, `<div class="felt"><label>Beløp (bruk minus for å trekke fra)</label><input name="belop" type="number" step="100" required placeholder="5000 eller -2000"></div><div class="felt"><label>Grunn (vises i loggen)</label><input name="grunn" placeholder="God innsats i timen"></div>`);
+    const d = await skjemaModal(T`Juster penger – ${gnavn(gid)}`, T`<div class="felt"><label>Beløp (bruk minus for å trekke fra)</label><input name="belop" type="number" step="100" required placeholder="5000 eller -2000"></div><div class="felt"><label>Grunn (vises i loggen)</label><input name="grunn" placeholder="God innsats i timen"></div>`);
     if (!d || !Number(d.belop)) return;
-    await justerSaldo(spillId, gid, Number(d.belop), d.grunn.trim()); varsle('Pengene er justert.', 'ok');
+    await justerSaldo(spillId, gid, Number(d.belop), d.grunn.trim()); varsle(T('Pengene er justert.'), 'ok');
   });
   $$('[data-rediger]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.rediger; const g = spill.grupper[gid];
-    const d = await skjemaModal('Rediger gruppe', gruppeSkjema(g));
+    const d = await skjemaModal(T('Rediger gruppe'), gruppeSkjema(g));
     if (!d) return;
     const nyePersoner = Math.max(1, Number(d.personer) || 4);
     await update(r(`spill/${spillId}/grupper/${gid}`), { navn: d.navn.trim() || g.navn, farge: d.farge || g.farge, personer: nyePersoner });
     const diff = nyePersoner - (g.personer || 4);
-    if (diff && await bekreft('Justere budsjettet?', `Gruppa har fått ${diff > 0 ? diff + ' flere' : -diff + ' færre'} elever. Skal saldoen ${diff > 0 ? 'økes' : 'reduseres'} med ${formaterKr(Math.abs(diff) * innst(spill).startbelopPerElev)}?`, 'Ja, juster')) {
-      await justerSaldo(spillId, gid, diff * innst(spill).startbelopPerElev, `gruppa endret størrelse (${g.personer || 4} → ${nyePersoner} elever)`);
+    if (diff && await bekreft(T('Justere budsjettet?'), T`Gruppa har fått ${diff > 0 ? diff + T(' flere') : -diff + T(' færre')} elever. Skal saldoen ${diff > 0 ? T('økes') : T('reduseres')} med ${formaterKr(Math.abs(diff) * innst(spill).startbelopPerElev)}?`, T('Ja, juster'))) {
+      await justerSaldo(spillId, gid, diff * innst(spill).startbelopPerElev, T`gruppa endret størrelse (${g.personer || 4} → ${nyePersoner} elever)`);
     }
   });
   $$('[data-flytt]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.flytt;
-    const d = await skjemaModal(`Flytt ${gnavn(gid)}`, `<div class="felt"><label>${stor(ORD.nye)} ${ORD.sted}</label><select name="land">${LAND.map((l) => `<option value="${l.id}" ${l.id === spill.grupper[gid].posisjon ? 'selected' : ''}>${l.flagg} ${esc(l.navn)}${PAKKE.modell === 'land' ? '' : ` (${esc(l.landNavn)})`}</option>`).join('')}</select></div><p class="liten dempet">Gruppa må booke nytt hotell der.</p>`, 'Flytt');
+    const d = await skjemaModal(T`Flytt ${gnavn(gid)}`, T`<div class="felt"><label>${stor(ORD.nye)} ${ORD.sted}</label><select name="land">${LAND.map((l) => `<option value="${l.id}" ${l.id === spill.grupper[gid].posisjon ? 'selected' : ''}>${l.flagg} ${esc(l.navn)}${PAKKE.modell === 'land' ? '' : ` (${esc(l.landNavn)})`}</option>`).join('')}</select></div><p class="liten dempet">Gruppa må booke nytt hotell der.</p>`, T('Flytt'));
     if (!d) return;
     await update(r(`spill/${spillId}/grupper/${gid}`), { posisjon: d.land, hotell: null, iLufta: null });
-    varsle('Gruppa er flyttet.', 'ok');
+    varsle(T('Gruppa er flyttet.'), 'ok');
   });
   $$('[data-diktat]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.diktat; const g = spill.grupper[gid];
     // én by per land som gruppa har levert reiselogg i, og som ikke har fått diktat-pengene
     const sett = new Set();
     const land = Object.keys(spill.reiselogger?.[gid] || {}).filter((id) => landEtterId[id] && !g.diktat?.[landKode(id)] && !sett.has(landKode(id)) && sett.add(landKode(id)));
-    if (!land.length) { varsle('Gruppa har ingen leverte reiselogger uten godkjent diktat.'); return; }
-    const d = await skjemaModal(`Godkjenn diktat – ${g.navn}`, `<p class="liten dempet">Bruk dette hvis gruppa har skrevet riktig, men med en skrivemåte spillet ikke kjente igjen. Gruppa får ${formaterKr(innst(spill).diktatBelopPerElev * (g.personer || 4))}.</p><div class="felt"><label>Land</label><select name="land">${land.map((id) => `<option value="${id}">${landEtterId[id].flagg} ${esc(landEtterId[id].landNavn)}</option>`).join('')}</select></div>`, 'Godkjenn og betal');
+    if (!land.length) { varsle(T('Gruppa har ingen leverte reiselogger uten godkjent diktat.')); return; }
+    const d = await skjemaModal(T`Godkjenn diktat – ${g.navn}`, T`<p class="liten dempet">Bruk dette hvis gruppa har skrevet riktig, men med en skrivemåte spillet ikke kjente igjen. Gruppa får ${formaterKr(innst(spill).diktatBelopPerElev * (g.personer || 4))}.</p><div class="felt"><label>Land</label><select name="land">${land.map((id) => `<option value="${id}">${landEtterId[id].flagg} ${esc(landEtterId[id].landNavn)}</option>`).join('')}</select></div>`, T('Godkjenn og betal'));
     if (!d) return;
     varsle(await godkjennDiktatManuelt(spillId, gid, d.land), 'ok');
   });
   $$('[data-nypin]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.nypin;
-    if (!await bekreft('Ny PIN?', `${esc(gnavn(gid))} får en ny PIN. Elever som allerede er logget inn, blir værende inne.`, 'Lag ny PIN')) return;
+    if (!await bekreft(T('Ny PIN?'), T`${esc(gnavn(gid))} får en ny PIN. Elever som allerede er logget inn, blir værende inne.`, T('Lag ny PIN'))) return;
     await set(r(`pins/${spillId}/${gid}`), lagPin());
   });
   $$('[data-slett]').forEach((b) => b.onclick = async () => {
     const gid = b.dataset.slett; const g = spill.grupper[gid];
-    if (!await bekreft('Slette gruppa?', `<b>${esc(g.navn)}</b> og alle ${ORD.stedene} deres blir slettet. Dette kan ikke angres.`, 'Slett', true)) return;
+    if (!await bekreft(T('Slette gruppa?'), T`<b>${esc(g.navn)}</b> og alle ${ORD.stedene} deres blir slettet. Dette kan ikke angres.`, T('Slett'), true)) return;
     const u = { [`spill/${spillId}/grupper/${gid}`]: null, [`pins/${spillId}/${gid}`]: null, [`gruppekoder/${g.kode}`]: null, [`spill/${spillId}/reiselogger/${gid}`]: null, [`spill/${spillId}/foresporsler/${gid}`]: null };
     for (const [land, e] of Object.entries(spill.eierskap || {})) if (e.gruppe === gid) u[`spill/${spillId}/eierskap/${land}`] = null;
     const medl = (await get(r(`medlem/${spillId}`))).val() || {};
     for (const [uid, m] of Object.entries(medl)) if (m.gruppe === gid) u[`medlem/${spillId}/${uid}`] = null;
-    await update(r('/'), u); varsle('Gruppa er slettet.');
+    await update(r('/'), u); varsle(T('Gruppa er slettet.'));
   });
 }
 
 function gruppeSkjema(g = {}) {
   const brukt = Object.values(spill.grupper || {}).map((x) => x.farge);
   const forslag = g.farge || (GRUPPEFARGER.find((f) => !brukt.includes(f.hex)) || GRUPPEFARGER[0]).hex;
-  return `<div class="felt"><label>Gruppenavn</label><input name="navn" required maxlength="24" value="${esc(g.navn || '')}" placeholder="F.eks. Globetrotterne"></div>
+  return T`<div class="felt"><label>Gruppenavn</label><input name="navn" required maxlength="24" value="${esc(g.navn || '')}" placeholder="F.eks. Globetrotterne"></div>
     <div class="felt"><label>Antall elever i gruppa</label><input name="personer" type="number" min="1" max="8" value="${g.personer || 4}"><div class="hjelp">Bestemmer startbudsjettet (${formaterKr(innst(spill).startbelopPerElev)} per elev) og hvor mange flybilletter de må kjøpe.</div></div>
-    <div class="felt"><label>Farge</label><input type="hidden" name="farge" value="${forslag}"><div class="fargevalg">${GRUPPEFARGER.map((f) => `<button type="button" aria-label="${f.navn}" aria-pressed="${f.hex === forslag}" style="background:${f.hex}" onclick="this.closest('form').farge.value='${f.hex}';this.parentNode.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===this))"></button>`).join('')}</div></div>`;
+    <div class="felt"><label>Farge</label><input type="hidden" name="farge" value="${forslag}"><div class="fargevalg">${GRUPPEFARGER.map((f) => T`<button type="button" aria-label="${f.navn}" aria-pressed="${f.hex === forslag}" style="background:${f.hex}" onclick="this.closest('form').farge.value='${f.hex}';this.parentNode.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===this))"></button>`).join('')}</div></div>`;
 }
 
-const DYR = ['TIGER', 'PANDA', 'KOALA', 'ELG', 'ULV', 'REV', 'LAMA', 'KAMEL', 'SEL', 'HVAL', 'GEPARD', 'SEBRA', 'OTER', 'HAI', 'ORKA', 'PUMA', 'JAGUAR', 'KONDOR', 'PINGVIN', 'FALK', 'GORILLA', 'NESEHORN', 'DELFIN', 'KOBRA', 'LEOPARD'];
+// Dyrenavn til gruppekodene (TIGER42). Spillpakker på engelsk får engelske dyr.
+const DYR = SPRAK === 'en' ? ['TIGER', 'WOLF', 'FOX', 'MOOSE', 'EAGLE', 'BEAR', 'OTTER', 'WHALE', 'SHARK', 'PANDA', 'KOALA', 'LLAMA', 'PUMA', 'ORCA', 'BISON', 'FALCON', 'COBRA', 'ZEBRA', 'CAMEL', 'GORILLA', 'JAGUAR', 'LEOPARD', 'PENGUIN', 'DOLPHIN', 'CONDOR', 'RHINO', 'CHEETAH', 'BEAVER', 'RACCOON', 'COYOTE']
+  : ['TIGER', 'PANDA', 'KOALA', 'ELG', 'ULV', 'REV', 'LAMA', 'KAMEL', 'SEL', 'HVAL', 'GEPARD', 'SEBRA', 'OTER', 'HAI', 'ORKA', 'PUMA', 'JAGUAR', 'KONDOR', 'PINGVIN', 'FALK', 'GORILLA', 'NESEHORN', 'DELFIN', 'KOBRA', 'LEOPARD'];
 function lagPin() { const a = crypto.getRandomValues(new Uint32Array(1))[0] % 900000 + 100000; return String(a); }
 async function lagKode() {
   for (let n = 0; n < 30; n++) {
@@ -811,7 +814,7 @@ async function lagKode() {
 }
 
 $('#nygruppeknapp').onclick = async () => {
-  const d = await skjemaModal('Ny gruppe', gruppeSkjema(), 'Lag gruppe');
+  const d = await skjemaModal(T('Ny gruppe'), gruppeSkjema(), T('Lag gruppe'));
   if (!d) return;
   const i = innst(spill);
   const gid = nyId(8), kode = await lagKode(), pin = lagPin();
@@ -821,20 +824,20 @@ $('#nygruppeknapp').onclick = async () => {
     [`spill/${spillId}/grupper/${gid}`]: { navn: d.navn.trim(), farge: d.farge, personer: Math.max(1, Number(d.personer) || 4), saldo: startbelopFor(i, Number(d.personer) || 4), posisjon: start.id, start: start.id, kode, opprettet: Date.now(), reiser: 0 },
     [`pins/${spillId}/${gid}`]: pin,
     [`gruppekoder/${kode}`]: { spill: spillId, gruppe: gid },
-    [`spill/${spillId}/logg/${nyId(12)}`]: { tid: Date.now(), gruppe: gid, type: 'start', tekst: `starter reisen i ${start.flagg} ${start.navn}` },
+    [`spill/${spillId}/logg/${nyId(12)}`]: { tid: Date.now(), gruppe: gid, type: 'start', tekst: T`starter reisen i ${start.flagg} ${start.navn}` },
   });
-  varsle(`${d.navn} starter i ${start.flagg} ${start.navn}!`, 'ok');
+  varsle(T`${d.navn} starter i ${start.flagg} ${start.navn}!`, 'ok');
 };
 
 $('#autogruppeknapp').onclick = async () => {
   const MAKS = 25;
   const finnes = Object.values(spill.grupper || {});
   const ledig = MAKS - finnes.length;
-  if (ledig <= 0) { varsle(`Spillet har allerede ${MAKS} grupper.`, 'feil'); return; }
-  const d = await skjemaModal('Lag mange grupper', `
+  if (ledig <= 0) { varsle(T`Spillet har allerede ${MAKS} grupper.`, 'feil'); return; }
+  const d = await skjemaModal(T('Lag mange grupper'), T`
     <div class="felt"><label>Hvor mange grupper?</label><input name="antall" type="number" min="1" max="${ledig}" value="${Math.min(ledig, 6)}" required><div class="hjelp">Du kan lage opptil ${ledig} til (maks ${MAKS} per spill).</div></div>
     <div class="felt"><label>Antall elever per gruppe</label><input name="personer" type="number" min="1" max="8" value="4" required><div class="hjelp">Bestemmer startbudsjettet. Du kan endre enkeltgrupper etterpå.</div></div>
-    <p class="liten dempet">Gruppene får reisenavn (Globetrotterne, Pilotene …), hver sin farge, gruppekode, PIN og en tilfeldig startposisjon. Navn og farge kan endres på gruppekortet.</p>`, 'Lag grupper');
+    <p class="liten dempet">Gruppene får reisenavn (Globetrotterne, Pilotene …), hver sin farge, gruppekode, PIN og en tilfeldig startposisjon. Navn og farge kan endres på gruppekortet.</p>`, T('Lag grupper'));
   if (!d) return;
   const antall = Math.max(1, Math.min(ledig, Number(d.antall) || 1));
   const personer = Math.max(1, Math.min(8, Number(d.personer) || 4));
@@ -844,7 +847,7 @@ $('#autogruppeknapp').onclick = async () => {
   const nyeKoder = new Set();
   const oppdatering = {}, startsteder = [];
   for (let n = 0; n < antall; n++) {
-    const navn = GRUPPENAVN.find((x) => !bruktNavn.includes(x)) || `Gruppe ${finnes.length + n + 1}`; bruktNavn.push(navn);
+    const navn = GRUPPENAVN.find((x) => !bruktNavn.includes(x)) || T`Gruppe ${finnes.length + n + 1}`; bruktNavn.push(navn);
     const farge = (GRUPPEFARGER.find((f) => !bruktFarge.includes(f.hex)) || GRUPPEFARGER[(finnes.length + n) % GRUPPEFARGER.length]).hex; bruktFarge.push(farge);
     let kode; do { kode = await lagKode(); } while (nyeKoder.has(kode)); nyeKoder.add(kode);
     const start = tilfeldigStart(opptatt, i.stengte || {}); opptatt.push(start.id); startsteder.push(start);
@@ -852,15 +855,15 @@ $('#autogruppeknapp').onclick = async () => {
     oppdatering[`spill/${spillId}/grupper/${gid}`] = { navn, farge, personer, saldo: startbelopFor(i, personer), posisjon: start.id, start: start.id, kode, opprettet: tid, reiser: 0 };
     oppdatering[`pins/${spillId}/${gid}`] = lagPin();
     oppdatering[`gruppekoder/${kode}`] = { spill: spillId, gruppe: gid };
-    oppdatering[`spill/${spillId}/logg/${nyId(12)}`] = { tid, gruppe: gid, type: 'start', tekst: `starter reisen i ${start.flagg} ${start.navn}` };
+    oppdatering[`spill/${spillId}/logg/${nyId(12)}`] = { tid, gruppe: gid, type: 'start', tekst: T`starter reisen i ${start.flagg} ${start.navn}` };
   }
-  try { await update(r('/'), oppdatering); varsle(`${antall} grupper er laget! Husk å skrive ut innloggingskortene.`, 'ok'); }
-  catch (e) { varsle('Kunne ikke lage gruppene: ' + e.message, 'feil'); }
+  try { await update(r('/'), oppdatering); varsle(T`${antall} grupper er laget! Husk å skrive ut innloggingskortene.`, 'ok'); }
+  catch (e) { varsle(T('Kunne ikke lage gruppene: ') + e.message, 'feil'); }
 };
 
 $('#skrivut').onclick = () => {
   const elevlenke = fullLenke('elev.html');
-  $('#utskrift').innerHTML = Object.entries(spill.grupper || {}).map(([gid, g]) => `<div class="loggkort" style="border-color:${esc(g.farge)}">
+  $('#utskrift').innerHTML = Object.entries(spill.grupper || {}).map(([gid, g]) => T`<div class="loggkort" style="border-color:${esc(g.farge)}">
     <h2>${PAKKE.ikon} ${esc(PAKKE.navn)}</h2><p style="margin:0 0 4mm"><b>${esc(g.navn)}</b></p>
     <p style="margin:0">Gruppekode</p><div class="k">${esc(g.kode)}</div>
     <p style="margin:3mm 0 0">PIN</p><div class="k">${esc(pins[gid] || '')}</div>
@@ -885,18 +888,18 @@ function tegnLand() {
     const e = spill.eierskap?.[l.id]; const stengt = erStengt(l.id, i);
     let status = '';
     if (e) {
-      if (erLaast(e, i)) status = '<span class="merke">🔒 låst</span>';
-      else { const ms = laasesOm(e, i); status = `<span class="merke sol">åpen for utfordring${ms != null ? ' · låses om ' + nedtelling(ms) : ''}</span>`; }
+      if (erLaast(e, i)) status = T('<span class="merke">🔒 låst</span>');
+      else { const ms = laasesOm(e, i); status = T`<span class="merke sol">åpen for utfordring${ms != null ? T(' · låses om ') + nedtelling(ms) : ''}</span>`; }
     }
-    return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td>${PAKKE.modell === 'land' ? `<td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>` : `<td><b>${l.valgfri ? '🏠 ' : ''}${esc(l.navn)}</b>${l.hovedstad ? ' <span class="liten dempet">★</span>' : ''}${l.valgfri ? ' <span class="liten dempet">vårt sted</span>' : ''}</td><td class="liten">${esc(l.landNavn)}</td>`}
-      <td>${e ? `<span class="gruppenavn">${prikk(e.gruppe)} ${esc(gnavn(e.gruppe))}</span>` : '<span class="dempet">–</span>'}</td>
-      <td>${stengt ? `<span class="merke korall" title="${esc(l.stengt || 'stengt av lærer')}">stengt</span> ` : ''}${status}</td>
+    return `<tr class="${stengt ? 'stengt' : ''}"><td style="font-size:1.4rem">${l.flagg}</td>${PAKKE.modell === 'land' ? `<td><b>${esc(l.navn)}</b><br><span class="liten dempet">${esc(l.by)}</span></td><td class="liten">${l.kontinent}</td>` : `<td><b>${l.valgfri ? '🏠 ' : ''}${esc(l.navn)}</b>${l.hovedstad ? T(' <span class="liten dempet">★</span>') : ''}${l.valgfri ? T(' <span class="liten dempet">vårt sted</span>') : ''}</td><td class="liten">${esc(l.landNavn)}</td>`}
+      <td>${e ? `<span class="gruppenavn">${prikk(e.gruppe)} ${esc(gnavn(e.gruppe))}</span>` : T('<span class="dempet">–</span>')}</td>
+      <td>${stengt ? T`<span class="merke korall" title="${esc(l.stengt || T('stengt av lærer'))}">stengt</span> ` : ''}${status}</td>
       <td style="white-space:nowrap;text-align:right">
-        ${e ? `<button class="knapp mini lys" data-laas="${l.id}">${e.laast ? 'Lås opp' : 'Lås'}</button> <button class="knapp mini lys" data-fjern="${l.id}" title="Fjern eier">✕</button> ` : ''}
-        <button class="knapp mini ${stengt ? 'gress' : 'lys'}" data-stengt="${l.id}">${stengt ? 'Åpne' : 'Steng'}</button>${l.hovedstad ? ` <button class="knapp mini lys" data-stengland="${l.landId}" title="Gjelder alle ${ORD.stedene} i ${esc(l.landNavn)}">${byerILand(l.landId).every((b) => erStengt(b.id, i)) ? `Åpne ${ORD.region}` : `Steng ${ORD.region}`}</button>` : ''}</td></tr>`;
+        ${e ? T`<button class="knapp mini lys" data-laas="${l.id}">${e.laast ? T('Lås opp') : T('Lås')}</button> <button class="knapp mini lys" data-fjern="${l.id}" title="Fjern eier">✕</button> ` : ''}
+        <button class="knapp mini ${stengt ? 'gress' : 'lys'}" data-stengt="${l.id}">${stengt ? T('Åpne') : T('Steng')}</button>${l.hovedstad ? T` <button class="knapp mini lys" data-stengland="${l.landId}" title="Gjelder alle ${ORD.stedene} i ${esc(l.landNavn)}">${byerILand(l.landId).every((b) => erStengt(b.id, i)) ? T`Åpne ${ORD.region}` : T`Steng ${ORD.region}`}</button>` : ''}</td></tr>`;
   }).join('');
   $$('[data-laas]').forEach((b) => b.onclick = () => settLaas(spillId, b.dataset.laas, !spill.eierskap[b.dataset.laas].laast));
-  $$('[data-fjern]').forEach((b) => b.onclick = async () => { if (await bekreft('Fjerne eier?', `${esc(landEtterId[b.dataset.fjern].navn)} blir ledig igjen.`, 'Fjern')) fjernEierskap(spillId, b.dataset.fjern); });
+  $$('[data-fjern]').forEach((b) => b.onclick = async () => { if (await bekreft(T('Fjerne eier?'), T`${esc(landEtterId[b.dataset.fjern].navn)} blir ledig igjen.`, T('Fjern'))) fjernEierskap(spillId, b.dataset.fjern); });
   $$('[data-stengt]').forEach((b) => b.onclick = () => {
     const id = b.dataset.stengt; const naa = erStengt(id, i);
     const standard = !!landEtterId[id].stengt;
@@ -926,8 +929,8 @@ function tegnVartSted(i) {
   const perFylke = {};
   for (const l of lukket) (perFylke[l.landNavn] ||= []).push(l);
   boks.style.display = '';
-  boks.innerHTML = `<b>🏠 Vårt sted</b> – legg til hjemstedet deres, så kan elevene reise dit og erobre det.
-    ${apne.length ? `<div class="rad" style="gap:.4rem;margin:.6rem 0;flex-wrap:wrap">${apne.map((l) => `<span class="merke sol">🏠 ${esc(l.navn)} <button class="knapp mini lys" data-vartfjern="${l.id}" title="Fjern ${esc(l.navn)} fra spillet" style="margin-left:.3rem">✕</button></span>`).join('')}</div>` : ''}
+  boks.innerHTML = T`<b>🏠 Vårt sted</b> – legg til hjemstedet deres, så kan elevene reise dit og erobre det.
+    ${apne.length ? `<div class="rad" style="gap:.4rem;margin:.6rem 0;flex-wrap:wrap">${apne.map((l) => T`<span class="merke sol">🏠 ${esc(l.navn)} <button class="knapp mini lys" data-vartfjern="${l.id}" title="Fjern ${esc(l.navn)} fra spillet" style="margin-left:.3rem">✕</button></span>`).join('')}</div>` : ''}
     <div class="rad" style="gap:.5rem;margin-top:.6rem;flex-wrap:wrap">
       <select id="vartvalg" style="width:auto;min-width:14rem" aria-label="Velg hjemsted">${Object.keys(perFylke).sort((a, b) => a.localeCompare(b, 'nb')).map((f) => `<optgroup label="${esc(f)}">${perFylke[f].sort((a, b) => a.navn.localeCompare(b.navn, 'nb')).map((l) => `<option value="${l.id}">${esc(l.navn)}</option>`).join('')}</optgroup>`).join('')}</select>
       <button class="knapp mini gress" id="vartleggtil">Legg til</button>
@@ -936,7 +939,7 @@ function tegnVartSted(i) {
   $('#vartleggtil').onclick = () => { const id = $('#vartvalg').value; if (id) set(r(`spill/${spillId}/innstillinger/stengte/${id}`), false); };
   $$('[data-vartfjern]').forEach((b) => b.onclick = async () => {
     const l = landEtterId[b.dataset.vartfjern];
-    if (spill.eierskap?.[l.id] && !(await bekreft(`Fjerne ${esc(l.navn)}?`, `En gruppe eier ${esc(l.navn)}. Stedet forsvinner fra spillet, men eierskapet blir liggende til du legger det til igjen.`, 'Fjern'))) return;
+    if (spill.eierskap?.[l.id] && !(await bekreft(T`Fjerne ${esc(l.navn)}?`, T`En gruppe eier ${esc(l.navn)}. Stedet forsvinner fra spillet, men eierskapet blir liggende til du legger det til igjen.`, T('Fjern')))) return;
     set(r(`spill/${spillId}/innstillinger/stengte/${l.id}`), null);
   });
 }
@@ -950,48 +953,48 @@ function synkEgneDueller() {
   set(r(`spill/${spillId}/egneDueller`), Object.keys(mineDueller).length ? mineDueller : null).catch(console.error);
 }
 function duellKort(o, knapper = '') {
-  return `<div class="duellrad"><b>${esc(o.tittel)}</b><br>${esc(o.tekst)}<br><span class="liten"><b>Vinner:</b> ${esc(o.vinner)}<br><b>Utstyr:</b> ${esc(o.utstyr || 'Ingenting')}${o.tid ? ` · <b>Nedtelling:</b> ${o.tid} sek` : ''}</span>${knapper}</div>`;
+  return T`<div class="duellrad"><b>${esc(o.tittel)}</b><br>${esc(o.tekst)}<br><span class="liten"><b>Vinner:</b> ${esc(o.vinner)}<br><b>Utstyr:</b> ${esc(o.utstyr || T('Ingenting'))}${o.tid ? T` · <b>Nedtelling:</b> ${o.tid} sek` : ''}</span>${knapper}</div>`;
 }
 function tegnDueller() {
   if (!spill) return;
   const valg = innst(spill).duellUtvalg || 'standard';
   const egneISpill = egneDuellerI(spill).length;
   const valgene = [
-    ['standard', 'Bare standardduellene', `${DUELLER.length} ferdige dueller`],
-    ['begge', 'Standardduellene + egne dueller', `${DUELLER.length} + ${egneISpill} dueller`],
-    ['egne', 'Bare egne dueller', `${egneISpill} dueller`],
+    ['standard', T('Bare standardduellene'), T`${DUELLER.length} ferdige dueller`],
+    ['begge', T('Standardduellene + egne dueller'), T`${DUELLER.length} + ${egneISpill} dueller`],
+    ['egne', T('Bare egne dueller'), T`${egneISpill} dueller`],
   ];
   $('#duellvalg').innerHTML = valgene.map(([v, t, h]) => `<label><input type="radio" name="duellUtvalg" value="${v}" ${v === valg ? 'checked' : ''}><span><b>${t}</b><br><span class="liten dempet">${h}</span></span></label>`).join('');
-  $$('#duellvalg input').forEach((x) => x.onchange = async () => { await set(r(`spill/${spillId}/innstillinger/duellUtvalg`), x.value); varsle('Duellvalget er lagret.', 'ok'); });
+  $$('#duellvalg input').forEach((x) => x.onchange = async () => { await set(r(`spill/${spillId}/innstillinger/duellUtvalg`), x.value); varsle(T('Duellvalget er lagret.'), 'ok'); });
   const hjelp = [];
-  if (!erEier()) hjelp.push(`Det er dueller fra eieren av spillet${spill.info?.eierNavn ? ` (${esc(spill.info.eierNavn)})` : ''} som brukes her. Dine egne dueller brukes i spill du selv har laget.`);
-  if (valg !== 'standard' && !egneISpill) hjelp.push('Det er ingen egne dueller i spillet ennå, så standardduellene trekkes til du har laget noen.');
+  if (!erEier()) hjelp.push(T`Det er dueller fra eieren av spillet${spill.info?.eierNavn ? ` (${esc(spill.info.eierNavn)})` : ''} som brukes her. Dine egne dueller brukes i spill du selv har laget.`);
+  if (valg !== 'standard' && !egneISpill) hjelp.push(T('Det er ingen egne dueller i spillet ennå, så standardduellene trekkes til du har laget noen.'));
   $('#duellvalghjelp').innerHTML = hjelp.join(' ');
 
   const egne = Object.entries(mineDueller).sort((a, b) => (a[1].opprettet || 0) - (b[1].opprettet || 0));
-  $('#mineduelliste').innerHTML = egne.length ? egne.map(([id, o]) => duellKort(o, `<div class="rad"><button class="knapp mini lys" data-redduell="${id}">✏️ Rediger</button><button class="knapp mini lys" data-slettduell="${id}">🗑️ Slett</button></div>`)).join('') : '<p class="tom">Du har ingen egne dueller ennå. Trykk «Ny duell».</p>';
+  $('#mineduelliste').innerHTML = egne.length ? egne.map(([id, o]) => duellKort(o, T`<div class="rad"><button class="knapp mini lys" data-redduell="${id}">✏️ Rediger</button><button class="knapp mini lys" data-slettduell="${id}">🗑️ Slett</button></div>`)).join('') : T('<p class="tom">Du har ingen egne dueller ennå. Trykk «Ny duell».</p>');
   $$('[data-redduell]').forEach((b) => b.onclick = () => redigerDuell(b.dataset.redduell));
   $$('[data-slettduell]').forEach((b) => b.onclick = async () => {
     const o = mineDueller[b.dataset.slettduell];
-    if (!await bekreft('Slette duellen?', `«${esc(o?.tittel)}» blir borte fra alle spillene dine. Dueller som allerede er trukket, beholder oppgaven.`, 'Slett', true)) return;
-    await remove(ref(db, `mineDueller/${bruker.uid}/${b.dataset.slettduell}`)); varsle('Duellen er slettet.', 'ok');
+    if (!await bekreft(T('Slette duellen?'), T`«${esc(o?.tittel)}» blir borte fra alle spillene dine. Dueller som allerede er trukket, beholder oppgaven.`, T('Slett'), true)) return;
+    await remove(ref(db, `mineDueller/${bruker.uid}/${b.dataset.slettduell}`)); varsle(T('Duellen er slettet.'), 'ok');
   });
   $('#antallStandard').textContent = `(${DUELLER.length})`;
   if (!$('#standardliste').innerHTML) $('#standardliste').innerHTML = DUELLER.map((o) => duellKort(o)).join('');
 }
 async function redigerDuell(id = null) {
   const o = id ? mineDueller[id] : {};
-  const d = await skjemaModal(id ? 'Rediger duell' : 'Ny duell', `
+  const d = await skjemaModal(id ? T('Rediger duell') : T('Ny duell'), T`
     <div class="felt"><label>Tittel</label><input name="tittel" maxlength="60" required value="${esc(o.tittel)}" placeholder="Reaksjonstesten"></div>
     <div class="felt"><label>Hva skal deltakerne gjøre?</label><textarea name="tekst" maxlength="400" required placeholder="Læreren slipper en linjal mellom tommel og pekefinger …">${esc(o.tekst)}</textarea></div>
     <div class="felt"><label>Hvem vinner?</label><input name="vinner" maxlength="200" required value="${esc(o.vinner)}" placeholder="Lavest tall på linjalen vinner. Best av tre."><div class="hjelp">Skriv det så det er lett å avgjøre: raskest, flest eller lengst.</div></div>
     <div class="felt"><label>Utstyr</label><input name="utstyr" maxlength="100" value="${esc(o.utstyr)}" placeholder="Linjal (30 cm)"></div>
-    <div class="felt"><label>Nedtelling på tavla (sekunder)</label><input name="tid" type="number" min="0" max="600" value="${o.tid ?? 0}"><div class="hjelp">0 = ingen nedtelling.</div></div>`, id ? 'Lagre' : 'Legg til');
+    <div class="felt"><label>Nedtelling på tavla (sekunder)</label><input name="tid" type="number" min="0" max="600" value="${o.tid ?? 0}"><div class="hjelp">0 = ingen nedtelling.</div></div>`, id ? T('Lagre') : T('Legg til'));
   if (!d || !d.tittel.trim() || !d.tekst.trim() || !d.vinner.trim()) return;
   const ny = { ...renDuell({ tittel: d.tittel.trim(), tekst: d.tekst.trim(), vinner: d.vinner.trim(), utstyr: d.utstyr.trim(), tid: d.tid }), opprettet: o.opprettet || Date.now() };
   const nokkel = id || push(ref(db, `mineDueller/${bruker.uid}`)).key;
   await set(ref(db, `mineDueller/${bruker.uid}/${nokkel}`), ny);
-  varsle(id ? 'Duellen er oppdatert.' : 'Duellen er lagt til.', 'ok');
+  varsle(id ? T('Duellen er oppdatert.') : T('Duellen er lagt til.'), 'ok');
 }
 $('#nyduell').onclick = () => redigerDuell();
 $('#utstyrknapp').onclick = () => visUtstyrsliste(duellPulje(spill).map((x) => x.o));
@@ -1009,12 +1012,12 @@ function visUtstyrsliste(oppgaver, intro = '') {
   const liste = [...grupper.values()].sort((a, b) => a.u.localeCompare(b.u, 'nb'));
   const uten = oppgaver.filter((o) => !String(o.utstyr || '').trim() || /^ingenting$/i.test(String(o.utstyr).trim())).length;
   const bg = document.createElement('div'); bg.className = 'modal-bakgrunn'; bg.id = 'utstyrmodal';
-  bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="width:min(100%,560px)">
+  bg.innerHTML = T`<div class="modal" role="dialog" aria-modal="true" style="width:min(100%,560px)">
     <h3>📦 Utstyr til duellene</h3>
     ${intro}
     <p class="liten dempet">Duellene trekkes tilfeldig, så det lønner seg å ha alt klart i en «duellkasse». Kryss av etter hvert som du finner tingene.</p>
-    <ul class="utstyrliste">${liste.map((x) => `<li><input type="checkbox" aria-label="${esc(x.u)}"><span><b>${esc(x.u)}</b><br><span class="liten dempet">${esc(x.titler.join(', '))}</span></span></li>`).join('') || '<li>Ingen av duellene trenger utstyr.</li>'}</ul>
-    ${uten ? `<p class="liten dempet">${uten} ${uten === 1 ? 'duell trenger' : 'dueller trenger'} ikke noe utstyr.</p>` : ''}
+    <ul class="utstyrliste">${liste.map((x) => `<li><input type="checkbox" aria-label="${esc(x.u)}"><span><b>${esc(x.u)}</b><br><span class="liten dempet">${esc(x.titler.join(', '))}</span></span></li>`).join('') || T('<li>Ingen av duellene trenger utstyr.</li>')}</ul>
+    ${uten ? T`<p class="liten dempet">${uten} ${uten === 1 ? T('duell trenger') : T('dueller trenger')} ikke noe utstyr.</p>` : ''}
     <p class="liten dempet">Du finner lista igjen under fanen «Dueller» → «📦 Utstyrsliste».</p>
     <div class="rad knapper" style="justify-content:flex-end"><button class="knapp lys" data-skriv>🖨️ Skriv ut</button><button class="knapp" data-lukk>Den er grei!</button></div></div>`;
   bg.addEventListener('click', (e) => { if (e.target === bg || e.target.closest('[data-lukk]')) bg.remove(); });
@@ -1047,17 +1050,17 @@ $('#innstskjema').onsubmit = async (e) => {
     ...Object.fromEntries(['startbelopPerElev', ...POENGNOKLER, 'laasDager', 'jobberPerDag', 'quizPerDag', 'quizBelop', 'duellPremie', 'diktatBelopPerElev', 'diktatMinutter'].map((k) => [`spill/${spillId}/innstillinger/${k}`, tall(k)])),
     [`spill/${spillId}/innstillinger/pause`]: f.pause.checked,
   });
-  innstRedigeres = false; varsle('Reglene er lagret.', 'ok');
+  innstRedigeres = false; varsle(T('Reglene er lagret.'), 'ok');
 };
 $('#nullstill').onclick = async () => {
-  if (!await bekreft('Nullstille spillet?', `Alle grupper får startbeløpet og ny startposisjon. Alle ${ORD.steder}, reiselogger, dueller og hele loggen slettes. <b>Dette kan ikke angres.</b>`, 'Nullstill', true)) return;
+  if (!await bekreft(T('Nullstille spillet?'), T`Alle grupper får startbeløpet og ny startposisjon. Alle ${ORD.steder}, reiselogger, dueller og hele loggen slettes. <b>Dette kan ikke angres.</b>`, T('Nullstill'), true)) return;
   const i = innst(spill); const u = {}; const brukt = [];
   for (const [gid, gr] of Object.entries(spill.grupper || {})) {
     const s = tilfeldigStart(brukt, i.stengte || {}); brukt.push(s.id);
     Object.assign(u, { [`spill/${spillId}/grupper/${gid}/saldo`]: startbelopFor(i, gr.personer), [`spill/${spillId}/grupper/${gid}/posisjon`]: s.id, [`spill/${spillId}/grupper/${gid}/start`]: s.id, [`spill/${spillId}/grupper/${gid}/hotell`]: null, [`spill/${spillId}/grupper/${gid}/reiser`]: 0, [`spill/${spillId}/grupper/${gid}/besokt`]: null, [`spill/${spillId}/grupper/${gid}/jobber`]: null, [`spill/${spillId}/grupper/${gid}/quiz`]: null, [`spill/${spillId}/grupper/${gid}/brukteFro`]: null, [`spill/${spillId}/grupper/${gid}/iLufta`]: null });
   }
   for (const k of ['eierskap', 'reiselogger', 'dueller', 'logg', 'foresporsler']) u[`spill/${spillId}/${k}`] = null;
-  await update(r('/'), u); varsle('Spillet er nullstilt.', 'ok');
+  await update(r('/'), u); varsle(T('Spillet er nullstilt.'), 'ok');
 };
 
 // ---------- lærere og invitasjoner ----------
@@ -1065,26 +1068,26 @@ const INV_DAGER = 7;
 function tegnLaerere() {
   const eier = erEier();
   const rad = (navn, under, merke, knapp = '') => `<div class="laererrad"><span class="initial">${esc((navn || '?').trim()[0]?.toUpperCase() || '?')}</span><div class="hvem"><b>${esc(navn)}</b> ${merke}<small>${esc(under)}</small></div>${knapp}</div>`;
-  const eierNavn = spill.info?.eierNavn || 'Eieren';
-  let html = rad(eier ? `${eierNavn} (deg)` : eierNavn, 'Laget spillet', '<span class="merke sol">Eier</span>');
+  const eierNavn = spill.info?.eierNavn || T('Eieren');
+  let html = rad(eier ? `${eierNavn} (deg)` : eierNavn, T('Laget spillet'), T('<span class="merke sol">Eier</span>'));
   for (const [uid, l] of Object.entries(laerere)) {
     const meg = uid === bruker.uid;
-    const knapp = eier ? `<button class="knapp mini lys" data-fjernlaerer="${uid}">Fjern</button>` : meg ? '<button class="knapp mini lys" id="forlat">Forlat spillet</button>' : '';
-    html += rad(meg ? `${l.navn || 'Deg'} (deg)` : (l.navn || 'Lærer'), l.epost || '', '<span class="merke">Lærer</span>', knapp);
+    const knapp = eier ? T`<button class="knapp mini lys" data-fjernlaerer="${uid}">Fjern</button>` : meg ? T('<button class="knapp mini lys" id="forlat">Forlat spillet</button>') : '';
+    html += rad(meg ? `${l.navn || T('Deg')} (deg)` : (l.navn || T('Lærer')), l.epost || '', T('<span class="merke">Lærer</span>'), knapp);
   }
   $('#laererliste').innerHTML = html;
   $('#inviter').classList.toggle('skjult', !eier);
   $('#farligsone').classList.toggle('skjult', !eier);
   $$('[data-fjernlaerer]').forEach((b) => b.onclick = async () => {
     const l = laerere[b.dataset.fjernlaerer];
-    if (await bekreft('Fjerne læreren?', `${esc(l?.navn || 'Læreren')} mister tilgangen til spillet.`, 'Fjern', true)) remove(r(`laerere/${spillId}/${b.dataset.fjernlaerer}`));
+    if (await bekreft(T('Fjerne læreren?'), T`${esc(l?.navn || T('Læreren'))} mister tilgangen til spillet.`, T('Fjern'), true)) remove(r(`laerere/${spillId}/${b.dataset.fjernlaerer}`));
   });
   const forlat = $('#forlat');
   if (forlat) forlat.onclick = async () => {
-    if (!await bekreft('Forlate spillet?', 'Du mister tilgangen til spillet. Eieren kan invitere deg igjen.', 'Forlat', true)) return;
+    if (!await bekreft(T('Forlate spillet?'), T('Du mister tilgangen til spillet. Eieren kan invitere deg igjen.'), T('Forlat'), true)) return;
     const id = spillId; stoppAlt(); spillId = null;
     await remove(r(`laerere/${id}/${bruker.uid}`)); await remove(r(`mineSpill/${bruker.uid}/${id}`));
-    varsle('Du har forlatt spillet.', 'ok');
+    varsle(T('Du har forlatt spillet.'), 'ok');
   };
 }
 $('#inviter').onclick = async () => {
@@ -1092,12 +1095,12 @@ $('#inviter').onclick = async () => {
   const utloper = Date.now() + INV_DAGER * 86400000;
   try {
     await set(r(`invitasjoner/${kode}`), { spill: spillId, navn: spill.info?.navn || PAKKE.navn, av: mittNavn(), utloper });
-  } catch (e) { varsle('Kunne ikke lage invitasjon: ' + e.message, 'feil'); return; }
+  } catch (e) { varsle(T('Kunne ikke lage invitasjon: ') + e.message, 'feil'); return; }
   const url = fullLenke(`laerer.html?invitasjon=${kode}${brukerEmulator ? '&emulator' : ''}`);
-  $('#invitasjonsboks').innerHTML = `<div class="invboks"><b>Invitasjonslenke</b><span class="lenke" id="invlenke">${esc(url)}</span>
-    <div class="rad"><button class="knapp mini" id="kopierinv">Kopier lenken</button><span class="liten dempet">Gyldig til ${new Date(utloper).toLocaleDateString('nb-NO', { day: 'numeric', month: 'long' })}. Send den bare til kolleger – alle med lenken kan bli lærer i spillet.</span></div></div>`;
+  $('#invitasjonsboks').innerHTML = T`<div class="invboks"><b>Invitasjonslenke</b><span class="lenke" id="invlenke">${esc(url)}</span>
+    <div class="rad"><button class="knapp mini" id="kopierinv">Kopier lenken</button><span class="liten dempet">Gyldig til ${new Date(utloper).toLocaleDateString(LOKALE, { day: 'numeric', month: 'long' })}. Send den bare til kolleger – alle med lenken kan bli lærer i spillet.</span></div></div>`;
   $('#kopierinv').onclick = async () => {
-    try { await navigator.clipboard.writeText(url); varsle('Invitasjonslenken er kopiert!', 'ok'); } catch { varsle('Merk lenken og kopier den selv.', 'feil'); }
+    try { await navigator.clipboard.writeText(url); varsle(T('Invitasjonslenken er kopiert!'), 'ok'); } catch { varsle(T('Merk lenken og kopier den selv.'), 'feil'); }
   };
 };
 
@@ -1107,29 +1110,29 @@ async function mottaInvitasjon() {
   p.delete('invitasjon'); history.replaceState(null, '', location.pathname + (p.toString() ? '?' + p : '') + location.hash);
   let inv = null;
   try { inv = (await get(r(`invitasjoner/${kode}`))).val(); } catch {}
-  if (!inv || inv.utloper < Date.now()) { varsle('Invitasjonen finnes ikke eller er utløpt. Be om en ny lenke.', 'feil'); return; }
+  if (!inv || inv.utloper < Date.now()) { varsle(T('Invitasjonen finnes ikke eller er utløpt. Be om en ny lenke.'), 'feil'); return; }
   const finnes = (await get(r(`mineSpill/${bruker.uid}/${inv.spill}`))).exists();
   if (finnes) { localStorageSett(lagringsnokkel('spill'), inv.spill); return; }
-  if (!await bekreft('Bli lærer i spillet?', `<b>${esc(inv.av || 'En kollega')}</b> har invitert deg til å styre «${esc(inv.navn)}».`, 'Bli med')) return;
+  if (!await bekreft(T('Bli lærer i spillet?'), T`<b>${esc(inv.av || T('En kollega'))}</b> har invitert deg til å styre «${esc(inv.navn)}».`, T('Bli med'))) return;
   try {
     await set(r(`laerere/${inv.spill}/${bruker.uid}`), { kode, navn: mittNavn().slice(0, 80), epost: (bruker.email || '').slice(0, 120), tid: Date.now() });
     await set(r(`mineSpill/${bruker.uid}/${inv.spill}`), inv.navn || PAKKE.navn);
     localStorageSett(lagringsnokkel('spill'), inv.spill);
-    varsle(`Velkommen! Du er nå lærer i «${inv.navn}».`, 'ok');
-  } catch (e) { varsle('Kunne ikke bli med: ' + e.message, 'feil'); }
+    varsle(T`Velkommen! Du er nå lærer i «${inv.navn}».`, 'ok');
+  } catch (e) { varsle(T('Kunne ikke bli med: ') + e.message, 'feil'); }
 }
 
 async function mistetTilgang(id) {
   if (id !== spillId) return;
   stoppAlt(); spillId = null;
   try { await remove(r(`mineSpill/${bruker.uid}/${id}`)); } catch {}
-  varsle('Du har ikke lenger tilgang til det spillet.', 'feil');
+  varsle(T('Du har ikke lenger tilgang til det spillet.'), 'feil');
 }
 
 // ---------- logg ----------
 function tegnLogg() {
   const logg = Object.values(spill.logg || {}).sort((a, b) => b.tid - a.tid).slice(0, 300);
-  $('#loggrader').innerHTML = logg.map((h) => `<tr><td class="liten tall" style="white-space:nowrap">${tid(h.tid)}</td><td>${h.gruppe ? `<span class="gruppenavn">${prikk(h.gruppe)} ${esc(gnavn(h.gruppe))}</span>` : ''}</td><td>${esc(h.tekst)}</td><td class="tall" style="text-align:right">${h.belop ? (h.belop > 0 ? '+' : '') + formaterKr(h.belop) : ''}</td></tr>`).join('') || '<tr><td colspan="4" class="tom">Tom logg.</td></tr>';
+  $('#loggrader').innerHTML = logg.map((h) => `<tr><td class="liten tall" style="white-space:nowrap">${tid(h.tid)}</td><td>${h.gruppe ? `<span class="gruppenavn">${prikk(h.gruppe)} ${esc(gnavn(h.gruppe))}</span>` : ''}</td><td>${esc(h.tekst)}</td><td class="tall" style="text-align:right">${h.belop ? (h.belop > 0 ? '+' : '') + formaterKr(h.belop) : ''}</td></tr>`).join('') || T('<tr><td colspan="4" class="tom">Tom logg.</td></tr>');
 }
 // Oppdater "låses om"-tekst jevnlig
 setInterval(() => { if (spill) { tegnLand(); } }, 60000);

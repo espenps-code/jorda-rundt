@@ -4,6 +4,7 @@
 //   <span data-p="ord.steder" data-stor>Land</span> → «Land» / «Byer» (stor forbokstav)
 //   <input data-p-placeholder="ord.sok">            → plassholdertekst
 import { PAKKE } from '#pakke/pakke.js';
+import { oversettSide } from './sprak.js';
 
 const hent = (sti) => sti.split('.').reduce((o, k) => o?.[k], PAKKE);
 const stor = (t) => (t ? t[0].toUpperCase() + t.slice(1) : '');
@@ -17,6 +18,7 @@ export function fyllPakkeTekster(rot = document) {
     const v = hent(el.dataset.pPlaceholder); if (v != null) el.placeholder = String(v);
   }
   document.documentElement.dataset.spill = PAKKE.id;
+  if (rot === document) oversettSide();   // spillpakker på andre språk: oversett den faste teksten i siden (js/sprak.js)
 }
 /** Lenke til en annen side i spillet, med samme spillpakke. */
 export const lenke = (sti) => (window.pakkeLenke ? window.pakkeLenke(sti) : sti);

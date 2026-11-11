@@ -1,0 +1,31 @@
+// The duel bank in ENGLISH (Taskmaster style). Used by game packages with sprak: 'en'.
+// Each group sends one player (or what the task says). The teacher is the judge.
+// tid = seconds on the countdown (0 = no countdown). utstyr = what you need. (The Norwegian duels are in dueller.js.)
+export const DUELLER = [
+  { tittel: 'The Paper Ball', tekst: 'Throw a paper ball as close to the wall as you can – without hitting it. One throw each.', vinner: 'Closest to the wall wins. If you hit the wall, you are out.', tid: 0, utstyr: 'One sheet of paper per player' },
+  { tittel: 'Letter Hunt', tekst: 'Write as many English words as you can that start with the same letter as the place you are fighting for.', vinner: 'Most approved words wins.', tid: 60, utstyr: 'Paper and pencil' },
+  { tittel: 'The Tower', tekst: 'Build the tallest tower that stands by itself, using things from your pencil case.', vinner: 'The tallest tower that stands for 5 seconds wins.', tid: 90, utstyr: 'Pencil case' },
+  { tittel: 'Blind Drawing', tekst: 'Draw the shape of the place you are fighting for – with your eyes closed.', vinner: 'The class votes for the drawing that looks most like it.', tid: 45, utstyr: 'Paper and marker' },
+  { tittel: 'One Minute', tekst: 'Stand with your eyes closed and sit down when you think exactly one minute has passed.', vinner: 'Closest to 60 seconds wins.', tid: 0, utstyr: 'Stopwatch' },
+  { tittel: 'Name That Place', tekst: 'Take turns: say a state or a big city in the USA. If you wait more than 5 seconds or repeat one, you lose.', vinner: 'The last one standing.', tid: 0, utstyr: 'Nothing' },
+  { tittel: 'The Longest Paper Strip', tekst: 'Tear the longest strip you can from one sheet of paper. It must be in one piece.', vinner: 'The longest whole strip wins.', tid: 60, utstyr: 'One sheet of paper each' },
+  { tittel: 'Guess the Weight', tekst: 'The teacher holds up a thing. Write down how many grams you think it weighs.', vinner: 'Closest to the right weight (weigh it on a kitchen scale).', tid: 30, utstyr: 'A thing + a scale' },
+  { tittel: 'The Paper Plane', tekst: 'Fold a paper plane and fly it from the line.', vinner: 'The longest flight wins.', tid: 90, utstyr: 'One sheet of paper each' },
+  { tittel: 'The Word Chain', tekst: 'Say an English word that starts with the last letter of the word before. Take turns!', vinner: 'If you cannot find a word in 5 seconds, you lose.', tid: 0, utstyr: 'Nothing' },
+  { tittel: 'Pencil Balance', tekst: 'Balance a pencil on one finger.', vinner: 'The longest time wins.', tid: 0, utstyr: 'Pencil' },
+  { tittel: 'Guess the Distance', tekst: 'Guess how many miles it is from where your group is now to the place you are fighting for.', vinner: 'Closest to the right answer (the teacher checks in the game).', tid: 20, utstyr: 'Paper' },
+  { tittel: 'The Stack', tekst: 'Stack as many books as you can on your head and walk five steps.', vinner: 'Most books without dropping any.', tid: 0, utstyr: 'Books' },
+  { tittel: 'Rubber Band Shot', tekst: 'Shoot a rubber band so it lands as close as possible to a pencil on the floor.', vinner: 'Closest wins. Two tries each.', tid: 0, utstyr: 'Rubber band and pencil' },
+  { tittel: 'The Cup Drop', tekst: 'Drop an eraser from shoulder height into a cup on the floor.', vinner: 'Most hits out of five tries.', tid: 0, utstyr: 'Cup and eraser' },
+  { tittel: 'The Compass', tekst: 'Point north – with your eyes closed – after the teacher has turned you around three times.', vinner: 'Closest to north (check with a compass on a phone).', tid: 0, utstyr: 'Compass' },
+  { tittel: 'Chopsticks', tekst: 'Move 10 paper clips from the desk into a cup – with two pencils as chopsticks.', vinner: 'The fastest one wins.', tid: 0, utstyr: 'Two pencils, 10 paper clips and a cup per player' },
+  { tittel: 'Bottle Flip', tekst: 'Flip a half-full water bottle so it lands standing up. Five tries each.', vinner: 'Most landings wins. A tie: play again.', tid: 0, utstyr: 'Half-full water bottle' },
+  { tittel: 'The Long Jump', tekst: 'Jump from the line without a run-up. Measure from the line to the heel that is closest.', vinner: 'The longest jump wins.', tid: 0, utstyr: 'Tape and measuring tape' },
+  { tittel: 'The Plank', tekst: 'Hold the plank (straight body on forearms and toes) for as long as you can.', vinner: 'The one who holds it longest wins.', tid: 0, utstyr: 'Stopwatch' },
+  { tittel: 'The Alphabet Backwards', tekst: 'Write the alphabet backwards – from Z to A.', vinner: 'The fastest one wins. Each mistake gives 5 extra seconds.', tid: 0, utstyr: 'Paper, pencil and stopwatch' },
+  { tittel: 'Times Table Race', tekst: 'Write the 7 times table from 7 to 70.', vinner: 'The fastest one without mistakes wins. Each mistake gives 5 extra seconds.', tid: 0, utstyr: 'Paper, pencil and stopwatch' },
+  { tittel: 'Dice Duel', tekst: 'Roll two dice three times and add up all the dots.', vinner: 'The highest sum wins. A tie: one more roll each.', tid: 0, utstyr: 'Two dice' },
+  { tittel: 'The Reaction Test', tekst: 'The teacher holds a ruler between your thumb and index finger and drops it without warning. Catch it as fast as you can. Three tries each.', vinner: 'The lowest number where you caught it (best of three) wins.', tid: 0, utstyr: 'Ruler (30 cm)' },
+  { tittel: 'Spelling Bee', tekst: 'The teacher says an English word. Spell it out loud, letter by letter. Take turns until someone makes a mistake.', vinner: 'The last one to spell correctly wins.', tid: 0, utstyr: 'Nothing' },
+  { tittel: 'Tongue Twister', tekst: 'Say “She sells seashells by the seashore” three times as fast as you can – without mistakes.', vinner: 'The fastest one without mistakes wins. The class is the judge.', tid: 0, utstyr: 'Stopwatch' },
+];

@@ -31,7 +31,7 @@ export async function lagEpostkonto(navn, epost, passord) {
   if (navn) { await updateProfile(k.user, { displayName: navn.trim() }); await k.user.getIdToken(true); }
   return k;
 }
-export function nyttPassord(epost) { auth.languageCode = 'no'; return sendPasswordResetEmail(auth, epost.trim()); }
+export function nyttPassord(epost) { auth.languageCode = PAKKE.sprak || 'no'; return sendPasswordResetEmail(auth, epost.trim()); }
 export function loggInnElev() { return signInAnonymously(auth); }
 export function loggUt() { return signOut(auth); }
 export function vedInnlogging(cb) { return onAuthStateChanged(auth, cb); }
