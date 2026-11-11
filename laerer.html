@@ -63,8 +63,9 @@
   .duell { background: linear-gradient(135deg, #fff7e6, #fff); border: 2px solid var(--sol); border-radius: 12px; padding: .8rem; margin-bottom: .6rem; }
 
   /* utstyrsliste for dueller */
-  .utstyrliste { list-style: none; padding: 0; margin: .6rem 0; }
-  .utstyrliste li { display: flex; gap: .6rem; align-items: flex-start; padding: .45rem 0; border-bottom: 1px solid var(--linje); }
+  .utstyrliste { list-style: none; padding: 0; margin: .6rem 0; display: grid; grid-template-columns: 1fr 1fr; column-gap: 1.4rem; }
+  .utstyrliste li { display: flex; gap: .6rem; align-items: flex-start; padding: .35rem 0; border-bottom: 1px solid var(--linje); }
+  @media (max-width: 520px) { .utstyrliste { grid-template-columns: 1fr; } }
   .utstyrliste input { width: 1.2em; height: 1.2em; margin-top: .15em; flex: none; }
   @media print {
     body.skriv-utstyr > #utskrift { display: none !important; }
@@ -1001,22 +1002,31 @@ $('#utstyrknapp').onclick = () => visUtstyrsliste(duellPulje(spill).map((x) => x
 
 // Utstyrsliste: alt som trengs til duellene, samlet så læreren kan pakke en «duellkasse» på forhånd.
 function visUtstyrsliste(oppgaver, intro = '') {
+  // Slår sammen det som er samme ting: «Ark og blyant», «Ett A4-ark hver» og «Ark, blyant og stoppeklokke» blir Ark, Blyanter og Stoppeklokke.
+  const KJENTE = [
+    [/binders|paper clip/i, T('Binders (ca. 20)')], [/pennal|pencil case/i, T('Pennal')],
+    [/\bark\b|a4|papir|paper|sheet/i, T('Ark (en bunke A4)')], [/blyant|pencil/i, T('Blyanter (4–5 stk.)')], [/tusj|marker/i, T('Tusj')],
+    [/stoppeklokke|stopwatch/i, T('Stoppeklokke')], [/kopp|\bcups?\b/i, T('Kopper (2 stk.)')], [/viskelær|eraser/i, T('Viskelær')],
+    [/^(en )?ting$|^a thing$/i, T('En ting å veie')], [/^vekt$|scale/i, T('Kjøkkenvekt')], [/terning|dice/i, T('To terninger')],
+  ];
+  const ting = (tekst) => String(tekst || '').split(/\s*(?:,|\+|\bog\b|\band\b)\s*/i).map((x) => x.trim()).filter((x) => x && !/^(ingenting|nothing)$/i.test(x))
+    .map((x) => KJENTE.find(([re]) => re.test(x))?.[1] || x.charAt(0).toUpperCase() + x.slice(1));
   const grupper = new Map();
   for (const o of oppgaver) {
-    const u = String(o.utstyr || '').trim();
-    if (!u || /^ingenting$/i.test(u)) continue;
-    const n = u.toLowerCase();
-    if (!grupper.has(n)) grupper.set(n, { u, titler: [] });
-    grupper.get(n).titler.push(o.tittel);
+    for (const u of new Set(ting(o.utstyr))) {
+      const n = u.toLowerCase();
+      if (!grupper.has(n)) grupper.set(n, { u, titler: [] });
+      grupper.get(n).titler.push(o.tittel);
+    }
   }
-  const liste = [...grupper.values()].sort((a, b) => a.u.localeCompare(b.u, 'nb'));
-  const uten = oppgaver.filter((o) => !String(o.utstyr || '').trim() || /^ingenting$/i.test(String(o.utstyr).trim())).length;
+  const liste = [...grupper.values()].sort((a, b) => b.titler.length - a.titler.length || a.u.localeCompare(b.u, 'nb'));   // det som brukes mest, først
+  const uten = oppgaver.filter((o) => !ting(o.utstyr).length).length;
   const bg = document.createElement('div'); bg.className = 'modal-bakgrunn'; bg.id = 'utstyrmodal';
   bg.innerHTML = T`<div class="modal" role="dialog" aria-modal="true" style="width:min(100%,560px)">
     <h3>📦 Utstyr til duellene</h3>
     ${intro}
     <p class="liten dempet">Duellene trekkes tilfeldig, så det lønner seg å ha alt klart i en «duellkasse». Kryss av etter hvert som du finner tingene.</p>
-    <ul class="utstyrliste">${liste.map((x) => `<li><input type="checkbox" aria-label="${esc(x.u)}"><span><b>${esc(x.u)}</b><br><span class="liten dempet">${esc(x.titler.join(', '))}</span></span></li>`).join('') || T('<li>Ingen av duellene trenger utstyr.</li>')}</ul>
+    <ul class="utstyrliste">${liste.map((x) => `<li title="${esc(x.titler.join(', '))}"><input type="checkbox" aria-label="${esc(x.u)}"><span><b>${esc(x.u)}</b>${x.titler.length > 1 ? ` <span class="liten dempet">· ${T`${x.titler.length} dueller`}</span>` : ''}</span></li>`).join('') || T('<li>Ingen av duellene trenger utstyr.</li>')}</ul>
     ${uten ? T`<p class="liten dempet">${uten} ${uten === 1 ? T('duell trenger') : T('dueller trenger')} ikke noe utstyr.</p>` : ''}
     <p class="liten dempet">Du finner lista igjen under fanen «Dueller» → «📦 Utstyrsliste».</p>
     <div class="rad knapper" style="justify-content:flex-end"><button class="knapp lys" data-skriv>🖨️ Skriv ut</button><button class="knapp" data-lukk>Den er grei!</button></div></div>`;
