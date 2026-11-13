@@ -162,7 +162,7 @@ function tegn() {
       <div style="min-width:0"><div class="navn">${esc(g.navn)}</div>
         <div class="detaljer"><span>${g.iLufta ? T`${{ tog: '🚆', buss: '🚌', bat: '⛴️' }[g.iLufta.type] || '✈️'} på vei til ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}` : `📍 ${her ? her.flagg + ' ' + esc(her.navn) : ''}`}</span>${PAKKE.modell === 'land' ? T`<span>🏳️ ${g.land.length} land</span>
         <span class="kont" title="Kontinenter">${KONTINENTER.map((k) => `<i class="${g.kontinenter.includes(k) ? 'har' : ''}" title="${k}">${{ Europa: 'EU', Asia: 'AS', Afrika: 'AF', 'Nord-Amerika': 'NA', 'Sør-Amerika': 'SA', Oseania: 'OS', Antarktis: 'AN', ...(PAKKE.regionKort || {}) }[k] || k.slice(0, 2).toUpperCase()}</i>`).join('')}</span>` : `<span>🏙️ ${g.byer.length} ${g.byer.length === 1 ? ORD.sted : ORD.steder}</span>`}
-        ${g.heleLand.length ? T`<span title="Hele ${ORD.regioner}">🏆 ${g.heleLand.map((k) => landInfo[k]?.flagg || '').join(' ')}</span>` : ''}</div></div>
+        ${PAKKE.modell !== 'land' && g.land.length ? `<span>🗺️ ${g.land.length} ${g.land.length === 1 ? ORD.region : ORD.regioner}</span>` : ''}</div></div>
       <div class="penger">${formaterKr(g.saldo)}</div>
       <div class="poeng">${g.poeng}<small>poeng</small></div></div>`;
   }).join('') || T('<p style="color:#9fd3ef">Ingen grupper ennå.</p>');

@@ -8,18 +8,13 @@ export const STANDARD = {
   quizBelop: 25,            // pounds per correct answer in the UK quiz
   duellPremie: 400,         // pounds to the winner of a duel
   poengBy: 3,               // points per place the group owns
-  heltLand1: 5,             // bonus for owning ALL the places in a region with 1 place
-  heltLand2: 10,            //   … with 2 places
-  heltLand3: 20,            //   … with 3 places
-  heltLand4: 30,            //   … with 4 places
-  heltLand5: 40,            //   … with 5 or more places
+  poengRegion: 2,         // points for each region where the group owns at least one place (belønner å reise rundt, ikke å ta alt i ett område)
 };
-export const POENGFELT = [['poengBy', 'Points per place'], ['heltLand', 'Bonus for the whole region']];
+export const POENGFELT = [['poengBy', 'Points per place'], ['poengRegion', 'Bonus per region']];
 
-export function heltLandBonus(antall, i) {
-  const n = Math.max(1, Math.min(5, antall));
-  return Number(i?.[`heltLand${n}`] ?? STANDARD[`heltLand${n}`]) || 0;
-}
+// Gammel regel (til november 2026): bonus for å eie ALLE stedene i en region. Den fikk gruppene til å bli i ett område,
+// så nå gis en liten bonus for hver region gruppa har minst ett sted i. Funksjonen finnes fortsatt fordi motoren spør etter den.
+export const heltLandBonus = () => 0;
 /** byer = places the group owns · land = regions where the group has a place · heleLand = regions where the group owns all (open) places */
 export function poengForGruppe(gid, eierskap, i, erStengt) {
   const byer = Object.entries(eierskap).filter(([id, e]) => e.gruppe === gid && landEtterId[id]).map(([id]) => id);
@@ -28,7 +23,7 @@ export function poengForGruppe(gid, eierskap, i, erStengt) {
     const apne = byerILand(k).filter((b) => !erStengt(b.id, i));
     return apne.length > 0 && apne.every((b) => eierskap[b.id]?.gruppe === gid);
   });
-  const bonus = heleLand.reduce((sum, k) => sum + heltLandBonus(byerILand(k).filter((b) => !erStengt(b.id, i)).length, i), 0);
+  const bonus = land.length * (Number(i.poengRegion) || 0);     // heleLand gir ikke poeng lenger – bare en farge på kartet
   return { byer, land, kontinenter: [], heleLand, bonus, poeng: byer.length * i.poengBy + bonus };
 }
 
@@ -173,7 +168,7 @@ export function reisehendelse({ type, til, dato }, tilfeldig = Math.random) {
 export function veiviser({ g, l, i, slutt, li, esc, formaterKr, startbelop }) {
   return [
     { ikon: '👋', tittel: `Welcome, ${esc(g.navn)}!`, tekst: `<p>You are a travel group of <b>${g.personer || 4}</b> with <b>${formaterKr(startbelop)}</b> in your travel fund.</p><p>Your trip starts in <b>${l.flagg} ${esc(l.navn)}, ${esc(l.landNavn)}</b>. The goal is to conquer as many places in the UK as possible – and whole regions – before the other groups do!${slutt}</p><p class="dempet">Click through this short guide. It takes two minutes.</p>` },
-    { ikon: '🏆', tittel: 'How to get points', tekst: `<div class="liste">${li('📍', `<b>${i.poengBy} points</b> for each place you own`)}${li('🗺️', `<b>Bonus</b> when you own <b>all</b> the places in a region: ${[1, 2, 3, 4, 5].map((n) => `${n} ${n === 1 ? 'place' : 'places'} = ${heltLandBonus(n, i)}`).join(' · ')}`)}${li('🇬🇧', 'There are 12 regions: 9 in England, plus Scotland, Wales and Northern Ireland.')}${li('⚔️', 'Other groups can “steal” a place in a duel – and then you lose the bonus for the whole region.')}</div><p>Small regions are quick to finish. Big regions give the most – but they are harder to keep.</p>` },
+    { ikon: '🏆', tittel: 'How to get points', tekst: `<div class="liste">${li('📍', `<b>${i.poengBy} points</b> for each place you own`)}${li('🗺️', `<b>${i.poengRegion} bonus points</b> for each region where you own at least one place`)}${li('🇬🇧', 'There are 12 regions: 9 in England, plus Scotland, Wales and Northern Ireland.')}${li('⚔️', 'Other groups can “steal” a place in a duel.')}</div><p>So it is smart to travel around and spread out across the whole UK.</p>` },
     { ikon: '🏨', tittel: 'First: a place to stay', tekst: `<p>In each new place, you must first book a place to stay for <b>three nights</b>. Without it, you cannot do anything there.</p><div class="liste">${li('⛺', '<b>Wild camping is free!</b> But only in the Scottish Highlands – and first you must show that you know the <b>Outdoor Access Code</b>: three questions, and all must be correct.')}${li('⭐', '<b>Cheap hostel</b> = bad sleep: fewer jobs per day and lower pay.')}${li('🌟', '<b>Fine hotel</b> = well rested: more jobs and higher pay.')}${li('🍳', 'Extras give you bonuses: breakfast (+1 job), airport shuttle (−10% on flights), Wi-Fi (50/50 lifeline).')}${li('🎲', 'Surprises can happen in a tent and at the cheapest places – good ones and bad ones!')}</div>` },
     { ikon: '📓', tittel: 'The travel log gives you the place', tekst: `<div class="liste">${li('1️⃣', 'Fill in the paper travel log: facts, sights and a drawing.')}${li('2️⃣', 'Press <b>“We have handed in the travel log”</b> under the tab Travel log.')}${li('3️⃣', 'The teacher approves it – and the place is yours! 🎉')}</div><p>Does another group already own the place? Then there will be a <b>⚔️ duel</b> for it!</p>` },
     { ikon: '🧭', tittel: 'Travel on', tekst: `<p>Press a place on the map, or search under <b>Travel</b>. The price is for the whole group.</p><div class="liste">${li('✈️', '<b>Planes</b> are fast: <b>2 correct</b> answers on the way (direct) or <b>4</b> (with a stop). Only between places with an airport.')}${li('🚆', '<b>Trains</b> are quick, but expensive in the UK.')}${li('🚌', '<b>Coaches</b> (long-distance buses) are the cheapest – but slow, with many questions.')}${li('⛴️', 'To <b>Northern Ireland</b> you must cross the Irish Sea: by plane or by <b>ferry</b>.')}${li('🌪️', 'On the way, you spin a wheel and answer questions. A wrong answer gives you a new question.')}</div>` },

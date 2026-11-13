@@ -385,7 +385,7 @@ $('#poengfelt').innerHTML = PAKKE.modell === 'land' ? T`
             <div class="felt"><label>Poeng per land</label><input type="number" name="poengLand" min="0"></div>
             <div class="felt"><label>Poeng per kontinent</label><input type="number" name="poengKontinent" min="0"></div>` : T`
             <div class="felt"><label>Poeng per ${ORD.sted}</label><input type="number" name="poengBy" min="0"></div>
-            <div class="felt"><label>Bonus for hele ${ORD.regionen}</label><div class="rad" style="gap:.3rem;flex-wrap:nowrap"><input type="number" name="heltLand1" min="0" title="1 ${ORD.sted}" style="width:3.6rem"><input type="number" name="heltLand2" min="0" title="2 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand3" min="0" title="3 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand4" min="0" title="4 ${ORD.steder}" style="width:3.6rem"><input type="number" name="heltLand5" min="0" title="5 ${ORD.steder}" style="width:3.6rem"></div><div class="hjelp">For ${ORD.regioner} med 1, 2, 3, 4 og 5 ${ORD.steder}. Gis når én gruppe eier alle ${ORD.stedene} i ${ORD.regionen}. Standard 5 · 10 · 20 · 30 · 40.</div></div>`;
+            <div class="felt"><label>Bonus per ${ORD.region}</label><input type="number" name="poengRegion" min="0"><div class="hjelp">Ekstra poeng per ${ORD.region} gruppa har minst ${ORD.etSted} i. Standard 2.</div></div>`;
 // Diktaten heter noe annet i noen spill (Norge rundt: «Samisk språkoppdrag»)
 if (PAKKE.diktatNavn) {
   for (const n of ['diktatMinutter', 'diktatBelopPerElev']) {
@@ -401,7 +401,7 @@ if (PAKKE.diktat === false) {
   document.head.insertAdjacentHTML('beforeend', '<style>[data-diktat]{display:none!important}</style>');
 }
 /** Innstillinger for poeng (ulike i spillene) */
-const POENGNOKLER = PAKKE.modell === 'land' ? ['poengLand', 'poengKontinent'] : ['poengBy', 'heltLand1', 'heltLand2', 'heltLand3', 'heltLand4', 'heltLand5'];
+const POENGNOKLER = PAKKE.modell === 'land' ? ['poengLand', 'poengKontinent'] : ['poengBy', 'poengRegion'];
 
 // ---------- spillvelger (Jorda rundt / Europa rundt / Norge rundt) ----------
 let visNyttSpill = new URLSearchParams(location.search).has('nytt');
@@ -658,11 +658,11 @@ function tegnAlt() {
 function tegnOversikt() {
   const i = innst(spill);
   const rader = poengtavle(spill);
-  $('#poengtavle').innerHTML = rader.length ? T`<table class="rangering"><thead><tr><th>#</th><th>Gruppe</th>${PAKKE.modell === 'land' ? T('<th>Land</th><th>Kontinenter</th>') : T`<th>${stor(ORD.steder)}</th><th>Hele ${ORD.regioner}</th>`}<th>Poeng</th><th style="text-align:right">Penger</th><th>Er nå</th></tr></thead><tbody>${
+  $('#poengtavle').innerHTML = rader.length ? T`<table class="rangering"><thead><tr><th>#</th><th>Gruppe</th>${PAKKE.modell === 'land' ? T('<th>Land</th><th>Kontinenter</th>') : `<th>${stor(ORD.steder)}</th><th>${stor(ORD.regioner)}</th>`}<th>Poeng</th><th style="text-align:right">Penger</th><th>Er nå</th></tr></thead><tbody>${
     rader.map((g, n) => {
       const her = landEtterId[g.posisjon];
       const hotell = g.hotell && g.hotell.land === g.posisjon;
-      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td>${PAKKE.modell === 'land' ? `<td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td>` : `<td class="tall">${g.byer.length}</td><td class="tall" title="${esc(g.heleLand.map((k) => landInfo[k]?.navn).join(', '))}">${g.heleLand.length ? g.heleLand.map((k) => landInfo[k]?.flagg).join(' ') : '–'}</td>`}<td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${g.iLufta ? T`<span class="merke">${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} på vei → ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}</span>` : `${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? T('<span class="merke gress">🏨</span>') : T('<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>')}`}</td></tr>`;
+      return `<tr><td>${n + 1}</td><td><span class="gruppenavn">${prikk(g.gid)} ${esc(g.navn)}</span></td>${PAKKE.modell === 'land' ? `<td class="tall">${g.land.length}</td><td class="tall">${g.kontinenter.length}</td>` : `<td class="tall">${g.byer.length}</td><td class="tall" title="${esc(g.land.map((k) => landInfo[k]?.navn).join(', '))}">${g.land.length}</td>`}<td class="tall"><b>${g.poeng}</b></td><td class="tall" style="text-align:right">${formaterKr(g.saldo)}</td><td>${g.iLufta ? T`<span class="merke">${{ tog: '🚆', buss: '🚌' }[g.iLufta.type] || '✈️'} på vei → ${landEtterId[g.iLufta.til].flagg} ${esc(landEtterId[g.iLufta.til].navn)}</span>` : `${her ? `${her.flagg} ${esc(her.navn)}` : '–'} ${hotell ? T('<span class="merke gress">🏨</span>') : T('<span class="merke sol" title="Har ikke booket hotell">uten hotell</span>')}`}</td></tr>`;
     }).join('')}</tbody></table>` : T('<p class="tom">Ingen grupper ennå. Gå til «Grupper» og lag dem.</p>');
 
   // nedtelling

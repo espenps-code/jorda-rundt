@@ -203,7 +203,7 @@ function hoydepunkter(a) {
   if (a.erobringer[0]) ut.push(['🏳️', T('Første erobring'), T`${L(a.erobringer[0].land).flagg} ${esc(L(a.erobringer[0].land).navn)} ble gruppas første ${ORD.sted} ${new Date(a.erobringer[0].tid).toLocaleDateString(LOKALE, { day: 'numeric', month: 'long' })}.`]);
   if (a.vunnet.length) ut.push(['🏆', T`${a.vunnet.length} ${a.vunnet.length === 1 ? T('duell') : T('dueller')} vunnet`, T`Vant kampen om ${a.vunnet.map((d) => `${L(d.land).flagg} ${esc(L(d.land).navn)}`).join(', ')}.`]);
   if (a.lengst && a.lengst.km) ut.push(['🧭', T('Lengste reise'), T`${esc(L(a.lengst.fra).by)} → ${esc(L(a.lengst.til).by)}: ${avstandTekst(a.lengst.km)}.`]);
-  if (PAKKE.modell !== 'land' && a.rad?.heleLand.length) ut.push(['🏳️', `${a.rad.heleLand.length} ${a.rad.heleLand.length === 1 ? T`helt ${ORD.region}` : T`hele ${ORD.regioner}`}`, T`Eier alle ${ORD.stedene} i ${a.rad.heleLand.map((k) => `${landInfo[k].flagg} ${esc(landInfo[k].navn)}`).join(', ')}.`]);
+  if (PAKKE.modell !== 'land' && a.rad?.land.length > 1) ut.push(['🗺️', `${a.rad.land.length} ${ORD.regioner}`, T`Har ${ORD.steder} i ${a.rad.land.map((k) => `${landInfo[k].flagg} ${esc(landInfo[k].navn)}`).join(', ')}.`]);
   if (PAKKE.modell === 'land' && a.rad?.kontinenter.length) ut.push(['🌍', `${a.rad.kontinenter.length} ${a.rad.kontinenter.length === 1 ? T('kontinent') : T('kontinenter')}`, `${a.rad.kontinenter.join(', ')}.`]);
   if (a.dyrestHotell && a.dyrestHotell.stjerner >= 4) ut.push(['🌟', T('Luksusopphold'), T`${esc(a.dyrestHotell.navn)} ${'★'.repeat(a.dyrestHotell.stjerner)} i ${esc(L(a.dyrestHotell.land).by)} for ${formaterKr(a.dyrestHotell.pris)}.`]);
   if (a.overraskelser[0]) ut.push(['🎲', T('Hostell-overraskelse'), `${esc(a.overraskelser[0].tekst.replace(/^\S+\s/, ''))}`]);
@@ -236,7 +236,7 @@ function rapport(gid) {
       <div class="plass"><b>${a.plass}.</b><span>plass av ${a.antall}<br>${a.rad?.poeng || 0} poeng</span></div></div>
     <div class="tall">
       <div><b>${a.eide.size}</b><span>${ORD.steder} erobret</span></div>
-      ${PAKKE.modell === 'land' ? T`<div><b>${a.rad?.kontinenter.length || 0}</b><span>kontinenter</span></div>` : T`<div><b>${a.rad?.heleLand.length || 0}</b><span>hele ${ORD.regioner}</span></div>`}
+      ${PAKKE.modell === 'land' ? T`<div><b>${a.rad?.kontinenter.length || 0}</b><span>kontinenter</span></div>` : `<div><b>${a.rad?.land.length || 0}</b><span>${ORD.regioner}</span></div>`}
       <div><b>${a.stopp.length - 1}</b><span>reiser</span></div>
       <div><b>${avstandTall(a.km)}</b><span>${AVSTAND.lang} reist</span></div>
       <div><b>${a.hotellnetter}</b><span>hotellnetter</span></div>

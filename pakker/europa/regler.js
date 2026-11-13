@@ -5,19 +5,14 @@ import { rng, velg, stokk } from '#motor/tilfeldig.js';
 export const STANDARD = {
   startbelopPerElev: 25000, // kr per gruppemedlem ved start (gruppe på 4 = 100 000 kr). Reiser i Europa er billigere enn jorda rundt.
   poengBy: 3,             // poeng per by gruppa eier
-  heltLand1: 5,           // bonus for å eie ALLE byene i et land med 1 by
-  heltLand2: 10,          //   … med 2 byer
-  heltLand3: 20,          //   … med 3 byer
-  heltLand4: 30,          //   … med 4 byer
-  heltLand5: 40,          //   … med 5 byer
+  poengRegion: 2,         // poeng for hvert land gruppa har minst én by i (belønner å reise rundt, ikke å ta alt i ett område)
 };
-export const POENGFELT = [['poengBy', 'Poeng per by'], ['heltLand', 'Bonus for hele landet']];
+export const POENGFELT = [['poengBy', 'Poeng per by'], ['poengRegion', 'Bonus per land']];
 
 /** Bonus for å eie hele landet, etter hvor mange byer landet har (maks 5). */
-export function heltLandBonus(antallByer, i) {
-  const n = Math.max(1, Math.min(5, antallByer));
-  return Number(i?.[`heltLand${n}`] ?? STANDARD[`heltLand${n}`]) || 0;
-}
+// Gammel regel (til november 2026): bonus for å eie ALLE stedene i en region. Den fikk gruppene til å bli i ett område,
+// så nå gis en liten bonus for hver region gruppa har minst ett sted i. Funksjonen finnes fortsatt fordi motoren spør etter den.
+export const heltLandBonus = () => 0;
 /** byer = by-id-er gruppa eier · land = landkoder gruppa har minst én by i · heleLand = land der gruppa eier alle (åpne) byer */
 export function poengForGruppe(gid, eierskap, i, erStengt) {
   const byer = Object.entries(eierskap).filter(([id, e]) => e.gruppe === gid && landEtterId[id]).map(([id]) => id);
@@ -26,7 +21,7 @@ export function poengForGruppe(gid, eierskap, i, erStengt) {
     const apne = byerILand(k).filter((b) => !erStengt(b.id, i));
     return apne.length > 0 && apne.every((b) => eierskap[b.id]?.gruppe === gid);
   });
-  const bonus = heleLand.reduce((sum, k) => sum + heltLandBonus(byerILand(k).filter((b) => !erStengt(b.id, i)).length, i), 0);
+  const bonus = land.length * (Number(i.poengRegion) || 0);     // heleLand gir ikke poeng lenger – bare en farge på kartet
   return { byer, land, kontinenter: [], heleLand, bonus, poeng: byer.length * i.poengBy + bonus };
 }
 

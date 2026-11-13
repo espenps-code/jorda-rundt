@@ -7,18 +7,13 @@ import { rng, velg, stokk } from '#motor/tilfeldig.js';
 export const STANDARD = {
   startbelopPerElev: 30000, // kr per gruppemedlem ved start (gruppe på 4 = 120 000 kr)
   poengBy: 3,             // poeng per sted gruppa eier
-  heltLand1: 5,           // bonus for å eie ALLE stedene i et system med 1 sted
-  heltLand2: 10,          //   … med 2 steder (Neptun-systemet)
-  heltLand3: 20,          //   … med 3 steder (Jorda-systemet)
-  heltLand4: 30,          //   … med 4 steder (asteroidene, Uranus-systemet)
-  heltLand5: 40,          //   … med 5 eller flere steder
+  poengRegion: 2,         // poeng for hvert system gruppa har minst ett sted i (belønner å reise rundt, ikke å ta alt i ett område)
 };
-export const POENGFELT = [['poengBy', 'Poeng per sted'], ['heltLand', 'Bonus for hele systemet']];
+export const POENGFELT = [['poengBy', 'Poeng per sted'], ['poengRegion', 'Bonus per system']];
 
-export function heltLandBonus(antall, i) {
-  const n = Math.max(1, Math.min(5, antall));
-  return Number(i?.[`heltLand${n}`] ?? STANDARD[`heltLand${n}`]) || 0;
-}
+// Gammel regel (til november 2026): bonus for å eie ALLE stedene i en region. Den fikk gruppene til å bli i ett område,
+// så nå gis en liten bonus for hver region gruppa har minst ett sted i. Funksjonen finnes fortsatt fordi motoren spør etter den.
+export const heltLandBonus = () => 0;
 /** byer = steder gruppa eier · land = systemer gruppa har minst ett sted i · heleLand = systemer der gruppa eier alle (åpne) steder */
 export function poengForGruppe(gid, eierskap, i, erStengt) {
   const byer = Object.entries(eierskap).filter(([id, e]) => e.gruppe === gid && landEtterId[id]).map(([id]) => id);
@@ -27,7 +22,7 @@ export function poengForGruppe(gid, eierskap, i, erStengt) {
     const apne = byerILand(k).filter((b) => !erStengt(b.id, i));
     return apne.length > 0 && apne.every((b) => eierskap[b.id]?.gruppe === gid);
   });
-  const bonus = heleLand.reduce((sum, k) => sum + heltLandBonus(byerILand(k).filter((b) => !erStengt(b.id, i)).length, i), 0);
+  const bonus = land.length * (Number(i.poengRegion) || 0);     // heleLand gir ikke poeng lenger – bare en farge på kartet
   return { byer, land, kontinenter: [], heleLand, bonus, poeng: byer.length * i.poengBy + bonus };
 }
 
@@ -164,7 +159,7 @@ export function veiviser({ g, l, i, slutt, li, esc, formaterKr, startbelop }) {
     { ikon: '🚀', tittel: 'År 2247', tekst: `<p>Menneskene har bygd baser på Månen og Mars. Nå sender <b>Romakademiet</b> ut unge mannskap for å utforske resten av solsystemet – helt ut til kometene og de iskalde dvergplanetene.</p><p>Dere er ett av mannskapene.</p><p class="dempet">Romskipene og basene er en fortelling om framtida. Men alt dere lærer om planetene og månene, er ekte!</p>` },
     { ikon: '👋', tittel: `Velkommen, ${esc(g.navn)}!`, tekst: `<p>Dere er et mannskap på <b>${g.personer || 4}</b> med <b>${formaterKr(startbelop)}</b> i ekspedisjonskassa.</p><p>Ekspedisjonen starter her: <b>${l.flagg} ${esc(l.navn)}</b> (${esc(l.landNavn)}). Målet er å erobre flest mulig steder i solsystemet – og helst hele systemer – før de andre mannskapene gjør det!${slutt}</p><p class="dempet">Bla deg gjennom denne korte guiden. Den tar to minutter.</p>` },
     { ikon: '📏', tittel: 'Kartet jukser!', tekst: `<p>Kartet over solsystemet er <b>ikke i riktig målestokk</b>. Planetene er tegnet altfor store og altfor nær hverandre. Ellers hadde dere bare sett svart skjerm.</p><p>Tenk dere at Sola er en <b>fotball</b>. Da er:</p><div class="liste">${li('🌍', '<b>Jorda</b> et pepperkorn på 2 millimeter – <b>24 meter</b> unna')}${li('🌪️', '<b>Jupiter</b> en klinkekule – <b>123 meter</b> unna')}${li('🌊', '<b>Neptun</b> en ert – <b>over 700 meter</b> unna')}${li('💙', '<b>Pluto</b> et sandkorn – nesten <b>en kilometer</b> unna')}</div><p>Solsystemet er nesten bare tomrom. Avstandene spillet viser i kilometer, er de ekte.</p>` },
-    { ikon: '🏆', tittel: 'Slik får dere poeng', tekst: `<div class="liste">${li('📍', `<b>${i.poengBy} poeng</b> for hvert sted dere eier – måner, planeter, dvergplaneter, asteroider og kometer`)}${li('🪐', `<b>Bonus</b> når dere eier <b>alle</b> stedene i et system: ${[1, 2, 3, 4, 5].map((n) => `${n} ${n === 1 ? 'sted' : 'steder'} = ${heltLandBonus(n, i)}`).join(' · ')}`)}${li('⚔️', 'Andre mannskap kan «stjele» et sted i duell – og da ryker bonusen for hele systemet.')}</div><p>Et system er for eksempel Jupiter med månene sine. Små systemer er raske å fullføre. Store gir mest – men er vanskeligere å holde på.</p>` },
+    { ikon: '🏆', tittel: 'Slik får dere poeng', tekst: `<div class="liste">${li('📍', `<b>${i.poengBy} poeng</b> for hvert sted dere eier – måner, planeter, dvergplaneter, asteroider og kometer`)}${li('🪐', `<b>${i.poengRegion} bonuspoeng</b> for hvert system dere har minst ett sted i`)}${li('⚔️', 'Andre mannskap kan «stjele» et sted i duell.')}</div><p>Et system er for eksempel Jupiter med månene sine. Det lønner seg altså å reise rundt og spre seg utover hele solsystemet.</p>` },
     { ikon: '🛏️', tittel: 'Først: et sted å bo', tekst: `<p>På hvert nytt sted må dere først ordne overnatting for <b>tre netter</b>. Uten det kan dere ikke gjøre noe der.</p><div class="liste">${li('🏕️', 'På måner og steinplaneter bor dere i en <b>base</b> på overflaten.')}${li('🛰️', 'På <b>gasskjempene</b> og <b>Sola</b> finnes det ingen bakke å lande på. Der går dere i bane og bor på en <b>banestasjon</b>.')}${li('🚀', '<b>Romskipet er gratis!</b> Men det er trangt – og først må dere svare riktig på tre spørsmål om livet om bord.')}${li('⭐', '<b>Billig sovekapsel</b> = dårlig søvn: færre jobber per dag og lavere lønn.')}${li('🌟', '<b>Fin kuppel</b> = uthvilte: flere jobber og høyere lønn.')}${li('🎲', 'På de billigste stedene kan det skje overraskelser – gode og dårlige!')}</div>` },
     { ikon: '📓', tittel: 'Loggboka gir dere stedet', tekst: `<div class="liste">${li('1️⃣', 'Fordel rollene: <b>navigatør</b>, <b>forsker</b> og <b>reporter</b> (og <b>kaptein</b> hvis dere er fire). Bytt roller på hvert nytt sted.')}${li('2️⃣', 'Alle fyller ut sin side i loggboka. Finn ut hvordan det <b>egentlig</b> er her: temperatur, luft, tyngdekraft og farer.')}${li('3️⃣', 'Trykk <b>«Vi har levert loggboka»</b> under fanen Loggbok.')}${li('4️⃣', 'Læreren godkjenner – og stedet blir deres! 🎉')}</div><p>Eier et annet mannskap stedet allerede? Da blir det <b>⚔️ duell</b> om det!</p>` },
     { ikon: '🧭', tittel: 'Reis videre', tekst: `<p>Trykk på et system på kartet for å zoome inn, og så på et sted – eller søk under <b>Reis</b>. Prisen gjelder for hele mannskapet.</p><div class="liste">${li('🚀', '<b>Direkte rute</b> er dyr, men rask: <b>2 riktige</b> svar underveis.')}${li('🪙', '<b>Rute med stopp</b> er billigere, men tar lengre tid: <b>4</b> riktige svar (1 stopp) eller <b>6</b> (2 stopp).')}${li('☄️', 'Underveis spinner dere et hjul og svarer på spørsmål. Feil svar gir et nytt spørsmål.')}${li('📏', 'Avstandene i rommet er enorme. Spillet viser avstanden når planetene står nærmest hverandre.')}</div>` },

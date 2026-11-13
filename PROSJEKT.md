@@ -195,7 +195,7 @@ spillene gjør språklaget ingenting (teksten kommer ut akkurat som den står i 
 ## Solsystemet rundt (pakker/solsystem) – påbegynt 13. november 2026
 Rammefortelling: år 2247, gruppene er mannskap fra Romakademiet. Sci-fi-innpakning, men ekte fakta om forholdene på stedene.
 - 37 steder i 8 systemer (steder.js): Jorda-systemet, de indre planetene, asteroidene, Jupiter-, Saturn-, Uranus- og Neptun-systemet,
-  Kuiperbeltet og kometene. `modell: 'by'`: 3 poeng per sted + bonus for å eie alle stedene i et system.
+  Kuiperbeltet og kometene. `modell: 'by'`: 3 poeng per sted + 2 bonuspoeng per system gruppa har minst ett sted i.
 - `bane: true` = ingen kan lande der (Sola, Jupiter, Saturn, Uranus, Neptun). Stedet erobres som alle andre, men overnattingen er en banestasjon.
 - Tilfeldig start bare blant steder med `start: true` (romstasjonen, Månen, Mars). Er alle opptatt, deler noen startsted.
 - Reiser: alt er `type: 'fly'` (romskip). Direkte = 2 spørsmål, 1 stopp = 4, 2 stopp = 6. Stoppestedene er `knute`-steder som ligger i ruta.
@@ -246,3 +246,12 @@ Rammefortelling: år 2247, gruppene er mannskap fra Romakademiet. Sci-fi-innpakn
   listes de som manglende – legg dem i `verktoy/sprak-venter.json`.
 - Testet med en liksom-database: hele løpet (utstyr, reise, framkomst, romskip/telt, jobb, quiz, loggbok) for solsystem,
   og at Norge rundt, Jorda rundt og Across the UK gir samme tekster og resultater som før.
+
+## Ny poengregel for spillene med steder i regioner (13. november 2026) – kopi i `_backups/foer-ny-poengregel-20261113`
+Gjelder Europa rundt, Norge rundt, Across the UK, Across Australia og Solsystemet rundt (`modell: 'by'`).
+- FØR: poeng per sted + stor bonus for å eie ALLE stedene i en region (heltLand1–5). Det fikk gruppene til å bli i ett område.
+- NÅ: poeng per sted (`poengBy`, standard 3) + liten bonus for hver region gruppa har minst ett sted i (`poengRegion`, standard 2).
+  Det belønner å reise rundt. Jorda rundt og Across America har hatt samme tankegang hele tida (land + kontinent/region).
+- Gjelder også spill som var i gang: gamle `heltLand`-innstillinger ligger igjen i databasen, men brukes ikke.
+- Læreren endrer bonusen under Innstillinger («Bonus per …»). Kartene farger fortsatt en region når én gruppe eier alt der – det gir ingen poeng.
+- Poengene regnes ut i nettleseren (regler.js → poengForGruppe), ikke i banken.
