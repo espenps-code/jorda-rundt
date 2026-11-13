@@ -183,6 +183,10 @@ export const lagQuiz = REGLER.lagQuiz;
 export const teltQuiz = REGLER.teltQuiz || null;
 export const rettTeltQuiz = REGLER.rettTeltQuiz || null;
 export const TELTHENDELSER = REGLER.TELTHENDELSER || null;
+// ---------- utstyr gruppa må ha for å reise til enkelte steder (bare spillpakker som har det, f.eks. Solsystemet rundt) ----------
+// UTSTYR = { id: { navn, ikon, pris, hvorfor } } · utstyrMangler(gruppe, stedId) → id-ene gruppa mangler for å reise dit
+export const UTSTYR = REGLER.UTSTYR || null;
+export const utstyrMangler = REGLER.utstyrMangler || (() => []);
 // ---------- natur- og værhendelser på reisen (bare spillpakker som har det, f.eks. Norge rundt) ----------
 export const reisehendelse = REGLER.reisehendelse || null;
 // ---------- elevenes veiviser: spillpakken kan ha sin egen (f.eks. Across America, som er på engelsk) ----------

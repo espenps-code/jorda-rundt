@@ -3,7 +3,7 @@
 //   T('Lagre')                   → slår opp «Lagre»
 //   oversettSide()               → oversetter den faste teksten i HTML-en (kalles fra js/side.js)
 // På norsk gjør T ingenting (teksten kommer ut akkurat som den står). Mangler en tekst i ordboka, vises den norske.
-// Spillpakken kan overstyre enkeltord med `ordbok: { 'Kontinent': 'Region' }` i pakke.js.
+// Spillpakken kan overstyre enkeltord med `ordbok: { 'Kontinent': 'Region' }` i pakke.js – også norske spillpakker (norsk → norsk).
 // Sjekk at ordboka er komplett:  node verktoy/sprak-sjekk.mjs
 import { PAKKE } from '#pakke/pakke.js';
 import { lagOversetter, malTekst, oversettDom } from './sprak-kjerne.js';
@@ -23,6 +23,10 @@ if (SPRAK !== 'no') {
   }
   o = lagOversetter({ ...ordbok, ...(PAKKE.ordbok || {}) }, MANGLER);
   if (typeof window !== 'undefined') window.__sprakMangler = MANGLER;
+} else if (PAKKE.ordbok) {
+  // Norske spillpakker kan også ha en ordbok: den bytter ut enkelte ord og setninger i motoren (norsk → norsk),
+  // f.eks. «Hoteller» → «Overnatting» og «Flyet» → «Romskipet» i Solsystemet rundt. Alt som ikke står der, vises som før.
+  o = lagOversetter(PAKKE.ordbok);
 }
 
 const maler = new WeakMap(), tekster = new Map();

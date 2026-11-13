@@ -158,7 +158,7 @@ function analyser(gid) {
   const rute = [g.start || logg.find((h) => h.type === 'fly')?.fra || g.posisjon];
   const stopp = [{ land: rute[0], tid: logg[0]?.tid || spill.info?.opprettet, hendelser: [], start: true }];
   let km = 0, lengst = null, turbulens = 0;
-  const sum = { jobb: 0, quiz: 0, diktat: 0, duell: 0, laererPluss: 0, overraskelsePluss: 0, fly: 0, hotell: 0, laererMinus: 0, overraskelseMinus: 0 };
+  const sum = { jobb: 0, quiz: 0, diktat: 0, duell: 0, laererPluss: 0, overraskelsePluss: 0, fly: 0, hotell: 0, utstyr: 0, laererMinus: 0, overraskelseMinus: 0 };
   let dyrestHotell = null, billigstHotell = null, jobber = 0, quizer = 0, hotellnetter = 0;
   const overraskelser = [], diktater = [], erobringer = [], laasinger = [];
   for (const h of logg) {
@@ -169,6 +169,7 @@ function analyser(gid) {
       if (!lengst || d > lengst.km) lengst = { km: d, fra: h.fra, til: h.til };
       rute.push(h.til); stopp.push({ land: h.til, tid: h.tid, km: d, stoppPaaVei: h.stopp, turbulens: h.turbulens, reisemate: h.reisemate || 'fly', hendelser: [] });
     } else if (h.type === 'billett') sum.fly += -(h.belop || 0);
+    else if (h.type === 'utstyr') sum.utstyr += -(h.belop || 0);
     else if (h.type === 'hotell') {
       const pris = h.pris ?? -(h.belop || 0); sum.hotell += pris; hotellnetter += 3;
       const hk = h.hendelse?.kr || 0; if (hk > 0) sum.overraskelsePluss += hk; if (hk < 0) sum.overraskelseMinus += -hk;
@@ -193,7 +194,7 @@ function analyser(gid) {
   }
   const tavle = poengtavle(spill); const plass = tavle.findIndex((x) => x.gid === gid) + 1; const rad = tavle.find((x) => x.gid === gid);
   const inntekt = sum.jobb + sum.quiz + sum.diktat + sum.duell + sum.laererPluss + sum.overraskelsePluss;
-  const utgift = sum.fly + sum.hotell + sum.laererMinus + sum.overraskelseMinus;
+  const utgift = sum.fly + sum.hotell + sum.utstyr + sum.laererMinus + sum.overraskelseMinus;
   return { g, logg, eide, laaste, rute, stopp, km, lengst, turbulens, sum, inntekt, utgift, dyrestHotell, billigstHotell, jobber, quizer, hotellnetter, overraskelser, diktater, erobringer, laasinger, vunnet, tapt, plass, antall: tavle.length, rad };
 }
 
@@ -224,7 +225,7 @@ function rapport(gid) {
   const besokt = new Set(a.rute);
   const periode = [i.startdato, i.sluttdato].filter(Boolean).map((d) => new Date(d + 'T12:00').toLocaleDateString(LOKALE, { day: 'numeric', month: 'long', year: 'numeric' })).join(' – ');
   const maksInn = Math.max(1, a.sum.jobb, a.sum.quiz, a.sum.diktat, a.sum.duell, a.sum.laererPluss, a.sum.overraskelsePluss);
-  const maksUt = Math.max(1, a.sum.fly, a.sum.hotell, a.sum.overraskelseMinus, a.sum.laererMinus);
+  const maksUt = Math.max(1, a.sum.fly, a.sum.hotell, a.sum.utstyr, a.sum.overraskelseMinus, a.sum.laererMinus);
   const startkr = (i.startbelopPerElev || 0) * (g.personer || 4);
   const bunn = `<div class="bunntekst"><span>${PAKKE.ikon} ${esc(PAKKE.navn)} · ${esc(spill.info?.navn || '')}</span><span>${esc(g.navn)}</span></div>`;
   const rotasjon = (n) => `${((n * 37) % 13) - 6}deg`;
@@ -265,7 +266,7 @@ function rapport(gid) {
         <div class="boks"><h3>Tjent: ${formaterKr(a.inntekt)}</h3>
           ${bar(T('💼 Jobb'), a.sum.jobb, maksInn, '#30A46C')}${bar(T('🧭 Quiz'), a.sum.quiz, maksInn, '#30A46C')}${bar(T('✍️ Diktat'), a.sum.diktat, maksInn, '#30A46C')}${bar(T('🏆 Premier'), a.sum.duell, maksInn, '#30A46C')}${a.sum.laererPluss ? bar(T('⭐ Bonus'), a.sum.laererPluss, maksInn, '#30A46C') : ''}${a.sum.overraskelsePluss ? bar(T('🍀 Flaks'), a.sum.overraskelsePluss, maksInn, '#30A46C') : ''}</div>
         <div class="boks"><h3>Brukt: ${formaterKr(a.utgift)}</h3>
-          ${bar(T('🎫 Reiser'), a.sum.fly, maksUt, '#E5484D')}${bar(T('🏨 Hotell'), a.sum.hotell, maksUt, '#E5484D')}${a.sum.overraskelseMinus ? bar(T('🐜 Uflaks'), a.sum.overraskelseMinus, maksUt, '#E5484D') : ''}${a.sum.laererMinus ? bar(T('➖ Trekk'), a.sum.laererMinus, maksUt, '#E5484D') : ''}</div>
+          ${bar(T('🎫 Reiser'), a.sum.fly, maksUt, '#E5484D')}${bar(T('🏨 Hotell'), a.sum.hotell, maksUt, '#E5484D')}${a.sum.utstyr ? bar(T('🧰 Utstyr'), a.sum.utstyr, maksUt, '#E5484D') : ''}${a.sum.overraskelseMinus ? bar(T('🐜 Uflaks'), a.sum.overraskelseMinus, maksUt, '#E5484D') : ''}${a.sum.laererMinus ? bar(T('➖ Trekk'), a.sum.laererMinus, maksUt, '#E5484D') : ''}</div>
       </div>
       <div class="regnskap" style="margin-top:3mm"><span>Startet med <b>${formaterKr(startkr || 0)}</b></span><span>→</span><span>Igjen i reisekassa <b>${formaterKr(g.saldo)}</b></span></div></div>
     <div><h2 class="del">🛂 Landsamlingen <span class="strek"></span></h2>

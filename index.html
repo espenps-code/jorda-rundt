@@ -173,6 +173,14 @@
   .engelsk-kort { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
   .engelsk .reisekort { --f: var(--sol); }
   @media (max-width: 860px) { .engelsk { padding: 1.6rem 1.2rem 1.2rem; } .engelsk-kort { grid-template-columns: 1fr; } }
+  /* eget felt for romspill (naturfag): Solsystemet rundt */
+  .rommet { margin-top: 1.8rem; background: radial-gradient(circle at 80% 30%, #1b2550 0%, #0b1230 55%, #060b1a 100%); color: #fff; border-radius: 26px; padding: 1.8rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.4rem; align-items: center; }
+  .rommet .merkelapp { font: 500 .8rem var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--sol); }
+  .rommet > div > h3 { color: #fff; font-size: 1.9rem; margin: .3rem 0 .5rem; }
+  .rommet > div > p { margin: 0; color: #d0dbf0; line-height: 1.55; max-width: 52ch; }
+  .rommet .reisekort { --f: var(--sol); background: #111b3a; color: #fff; box-shadow: 0 0 0 1px rgba(255,255,255,.14); }
+  .rommet .reisekort h3 { color: #fff; } .rommet .reisekort p { color: #d0dbf0; } .rommet .reisekort .fakta { color: #a9b8d8; } .rommet .reisekort .ga { color: var(--sol); }
+  @media (max-width: 860px) { .rommet { grid-template-columns: 1fr; padding: 1.6rem 1.2rem 1.2rem; } }
 </style>
 </head>
 <body>
@@ -256,6 +264,20 @@
               <span class="ga">Gå til Across Australia →</span>
             </a>
         </div>
+      </div>
+      <div class="rommet" id="rommet">
+        <div>
+          <span class="merkelapp">Naturfag · år 2247</span>
+          <h3>Reis ut i rommet</h3>
+          <p>Samme spill – men nå er elevene mannskap på hvert sitt romskip. De utforsker planeter, måner og kometer, kjøper spesialutstyr til skipet og finner ut hvor ekstremt det <b>egentlig</b> er der ute.</p>
+        </div>
+        <a class="reisekort" href="solsystem/">
+          <span class="flagg">🪐</span>
+          <h3>Solsystemet rundt</h3>
+          <p>Fra romstasjonen til Pluto med 3D-kart over solsystemet. Loggbok med roller: navigatør, forsker, reporter og kaptein.</p>
+          <span class="fakta">37 steder i 8 systemer · romskip og spesialutstyr</span>
+          <span class="ga">Gå til Solsystemet rundt →</span>
+        </a>
       </div>
     </div>
   </section>

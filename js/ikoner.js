@@ -51,6 +51,10 @@ Object.assign(BILDE, {
   '🔎': 'lupe', '🛏': 'seng', '🪰': 'u1f99f', '🪄': 'stjerne', '📷': 'u1f4f8',
 });
 
+// Spillpakken kan bytte ikon for enkelte emojier: pakke.js → ikoner: { '✈': 'rakett' } (emoji → ikonfil uten .webp).
+// Slik blir flyet til et romskip i Solsystemet rundt uten at teksten i motoren må endres.
+try { const { PAKKE } = await import('#pakke/pakke.js'); Object.assign(BILDE, PAKKE.ikoner || {}); } catch { /* siden har ingen spillpakke */ }
+
 // små knappesymboler som strektegninger (følger tekstfargen)
 const sti = (d) => `<svg class="ik-sym" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const SYMBOL = {

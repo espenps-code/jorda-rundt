@@ -191,3 +191,58 @@ spillene gjør språklaget ingenting (teksten kommer ut akkurat som den står i 
   krediteres nederst på kartet. Like nabopunkter er fjernet (se NB over).
 - Egne sider: `australia/index.html` og `australia/travel-log.html`.
 - Database: /australia. Skybank: `australiabank`. Lenke: `laerer.html?pakke=australia`.
+
+## Solsystemet rundt (pakker/solsystem) – påbegynt 13. november 2026
+Rammefortelling: år 2247, gruppene er mannskap fra Romakademiet. Sci-fi-innpakning, men ekte fakta om forholdene på stedene.
+- 37 steder i 8 systemer (steder.js): Jorda-systemet, de indre planetene, asteroidene, Jupiter-, Saturn-, Uranus- og Neptun-systemet,
+  Kuiperbeltet og kometene. `modell: 'by'`: 3 poeng per sted + bonus for å eie alle stedene i et system.
+- `bane: true` = ingen kan lande der (Sola, Jupiter, Saturn, Uranus, Neptun). Stedet erobres som alle andre, men overnattingen er en banestasjon.
+- Tilfeldig start bare blant steder med `start: true` (romstasjonen, Månen, Mars). Er alle opptatt, deler noen startsted.
+- Reiser: alt er `type: 'fly'` (romskip). Direkte = 2 spørsmål, 1 stopp = 4, 2 stopp = 6. Stoppestedene er `knute`-steder som ligger i ruta.
+  Avstand = korteste avstand (forskjellen i avstand fra Sola), vist i ekte km. Pris og reisetid vokser med logaritmen av avstanden.
+- Kart: `klode.js` velger kart. Vanligvis 3D-modellen `klode3d.js` (three.js): dra for å snu, knip for å zoome, trykk på et system
+  for å fly dit, og trykk så på stedene. Planetene snurrer, men står stille i banen. Kan ikke 3D starte, brukes det flate kartet
+  `klode2d.js` (SVG) i stedet. `?flatt` i adressen tvinger fram det flate kartet.
+  `kart.js` har plasseringen (ikke i målestokk) og brukes av begge kartene, `rapportkart.js` og forsiden.
+- 3D-filene ligger i `solsystem/3d/` (ikke i pakken, så de ikke blir med opp i skybanken): three.js 0.160 (MIT) og planetbilder
+  i `tekstur/` fra Solar System Scope (CC BY 4.0, via Wikimedia Commons) – krediteres nederst på kartet. Ceres, Eris og Makemake
+  har bevisst ikke bilde (de som finnes, er oppdiktede). Ikke testet på en ekte iPad ennå.
+- Velkomst: `velkommen.js` har to fakta per sted om hvor ekstremt det er der. Bilder mangler ennå (`velkommen-bilder.js` er tom) –
+  verktoy/hent-velkomstbilder.mjs hopper over NASA-/satellittbilder og må tilpasses for denne pakken.
+- Romquiz (42 fakta + bane/type/lengst-spørsmål), egen veiviser med rammefortellingen og romhendelser på reisen (regler.js).
+- Egne sider: `solsystem/index.html` (forside og lærerveiledning) og `solsystem/loggbok.html` (rollesider: navigatør, forsker, reporter,
+  kaptein + systemside + collage).
+- Database: /solsystem. Skybank: `solsystembank` (lages av publiser.bat). Lenke: `laerer.html?pakke=solsystem`.
+- **Utstyr (14. november-runden, kode 13. november 2026):** `UTSTYR` i steder.js (navn, ikon, pris, hvorfor). Hvert sted har `krav`.
+  Landingsmodulen er `standard` (følger med alle skip). De fem andre kjøpes under Reis og beholdes: fallskjerm 6 000, kuldeutstyr 10 000,
+  varmeskjold 12 000, strålingsskjold 14 000, kraftigere motor 18 000 kr. regler.js eksporterer `UTSTYR` (det som kan kjøpes) og
+  `utstyrMangler(gruppe, stedId)`.
+- **Romord:** `ordbok` i pakke.js bytter motorens ord (norsk → norsk): hotell → overnatting, fly → romskip, turbulens → solstorm,
+  reiselogg → loggbok, jobbene, hotell-overraskelsene og telt-tekstene.
+- **Romikoner:** `ikoner` i pakke.js bytter ikonfil for emojier motoren skriver (✈ 🛫 🛬 ⛺ 🚌 → rakett, 🏨 → seng, 🌪 → sol).
+  js/ikoner.js leser dette for alle spillpakker; pakker uten `ikoner` er uendret.
+- **Sove i romskipet:** motorens telt-mekanikk (`telt: true`): gratis, 1 stjerne, tre riktige svar om livet om bord (regler.js).
+- Pakken står i `js/pakkeliste.js` og har eget felt «Reis ut i rommet» på forsiden (index.html, under de engelske spillene).
+- **Velkomstbilder:** 100 frie bilder (NASA, ESA m.fl.) via `node verktoy/hent-velkomstbilder.mjs solsystem`. velkommen.js har
+  `BILDEVALG = { rombilder: true }`, som lar verktøyet bruke bilder fra romsonder (i de andre spillene hoppes satellittbilder over).
+  Bildetekstene sier «(modell)» eller «(tegning)» der bildet ikke er et ekte foto. NB: hovedbildet i en Wikipedia-artikkel kan være
+  noe annet enn tittelen tilsier (f.eks. «Moons of Mars» ga et bilde av Phobos) – se over lista når du kjører verktøyet på nytt.
+- **Fotostudio:** `solsystem/fotostudio/` er en kopi av fotostudioet i Mykje Ting med bare romtemaet og plakatene
+  (rammene Stjerner, Romskip, Oppdrag og Planeter; bakgrunnene På månen, På Mars og Stjernetåke) og mørkt romdesign
+  (blokka «ROMTEMA» nederst i stilene – resten av fila er som i Mykje Ting). KI-utklippet hentes fra nettet
+  som i Jorda rundt-fotostudioet, og siden lagres ikke for bruk uten nett. Elevsiden lenker dit via `sider.fotostudio` i pakke.js.
+  Endres fotostudioet i Mykje Ting, må kopien oppdateres for hånd.
+- **IKKE PUBLISERT ENNÅ:** kjør publiser.bat (lager `solsystembank` og databasereglene for /solsystem) FØR endringene pushes til GitHub –
+  ellers ser lærere et spill der banken ikke svarer. Ikke testet på ekte iPad.
+
+## Endringer i motoren for Solsystemet rundt (13. november 2026) – kopi av originalene i `_backups/foer-solsystem-motor-20261113`
+- `js/sprak.js`: også NORSKE spillpakker kan ha `ordbok` i pakke.js (norsk → norsk). Uten ordbok skjer ingenting (som før).
+- `js/felles.js`: `UTSTYR` og `utstyrMangler` hentes fra spillpakkens regler.js hvis de finnes (ellers null / tom liste).
+- `js/bank.js`: ny forespørsel `utstyr` ({ id }) – trekker prisen og setter `grupper/<gid>/utstyr/<id> = true`, logg-type `utstyr`.
+  Reiser avvises hvis `utstyrMangler` gir noe. Spill uten utstyr merker ingenting.
+- `elev.html`: utstyrsboks øverst under Reis, «mangler»-merke i stedslista, kjøp av manglende utstyr på reisemålet, egen linje i regnskapet.
+- `laerer.html`: nullstilling fjerner også utstyret. `rapport.html`: utstyr er med i utgiftene.
+- De nye utstyrstekstene finnes bare på norsk (ingen engelsk pakke har utstyr). Kjører du `node verktoy/sprak-sjekk.mjs`,
+  listes de som manglende – legg dem i `verktoy/sprak-venter.json`.
+- Testet med en liksom-database: hele løpet (utstyr, reise, framkomst, romskip/telt, jobb, quiz, loggbok) for solsystem,
+  og at Norge rundt, Jorda rundt og Across the UK gir samme tekster og resultater som før.

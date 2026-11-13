@@ -436,6 +436,115 @@
         }
       }
     },
+    "solsystem": {
+      "mineSpill": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'password')"
+        }
+      },
+      "mineDueller": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null && auth.uid === $uid && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'password')",
+          "$id": {
+            ".validate": "newData.hasChildren(['tittel','tekst','vinner']) && newData.child('tittel').isString() && newData.child('tittel').val().length <= 60 && newData.child('tekst').isString() && newData.child('tekst').val().length <= 400 && newData.child('vinner').isString() && newData.child('vinner').val().length <= 200"
+          }
+        }
+      },
+      "laerere": {
+        "$spill": {
+          ".read": "auth != null && (root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists())",
+          "$uid": {
+            ".write": "auth != null && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'password') && (root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || (auth.uid === $uid && (!newData.exists() || (root.child('solsystem').child('invitasjoner').child(newData.child('kode').val()).child('spill').val() === $spill && root.child('solsystem').child('invitasjoner').child(newData.child('kode').val()).child('utloper').val() > now))))",
+            ".validate": "newData.hasChildren(['tid']) && newData.child('tid').isNumber()",
+            "kode": {
+              ".validate": "newData.isString()"
+            },
+            "navn": {
+              ".validate": "newData.isString() && newData.val().length <= 80"
+            },
+            "epost": {
+              ".validate": "newData.isString() && newData.val().length <= 120"
+            },
+            "tid": {
+              ".validate": "newData.isNumber()"
+            },
+            "$annet": {
+              ".validate": false
+            }
+          }
+        }
+      },
+      "invitasjoner": {
+        "$kode": {
+          ".read": "auth != null && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'password')",
+          ".write": "auth != null && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'password') && (!data.exists() || root.child('solsystem').child('spill').child(data.child('spill').val() + '').child('eier').val() === auth.uid) && (!newData.exists() || root.child('solsystem').child('spill').child(newData.child('spill').val() + '').child('eier').val() === auth.uid)",
+          ".validate": "$kode.length >= 6 && $kode.length <= 12 && newData.hasChildren(['spill', 'utloper']) && newData.child('spill').isString() && newData.child('utloper').isNumber()"
+        }
+      },
+      "gruppekoder": {
+        "$kode": {
+          ".read": "auth != null",
+          ".write": "auth != null && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'password') && (!data.exists() || (root.child('solsystem').child('spill').child(data.child('spill').val() + '').child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child(data.child('spill').val() + '').child(auth.uid).exists())) && (!newData.exists() || (root.child('solsystem').child('spill').child(newData.child('spill').val() + '').child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child(newData.child('spill').val() + '').child(auth.uid).exists()))",
+          ".validate": "newData.hasChildren(['spill', 'gruppe']) && newData.child('spill').isString() && newData.child('gruppe').isString()"
+        }
+      },
+      "pins": {
+        "$spill": {
+          ".read": "auth != null && (root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists())",
+          ".write": "auth != null && (root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists())"
+        }
+      },
+      "medlem": {
+        "$spill": {
+          ".read": "auth != null && (root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists())",
+          "$uid": {
+            ".read": "auth != null && auth.uid === $uid",
+            ".write": "auth != null && (auth.uid === $uid || (root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists()))",
+            ".validate": "(root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists()) || (newData.child('gruppe').isString() && newData.child('pin').isString() && root.child('solsystem').child('pins').child($spill).child(newData.child('gruppe').val()).val() === newData.child('pin').val())"
+          }
+        }
+      },
+      "spill": {
+        "$spill": {
+          ".read": "auth != null && (data.child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists() || root.child('solsystem').child('medlem').child($spill).child(auth.uid).exists())",
+          ".write": "auth != null && ((!data.exists() && newData.child('eier').val() === auth.uid && (auth.token.firebase.sign_in_provider === 'google.com' || auth.token.firebase.sign_in_provider === 'password')) || data.child('eier').val() === auth.uid || (data.exists() && newData.exists() && root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists()))",
+          "eier": {
+            ".validate": "newData.isString() && (!data.exists() || data.val() === newData.val())"
+          },
+          "foresporsler": {
+            "$gid": {
+              "$fid": {
+                ".write": "auth != null && !data.exists() && root.child('solsystem').child('medlem').child($spill).child(auth.uid).child('gruppe').val() === $gid",
+                ".validate": "(root.child('solsystem').child('spill').child($spill).child('eier').val() === auth.uid || root.child('solsystem').child('laerere').child($spill).child(auth.uid).exists()) || (newData.child('status').val() === 'venter' && newData.child('uid').val() === auth.uid && newData.child('type').isString() && newData.child('tid').isNumber() && newData.child('tid').val() <= now + 60000)",
+                "type": {
+                  ".validate": "newData.isString() && newData.val().length < 20"
+                },
+                "uid": {
+                  ".validate": "newData.isString()"
+                },
+                "status": {
+                  ".validate": "newData.isString()"
+                },
+                "tid": {
+                  ".validate": "newData.isNumber()"
+                },
+                "data": {
+                  ".validate": true
+                },
+                "svar": {
+                  ".validate": true
+                },
+                "$annet": {
+                  ".validate": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "uk": {
       "mineSpill": {
         "$uid": {

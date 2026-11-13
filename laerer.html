@@ -1067,7 +1067,7 @@ $('#nullstill').onclick = async () => {
   const i = innst(spill); const u = {}; const brukt = [];
   for (const [gid, gr] of Object.entries(spill.grupper || {})) {
     const s = tilfeldigStart(brukt, i.stengte || {}); brukt.push(s.id);
-    Object.assign(u, { [`spill/${spillId}/grupper/${gid}/saldo`]: startbelopFor(i, gr.personer), [`spill/${spillId}/grupper/${gid}/posisjon`]: s.id, [`spill/${spillId}/grupper/${gid}/start`]: s.id, [`spill/${spillId}/grupper/${gid}/hotell`]: null, [`spill/${spillId}/grupper/${gid}/reiser`]: 0, [`spill/${spillId}/grupper/${gid}/besokt`]: null, [`spill/${spillId}/grupper/${gid}/jobber`]: null, [`spill/${spillId}/grupper/${gid}/quiz`]: null, [`spill/${spillId}/grupper/${gid}/brukteFro`]: null, [`spill/${spillId}/grupper/${gid}/iLufta`]: null });
+    Object.assign(u, { [`spill/${spillId}/grupper/${gid}/saldo`]: startbelopFor(i, gr.personer), [`spill/${spillId}/grupper/${gid}/posisjon`]: s.id, [`spill/${spillId}/grupper/${gid}/start`]: s.id, [`spill/${spillId}/grupper/${gid}/hotell`]: null, [`spill/${spillId}/grupper/${gid}/reiser`]: 0, [`spill/${spillId}/grupper/${gid}/besokt`]: null, [`spill/${spillId}/grupper/${gid}/jobber`]: null, [`spill/${spillId}/grupper/${gid}/quiz`]: null, [`spill/${spillId}/grupper/${gid}/brukteFro`]: null, [`spill/${spillId}/grupper/${gid}/iLufta`]: null, [`spill/${spillId}/grupper/${gid}/utstyr`]: null });
   }
   for (const k of ['eierskap', 'reiselogger', 'dueller', 'logg', 'foresporsler']) u[`spill/${spillId}/${k}`] = null;
   await update(r('/'), u); varsle(T('Spillet er nullstilt.'), 'ok');

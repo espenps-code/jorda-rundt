@@ -1,0 +1,9 @@
+3D-modellen i Solsystemet rundt
+
+three.module.min.js  – three.js versjon 0.160 (MIT-lisens, threejs.org). Tegner 3D-modellen.
+tekstur/*.jpg        – planetbilder fra Solar System Scope (solarsystemscope.com/textures), lisens CC BY 4.0.
+                       Hentet fra Wikimedia Commons («Solarsystemscope texture 2k …») og forminsket til 1024 × 512.
+                       Krediteres nederst på kartet i spillet. Fjerner du krediteringen, bryter du lisensen.
+
+Koden som bruker dette, ligger i pakker/solsystem/klode3d.js.
+Filene ligger her (og ikke i spillpakken) for at de ikke skal bli med opp i skybanken.

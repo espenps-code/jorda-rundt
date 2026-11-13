@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Loggbok – Solsystemet rundt</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📓</text></svg>">
+<link rel="stylesheet" href="../css/felles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Space+Mono:wght@700&display=swap">
+<style>
+  @page { size: A4 portrait; margin: 12mm 14mm; }
+  :root { --blekk-r: #18232f; --strek: #9aa4ae; --tone: #eef4f7; --tone-2: #fdf6e3; --aksent: #0C2340; --aksent-2: #F3B23A; }
+  body { background: #e9e4d8; }
+  .styring { max-width: 900px; margin: 1rem auto; }
+  .styring select, .styring input[type=text] { width: auto; min-width: 220px; }
+
+  .ark { width: 210mm; height: 297mm; margin: 1rem auto; background: #fff; padding: 12mm 14mm; box-shadow: 0 4px 20px rgba(0,0,0,.15); position: relative; color: var(--blekk-r); font-family: var(--font); overflow: hidden; break-after: page; display: flex; flex-direction: column; gap: 5mm; }
+  .ark:last-child { break-after: auto; }
+  .ark > * { flex-shrink: 0; }
+  .hand { font-family: 'Caveat', cursive; color: #6b7785; font-size: 13pt; }
+  .smaa { font: 700 7.5pt var(--font); letter-spacing: .12em; text-transform: uppercase; color: #5b6774; }
+
+  /* toppbånd – boardingkort */
+  .band { display: grid; grid-template-columns: auto 1fr auto; align-items: stretch; border: 1.6px solid var(--aksent); border-radius: 4mm; overflow: hidden; }
+  .band .logo { background: var(--aksent); color: #fff; padding: 2.5mm 4mm; display: flex; flex-direction: column; justify-content: center; }
+  .band .logo b { font: 800 14pt/1 var(--font-tittel); }
+  .band .logo span { font: 700 6.5pt var(--font); letter-spacing: .18em; opacity: .85; }
+  .band .felter { display: grid; grid-template-columns: 1.6fr 1fr .6fr; }
+  .band .felter > div { padding: 2mm 3.5mm; border-left: 1.2px dashed var(--strek); }
+  .band .felter .verdi { font: 800 12pt/1.2 var(--font-tittel); min-height: 6mm; border-bottom: 1px dotted transparent; }
+  .band .felter .verdi.tom { border-bottom-color: var(--strek); }
+  .band .del { background: var(--tone-2); padding: 2mm 4mm; display: flex; flex-direction: column; justify-content: center; text-align: center; border-left: 1.6px solid var(--aksent); }
+  .band .del b { font: 800 16pt/1 var(--font-tittel); color: var(--aksent); }
+
+  .guilloche { height: 7mm; width: 100%; display: block; }
+  h1.side { font: 800 24pt/1 var(--font-tittel); margin: 0; color: var(--aksent); display: flex; align-items: baseline; gap: 3mm; }
+  h1.side small { font: 400 13pt var(--font-tittel); color: #5b6774; }
+
+  /* skrivelinjer */
+  .felt-l { display: flex; flex-direction: column; gap: 1mm; }
+  .felt-l .lbl { display: flex; align-items: center; gap: 1.6mm; font: 700 8pt var(--font); letter-spacing: .1em; text-transform: uppercase; color: #3d4955; }
+  .felt-l .lbl i { font-style: normal; font-size: 10pt; }
+  .linjer { display: flex; flex-direction: column; border: 1.4px solid #7d8994; border-radius: 2.2mm; padding: 0 3mm 1.8mm; background: #fff; }
+  .linjer > div { height: 7.6mm; border-bottom: 1px dotted #b9c1c9; }
+  .lapp .linjer, .postkort .linjer, .billett .linjer { border: 0; padding: 0; border-radius: 0; }
+  .lapp .linjer > div, .postkort .linjer > div, .billett .linjer > div { border-bottom: 1px solid var(--strek); }
+
+  /* side 1 */
+  .passtopp { display: grid; grid-template-columns: 66mm 1fr; gap: 6mm; align-items: stretch; }
+  .frimerke { position: relative; padding: 3mm; background: #fff; border: 2.2px dotted #9aa4ae; border-radius: 1mm; }
+  .frimerke-ramme { border: 1.6px solid var(--blekk-r); height: 39mm; position: relative; display: grid; place-items: end start; padding: 2mm; }
+  .frimerke-ramme .hand { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); white-space: nowrap; color: #b0b8c0; }
+  .passinfo { display: flex; flex-direction: column; justify-content: space-between; border: 1.2px solid var(--strek); border-radius: 3mm; padding: 3mm 4mm; background: #fff; position: relative; }
+  .passinfo .landnavn { font: 800 26pt/1 var(--font-tittel); color: var(--blekk-r); height: 13mm; border: 1.4px solid #7d8994; border-radius: 2.2mm; margin-top: 1mm; position: relative; }
+  .passinfo .landnavn::after { content: ''; position: absolute; left: 3mm; right: 3mm; bottom: 2.5mm; border-bottom: 1px dotted #b9c1c9; }
+  .passinfo .rad2 { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+  .fakta { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 6mm; }
+  .fakta .bred { grid-column: 1 / -1; }
+  .postrad { display: grid; grid-template-columns: 1fr 38mm; gap: 5mm; align-items: center; }
+  .postkort { border: 1.6px solid var(--blekk-r); border-radius: 2mm; padding: 3mm 4mm; position: relative; background: #fff; box-shadow: 1.5mm 1.5mm 0 var(--tone); }
+  .postkort::after { content: ''; position: absolute; top: 3mm; right: 3mm; width: 14mm; height: 17mm; border: 1.2px dashed var(--strek); }
+  .postkort .tittel { font: 800 15pt var(--font-tittel); color: var(--aksent); }
+  .stempelfelt { width: 36mm; height: 36mm; border: 2px dashed #9aa4ae; border-radius: 50%; display: grid; place-items: center; text-align: center; transform: rotate(-10deg); }
+  .stempelfelt b { font: 800 9pt var(--font-tittel); letter-spacing: .08em; color: #8a96a2; }
+  .mrz { font: 700 10.5pt/1.5 'Space Mono', monospace; letter-spacing: .14em; color: #5b6774; border-top: 1.2px solid var(--strek); padding-top: 2mm; white-space: nowrap; overflow: hidden; margin-top: auto; }
+
+  /* side 2 */
+  .lapper { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5mm; }
+  .lapp { border: 1.6px solid var(--blekk-r); border-radius: 3mm 9mm 9mm 3mm; padding: 3mm 10mm 3mm 4mm; position: relative; background: #fff; }
+  .lapp::before { content: ''; position: absolute; right: 3.5mm; top: 50%; width: 3.5mm; height: 3.5mm; border: 1.4px solid var(--blekk-r); border-radius: 50%; transform: translateY(-50%); }
+  .lapp.bred { grid-column: 1 / -1; }
+  .rett { display: grid; grid-template-columns: 52mm 1fr; gap: 6mm; align-items: center; }
+  .tallerken { width: 52mm; height: 52mm; position: relative; display: grid; place-items: center; }
+  .tallerken::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 1.6px solid var(--blekk-r); box-shadow: inset 0 0 0 5mm #fff, inset 0 0 0 5.4mm var(--strek); }
+  .tallerken .hand { position: relative; text-align: center; line-height: 1; }
+  .kjendiser { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+  .ramme { display: flex; flex-direction: column; gap: 2mm; align-items: center; }
+  .ramme .bilde { width: 100%; height: 30mm; border: 1.6px solid var(--blekk-r); outline: 2mm solid var(--tone-2); outline-offset: -3.6mm; display: grid; place-items: center; }
+  .ramme .navnelinje { width: 100%; border: 1.4px solid #7d8994; border-radius: 2.2mm; height: 9mm; position: relative; }
+  .ramme .navnelinje::after { content: ''; position: absolute; left: 3mm; right: 3mm; bottom: 2mm; border-bottom: 1px dotted #b9c1c9; }
+  .parlor { border: 1.6px solid var(--aksent); border-radius: 4mm; padding: 3mm 4mm 4mm; background: #fff; }
+  .parlor-topp { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 3mm; }
+  .parlor-topp b { font: 800 15pt var(--font-tittel); color: var(--aksent); }
+  .bobler { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm 6mm; }
+  .boble { display: grid; grid-template-columns: auto 1fr; gap: 3mm; align-items: end; }
+  .boble .no { position: relative; background: #fff; border: 1.4px solid var(--blekk-r); border-radius: 4mm; padding: 1.5mm 3.5mm; font: 800 12pt var(--font-tittel); white-space: nowrap; }
+  .boble .no::after { content: ''; position: absolute; left: 4mm; bottom: -2.2mm; width: 3mm; height: 3mm; background: #fff; border-right: 1.4px solid var(--blekk-r); border-bottom: 1.4px solid var(--blekk-r); transform: rotate(45deg); }
+  .boble .oversatt { border: 1.4px solid #7d8994; border-radius: 2.2mm; height: 9.5mm; background: #fff; position: relative; }
+  .boble .oversatt::after { content: ''; position: absolute; left: 3mm; right: 3mm; bottom: 2mm; border-bottom: 1px dotted #b9c1c9; }
+  .boble.bred { grid-column: 1 / -1; }
+
+  /* side 3 */
+  .oppdrag { border: 2px solid var(--aksent); border-radius: 4mm; padding: 4mm 5mm; display: grid; grid-template-columns: auto 1fr; gap: 4mm; align-items: center; background: var(--tone); }
+  .oppdrag .ikon { font-size: 26pt; }
+  .oppdrag b { font: 800 14pt var(--font-tittel); color: var(--aksent); display: block; }
+  .oppdrag p { margin: 1mm 0 0; font-size: 10.5pt; }
+  .polaroider { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3.5mm 4mm; padding: 0 1.5mm; }
+  .polaroid.midt { grid-column: 2 / 4; transform: none !important; border: 2.4px solid var(--aksent); padding: 2mm 2mm 0; box-shadow: 1.2mm 1.2mm 0 var(--tone-2); display: flex; flex-direction: column; }
+  .polaroid.midt .foto { flex: 1; display: grid; place-items: center; text-align: center; border-style: dashed; }
+  .polaroid.midt .foto b { font: 800 13pt/1.15 var(--font-tittel); color: var(--aksent); }
+  .polaroid.midt .tekst { height: 7mm; border: 0; display: flex; align-items: center; justify-content: center; }
+  .planhint { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -2mm; }
+  .polaroid { border: 1.2px solid var(--blekk-r); padding: 2mm 2mm 0; background: #fff; box-shadow: .8mm .8mm 0 var(--tone); display: flex; flex-direction: column; }
+  .polaroid .foto { flex: 1 0 auto; }
+  .polaroid:nth-child(odd) { transform: rotate(-2deg); } .polaroid:nth-child(3n) { transform: rotate(1.6deg); }
+  .polaroid .foto { height: 19mm; border: 1px solid var(--strek); position: relative; }
+  .polaroid .foto span { position: absolute; top: 1mm; left: 1.5mm; font: 800 9pt var(--font-tittel); color: #9aa4ae; }
+  .polaroid .tekst { height: 7.5mm; border-bottom: 1px dotted var(--strek); margin: 0 .5mm 2mm; }
+  .billett { display: grid; grid-template-columns: 1fr 40mm; border: 1.6px solid var(--blekk-r); border-radius: 3mm; overflow: hidden; }
+  .billett .hoved { padding: 3mm 4mm; background: #fff; }
+  .billett .hoved b { font: 800 14pt var(--font-tittel); color: var(--aksent); }
+  .billett .stubb { border-left: 1.6px dashed var(--blekk-r); padding: 3mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 1mm; }
+  .billett .stubb .bc { width: 30mm; height: 10mm; display: block; }
+  .bunn3 { display: grid; grid-template-columns: 1fr 44mm; gap: 6mm; align-items: center; margin-top: auto; }
+  .sjekk { display: grid; grid-template-columns: 1fr 1fr; gap: 2mm 5mm; font-size: 10pt; }
+  .sjekk div { display: flex; gap: 2.5mm; align-items: center; }
+  .sjekk span { width: 4.5mm; height: 4.5mm; border: 1.4px solid var(--blekk-r); border-radius: 1mm; flex: none; }
+  .stort-stempel { width: 44mm; height: 44mm; border-radius: 50%; border: 2.4px solid #9aa4ae; display: grid; place-items: center; text-align: center; transform: rotate(-12deg); position: relative; }
+  .stort-stempel::before { content: ''; position: absolute; inset: 2.2mm; border: 1px solid #9aa4ae; border-radius: 50%; }
+  .stort-stempel b { font: 800 11pt/1.1 var(--font-tittel); color: #8a96a2; letter-spacing: .06em; }
+
+  .godkjent { margin-top: 2.5mm; font-size: 9pt; color: #3d4955; border-top: 1px dotted var(--strek); padding-top: 1.5mm; }
+  @media print {
+    body { background: #fff; }
+    .styring { display: none; }
+    .ark { box-shadow: none; margin: 0; width: 182mm; height: 272mm; padding: 0; }
+    html, body { width: 182mm; }
+  }
+</style>
+<style>
+  img.ik { height: 1.05em; vertical-align: -.18em; }
+  .band .felter { grid-template-columns: 1.3fr 1fr 1fr; }
+  .regn { border: 1.4px solid #7d8994; border-radius: 2.2mm; background: #fff linear-gradient(#dfe5ea 1px, transparent 1px) 0 0 / 5mm 5mm, linear-gradient(90deg, #dfe5ea 1px, transparent 1px) 0 0 / 5mm 5mm; background-color: #fff; background-image: linear-gradient(#dfe5ea 1px, transparent 1px), linear-gradient(90deg, #dfe5ea 1px, transparent 1px); background-size: 5mm 5mm; }
+  .boks { border: 1.6px solid var(--aksent); border-radius: 4mm; padding: 3mm 4mm 4mm; background: #fff; display: flex; flex-direction: column; gap: 2mm; }
+  .boks > b { font: 800 14pt var(--font-tittel); color: var(--aksent); }
+  .boks p { margin: 0; font-size: 10.5pt; line-height: 1.5; }
+  .luke { display: inline-block; min-width: 22mm; border-bottom: 1.2px solid #7d8994; }
+  .luke.lang { min-width: 42mm; }
+  .tegn { border: 1.6px solid var(--blekk-r); border-radius: 2mm; background: #fff; box-shadow: 1.5mm 1.5mm 0 var(--tone); padding: 3mm 4mm; display: flex; flex-direction: column; }
+  .tegn .tittel { font: 800 15pt var(--font-tittel); color: var(--aksent); }
+  .to { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; align-items: stretch; }
+  .rolle { display: flex; gap: 3mm; align-items: center; background: var(--tone-2); border: 1.2px solid var(--aksent-2); border-radius: 3mm; padding: 2mm 4mm; font-size: 10.5pt; }
+  .rolle i { font-style: normal; font-size: 18pt; }
+  .ring { display: flex; flex-wrap: wrap; gap: 1.5mm 2mm; border: 1.4px solid #7d8994; border-radius: 2.2mm; padding: 2mm 3mm; background: #fff; font-size: 10pt; }
+  .ring span { border: 1px dotted #9aa4ae; border-radius: 999px; padding: .3mm 2.5mm; }
+  @media print { .styring { display: none; } body { background: #fff; } .ark { margin: 0; box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="styring kort">
+  <h2>📓 Loggbok til utskrift</h2>
+  <p class="dempet" style="margin-top:0">Hver elev har sin egen side på hvert sted: <b>navigatør</b>, <b>forsker</b> og <b>reporter</b> – og <b>kaptein</b> i grupper på fire. Elevene bytter rolle for hvert nytt sted. <b>Systemsiden</b> fylles ut bare på det første stedet mannskapet besøker i et system (for eksempel Jupiter med månene).</p>
+  <div class="rad" style="margin:.8rem 0;flex-wrap:wrap">
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="system" checked> Systemsiden</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="navigator" checked> Navigatør</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="forsker" checked> Forsker</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="reporter" checked> Reporter</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="kaptein" checked> Kaptein (grupper på fire)</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="collage" checked> Bildecollage</label>
+    <label style="margin:0;display:flex;gap:.4em;align-items:center"><input type="checkbox" id="kilder" checked> Felt for kilder</label>
+  </div>
+  <button class="knapp sol" onclick="window.print()">🖨️ Skriv ut</button>
+  <p class="liten dempet">Tips: kopier opp flere rollesider enn systemsider. Laget for A4 og fungerer fint på svart-hvitt-skriver. Slå av «topptekst og bunntekst» i utskriftsvinduet.</p>
+</div>
+
+<div id="ark"></div>
+
+<script type="module">
+const $ = (s) => document.querySelector(s);
+const SIDER = ['system', 'navigator', 'forsker', 'reporter', 'kaptein', 'collage'];
+const p = new URLSearchParams(location.search);
+for (const s of [...SIDER, 'kilder']) $('#' + s).checked = !p.has('uten' + s);
+
+// Bølgemønster (som på pengesedler og pass)
+function guilloche() {
+  const linjer = [];
+  for (let k = 0; k < 6; k++) {
+    let d = 'M0 13';
+    for (let x = 0; x <= 700; x += 4) d += ` L${x} ${(13 + 9 * Math.sin(x / 22 + k * 0.9) * Math.cos(x / 61 + k * 0.4)).toFixed(2)}`;
+    linjer.push(`<path d="${d}" fill="none" stroke="${k % 2 ? '#0B3A53' : '#E2A336'}" stroke-width="0.7" opacity="${k % 2 ? .55 : .8}"/>`);
+  }
+  return `<svg class="guilloche" viewBox="0 0 700 26" preserveAspectRatio="none" aria-hidden="true">${linjer.join('')}</svg>`;
+}
+const strek = (n) => `<div class="linjer">${'<div></div>'.repeat(n)}</div>`;
+const felt = (ikon, navn, linjer = 1, klasse = '') => `<div class="felt-l ${klasse}"><div class="lbl"><i>${ikon}</i>${navn}</div>${strek(linjer)}</div>`;
+const hint = (t) => `<span class="hand" style="text-transform:none;letter-spacing:0;font-size:11pt;margin-left:1mm">${t}</span>`;
+const mrz = () => `<div class="mrz">${'P<SOL<SOLSYSTEMET<RUNDT<<LOGGBOK'.padEnd(44, '<').replace(/</g, '&lt;')}<br>${'SR2247<ROMAKADEMIET<<<GOD<TUR'.padEnd(44, '<').replace(/</g, '&lt;')}</div>`;
+function band(merke, under, navnefelt = 'Mitt navn') {
+  return `<div class="band">
+    <div class="logo"><b>🪐 Solsystemet rundt</b><span>LOGGBOK · ROMAKADEMIET 2247</span></div>
+    <div class="felter">
+      <div><div class="smaa">Sted</div><div class="verdi tom"></div></div>
+      <div><div class="smaa">Mannskap</div><div class="verdi tom"></div></div>
+      <div><div class="smaa">${navnefelt}</div><div class="verdi tom"></div></div>
+    </div>
+    <div class="del"><div class="smaa">Rolle</div><b>${merke}</b><div class="smaa" style="letter-spacing:.06em">${under}</div></div>
+  </div>`;
+}
+const rolle = (ikon, tekst) => `<div class="rolle"><i>${ikon}</i><span>${tekst}</span></div>`;
+
+function tegn() {
+  const med = Object.fromEntries([...SIDER, 'kilder'].map((s) => [s, $('#' + s).checked]));
+  const kilde = med.kilder ? felt('🔎', 'Kilder – hvor fant du informasjonen?', 1, 'bred') : '';
+
+  // ---------- SYSTEMSIDEN: én gang per system ----------
+  const system = `<section class="ark">
+    ${band('🪐', 'én gang per system', 'Dato')}
+    <div><h1 class="side">Systemet <small>– fylles ut på første sted dere besøker i et system</small></h1>${guilloche()}</div>
+    <div class="passtopp">
+      <div class="felt-l"><div class="lbl"><i>✏️</i>Kart ${hint('– tegn hovedlegemet og månene')}</div><div class="frimerke"><div class="frimerke-ramme"></div></div></div>
+      <div class="passinfo">
+        <div><div class="smaa">Navn på systemet</div><div class="landnavn"></div></div>
+        <div class="rad2">${felt('🌐', 'Hovedlegemet heter')}${felt('🌙', 'Antall måner vi kjenner til')}</div>
+      </div>
+    </div>
+    <div class="fakta">
+      <div class="felt-l bred"><div class="lbl"><i>🔎</i>Hva slags hovedlegeme? ${hint('– sett ring rundt')}</div><div class="ring"><span>stjerne</span><span>steinplanet</span><span>gasskjempe</span><span>iskjempe</span><span>dvergplanet</span><span>et belte av småkropper</span></div></div>
+      ${felt('☀️', 'Avstand fra Sola (millioner km)')}${felt('🗓️', 'Én runde rundt Sola tar')}
+      ${felt('📍', 'Stedene i systemet som er med i spillet', 2, 'bred')}
+      ${felt('⭐', 'Dette gjør systemet spesielt', 2, 'bred')}
+    </div>
+    <div class="postrad">
+      <div class="postkort"><div class="tittel">✉️ Fun fact om systemet!</div><div class="hand" style="margin-bottom:1mm">Visste du at …</div><div style="margin-right:20mm">${strek(2)}</div></div>
+      <div class="stempelfelt"><div><b>FAKTA<br>SJEKKET</b><div class="hand" style="font-size:9pt">lærerens stempel</div></div></div>
+    </div>
+    ${med.kilder ? `<div class="fakta">${felt('🔎', 'Kilder – hvor fant dere informasjonen?', 1, 'bred')}</div>` : ''}
+    ${mrz()}
+  </section>`;
+
+  // ---------- NAVIGATØREN ----------
+  const navigator = `<section class="ark" style="gap:4mm">
+    ${band('🧭', 'Navigatør')}
+    <div><h1 class="side">Navigatøren <small>– hvor i solsystemet er vi?</small></h1>${guilloche()}</div>
+    ${rolle('🧭', '<b>Ditt oppdrag:</b> Finn ut hvor stedet ligger, hvor stort det er og hvordan det beveger seg.')}
+    <div class="passtopp">
+      <div class="felt-l"><div class="lbl"><i>✏️</i>Kart ${hint('– tegn Sola, banen og stedet')}</div><div class="frimerke"><div class="frimerke-ramme"></div></div></div>
+      <div class="passinfo">
+        <div><div class="smaa">Navn på stedet</div><div class="landnavn"></div></div>
+        <div class="rad2">${felt('🔎', 'Måne, planet, dvergplanet, asteroide eller komet?')}${felt('🔄', 'Går i bane rundt')}</div>
+      </div>
+    </div>
+    <div class="fakta">
+      ${felt('☀️', 'Avstand fra Sola (millioner km)')}${felt('📏', 'Diameter (km)')}
+      ${felt('🗓️', 'Ett «år» her (én runde rundt Sola) varer')}${felt('🌗', 'Ett døgn her varer')}
+      ${felt('🌍', 'Større eller mindre enn Jorda? Omtrent hvor mye?', 1, 'bred')}
+    </div>
+    <div class="boks">
+      <b>📡 Regn ut: radiomelding hjem</b>
+      <p>Radiobølger går like fort som lyset: <b>300 000 km hvert sekund</b>. Avstanden herfra til Jorda er omtrent <span class="luke lang"></span> km. Hvor lang tid bruker en melding hjem?</p>
+      <div class="regn" style="height:30mm"></div>
+      <p>Svar: <span class="luke"></span> sekunder. Det er omtrent <span class="luke"></span> minutter.</p>
+    </div>
+    ${kilde ? `<div class="fakta">${kilde}</div>` : ''}
+    ${mrz()}
+  </section>`;
+
+  // ---------- FORSKEREN ----------
+  const forsker = `<section class="ark" style="gap:3mm">
+    ${band('🔬', 'Forsker')}
+    <div><h1 class="side">Forskeren <small>– hvordan er det egentlig her?</small></h1>${guilloche()}</div>
+    ${rolle('🔬', '<b>Ditt oppdrag:</b> Finn ut hvor ekstremt det er her – og hva mannskapet må ha med for å overleve.')}
+    <div class="fakta">
+      ${felt('🌡️', 'Høyeste temperatur')}${felt('❄️', 'Laveste temperatur')}
+      ${felt('💨', 'Atmosfæren (lufta) – finnes den? Hva består den av?', 1, 'bred')}
+      ${felt('😮‍💨', 'Kan mennesker puste her? Hvorfor / hvorfor ikke?', 1, 'bred')}
+      ${felt('🪨', 'Overflaten – hvordan ser det ut her? (Gasskjempe eller Sola: hva består den av?)', 2, 'bred')}
+      ${felt('💧', 'Finnes det vann eller is her? Hvor?', 1, 'bred')}
+    </div>
+    <div class="boks">
+      <b>⚖️ Regn ut: hva ville du veid her?</b>
+      <p>Tyngdekraften her er <span class="luke"></span> ganger så sterk som på Jorda (for eksempel 0,38 på Mars). Tenk deg en astronaut som veier <b>50 kg</b> på Jorda. Hva ville badevekta vist her?</p>
+      <div class="regn" style="height:13mm"></div>
+      <p>Svar: <span class="luke"></span> kg.</p>
+    </div>
+    <div class="to">
+      <div class="boks" style="border-width:1.4px"><b>⚠️ De tre største farene</b>${strek(3)}</div>
+      <div class="boks" style="border-width:1.4px"><b>🧰 Utstyr vi må ha – og hvorfor</b>${strek(3)}</div>
+    </div>
+    ${kilde ? `<div class="fakta">${kilde}</div>` : ''}
+  </section>`;
+
+  // ---------- REPORTEREN ----------
+  const reporter = `<section class="ark" style="gap:4mm">
+    ${band('📻', 'Reporter')}
+    <div><h1 class="side">Reporteren <small>– historien om stedet</small></h1>${guilloche()}</div>
+    ${rolle('📻', '<b>Ditt oppdrag:</b> Finn historien bak stedet – og send en melding hjem til Jorda.')}
+    <div class="fakta">
+      ${felt('🔭', 'Hvem oppdaget stedet – og når?', 1, 'bred')}
+      ${felt('🏷️', 'Hvor kommer navnet fra?', 1, 'bred')}
+      ${felt('🛰️', 'Romsonder eller mennesker som har vært her i virkeligheten (navn og årstall)', 2, 'bred')}
+      ${felt('🤯', 'Det rareste jeg fant ut', 1, 'bred')}
+    </div>
+    <div class="to">
+      <div class="tegn" style="min-height:62mm"><div class="tittel">🖍️ Tegn stedet</div><div class="hand">Slik ser det ut her</div></div>
+      <div class="boks" style="border-width:1.4px"><b>📻 Loggmelding hjem til Jorda</b><div class="hand">Hva ser dere? Hvordan er det å være her?</div>${strek(6)}</div>
+    </div>
+    ${kilde ? `<div class="fakta">${kilde}</div>` : ''}
+    <div class="bunn3" style="grid-template-columns:1fr 32mm">
+      <div><div class="smaa" style="margin-bottom:2mm">Sjekkliste før dere leverer</div>
+        <div class="sjekk"><div><span></span>Alle rollesidene er fylt ut</div><div><span></span>Regnestykkene er regnet ut</div>
+        <div><span></span>Nytt system? Systemsiden er med</div><div><span></span>Trykket «levert» i spillet</div></div><div class="godkjent"><b>Godkjent når:</b> alle felt er fylt ut med egne ord${med.kilder ? ', kildene er skrevet' : ''} – og dere kan forklare det dere har skrevet.</div></div>
+      <div class="stort-stempel" style="width:32mm;height:32mm"><div><b>LANDING<br>GODKJENT</b><div class="hand" style="font-size:10pt">lærerens stempel</div></div></div>
+    </div>
+  </section>`;
+
+  // ---------- KAPTEINEN (grupper på fire) ----------
+  const kaptein = `<section class="ark" style="gap:4mm">
+    ${band('🧑‍✈️', 'Kaptein')}
+    <div><h1 class="side">Kapteinen <small>– økonomi og neste etappe</small></h1>${guilloche()}</div>
+    ${rolle('🧑‍✈️', '<b>Ditt oppdrag:</b> Hold orden på ekspedisjonskassa, planlegg neste etappe – og sjekk at hele loggboka er ferdig.')}
+    <div class="boks">
+      <b>💰 Ekspedisjonskassa</b>
+      <div class="fakta">
+        ${felt('🏦', 'Saldo da vi kom hit (kr)')}${felt('🚀', 'Reisen hit kostet (kr)')}
+        ${felt('🛏️', 'Overnatting i tre netter (kr)')}${felt('💼', 'Tjent på jobb og quiz her (kr)')}
+        ${felt('🧮', 'Saldo nå (kr)')}${felt('💡', 'Var overnattingen et lurt valg? Hvorfor?')}
+      </div>
+    </div>
+    <div class="boks">
+      <b>🧭 Neste etappe</b>
+      <div class="fakta">
+        ${felt('📍', 'Hit vil vi reise')}${felt('🎫', 'Det koster omtrent (kr)')}
+        ${felt('🤔', 'Hvorfor akkurat dit? (poeng, pris, hele systemet …)', 2, 'bred')}
+        ${felt('⚠️', 'Hva blir det vanskeligste med forholdene der?', 1, 'bred')}
+      </div>
+    </div>
+    <div class="fakta">
+      ${kilde}
+      ${felt('✍️', 'Mannskapets underskrifter – alle har lest gjennom hele loggboka', 2, 'bred')}
+    </div>
+    ${mrz()}
+  </section>`;
+
+  // ---------- EKSTRA: bildecollage ----------
+  const bilde = (n) => `<div class="polaroid"><div class="foto"><span>${n}</span></div><div class="tekst"></div></div>`;
+  const midt = `<div class="polaroid midt"><div class="foto"><div style="width:100%;padding:0 3mm"><b>🎬 MANNSKAPSBILDET i midten</b><div class="smaa" style="margin:1mm 0 2mm">Hele mannskapet · ta bildet med 📸 Reisebilde i spillet</div>${felt('📍', 'Vi poserer foran')}</div></div><div class="tekst smaa">★ Midt på siden</div></div>`;
+  const collage = `<section class="ark">
+    ${band('📸', 'Bilder', 'Dato')}
+    <div><h1 class="side">Bildecollage <small>– digitalt eller på papir</small></h1>${guilloche()}</div>
+    <div class="oppdrag"><div class="ikon">📸</div><div><b>Oppdrag: Vis stedet i bilder!</b><p>Lag et bildecollage med ca. 10 bilder av stedet – ekte bilder fra romsonder og teleskoper. <b style="display:inline;font:inherit;font-weight:700;color:inherit">Mannskapsbildet skal stå i midten av siden, med de andre bildene rundt.</b> Lag det i PowerPoint, Google Presentasjoner, Canva, Book Creator – eller lim bildene på et A3-ark. Skriv hvem som har tatt hvert bilde (for eksempel NASA eller ESA). Planlegg her først.</p></div></div>
+    <div class="planhint"><div class="smaa">Plan for collage-siden</div><span class="hand" style="font-size:11pt">Tegn eller skriv hva som skal være på hvert bilde</span></div>
+    <div class="polaroider">${[1, 2, 3, 4].map(bilde).join('') + bilde(5) + midt + bilde(6) + [7, 8, 9, 10].map(bilde).join('')}</div>
+    ${mrz()}
+  </section>`;
+
+  const alle = { system, navigator, forsker, reporter, kaptein, collage };
+  $('#ark').innerHTML = SIDER.filter((s) => med[s]).map((s) => alle[s]).join('') || '<p class="styring">Velg minst én side.</p>';
+  const q = [...SIDER, 'kilder'].filter((s) => !med[s]).map((s) => 'uten' + s).join('&');
+  history.replaceState(null, '', q ? '?' + q : location.pathname);
+}
+for (const s of [...SIDER, 'kilder']) $('#' + s).addEventListener('input', tegn);
+tegn();
+</script>
+</body>
+</html>

@@ -13,7 +13,7 @@ import { rettFlyquiz, kravFor, MAKS_SPORSMAL } from '../data/flyquiz.js';
 import { landKode, landInfo } from '#pakke/land.js';
 import {
   innst, idag, igaar, erStengt, erLaast, rettJobb, rettQuiz, landEtterId, formaterKr, nyId,
-  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER, duellPulje, reisehendelse, DIKTATNAVN, rund10, hendelseBelop,
+  hotellEffekt, flyPrisMedRabatt, HOTELLHENDELSER, HENDELSE_SJANSE, ORD as O, rettTeltQuiz, TELTHENDELSER, duellPulje, reisehendelse, DIKTATNAVN, rund10, hendelseBelop, UTSTYR, utstyrMangler,
 } from './felles.js';
 
 const iArbeid = new Set();
@@ -55,6 +55,7 @@ export async function behandle(spillId, gid, fid, f) {
     else if (spill.grupper[gid].iLufta) resultat = { ok: false, melding: T('Dere er i lufta! Svar på spørsmålene for å lande først. ✈️') };
     else if (f.type === 'fly') resultat = await fly(spillId, gid, f.data || {}, i, spill);
     else if (f.type === 'hotell') resultat = await hotell(spillId, gid, f.data || {}, i);
+    else if (f.type === 'utstyr') resultat = await utstyr(spillId, gid, f.data || {});
     else if (f.type === 'jobb') resultat = await jobb(spillId, gid, f.data || {}, i);
     else if (f.type === 'quiz') resultat = await quiz(spillId, gid, f.data || {}, i);
     else if (f.type === 'reiselogg') resultat = await reiselogg(spillId, gid, spill);
@@ -110,6 +111,8 @@ function fly(spillId, gid, d, i, spill) {
     if (!landEtterId[d.til]) return { feil: T('Ukjent reisemål.') };
     if (d.til === g.posisjon) return { feil: T('Dere er allerede her!') };
     if (erStengt(d.til, i)) return { feil: T`${landEtterId[d.til].navn} er stengt for reiser i spillet.` };
+    const mangler = utstyrMangler(g, d.til);     // spillpakker med utstyr: romskipet må ha det stedet krever
+    if (mangler.length) return { feil: T`Dere mangler utstyr for å reise til ${landEtterId[d.til].navn}: ${mangler.map((id) => UTSTYR[id].navn).join(', ')}.` };
     if (d.dato !== idag() && d.dato !== igaar()) return { feil: T('Prisen er utgått. Søk på nytt.') };
     const tilbud = flyTilbud(g.posisjon, d.til, d.dato, g.personer || 4)[d.valg];
     if (!tilbud) return { feil: T('Fant ikke flyreisen. Søk på nytt.') };
@@ -132,6 +135,22 @@ function fly(spillId, gid, d, i, spill) {
     return {
       melding: T`God tur! Svar riktig på ${krav} spørsmål underveis for å komme fram til ${til.by}.`,
       logg: { type: 'billett', belop: -pris, fra, til: d.til, reisemate: type, tekst: `${tilbud.hurtigruta ? T('tok Hurtigruta mot') : ({ fly: T('tok av mot'), tog: T('tok toget mot'), buss: T('tok bussen mot'), bat: T('tok båten mot') }[type] || T('reiste mot'))} ${til.flagg} ${til.navn} ${ikon}` },
+    };
+  });
+}
+
+/** Kjøp utstyr (bare spillpakker som har det). Utstyret beholdes resten av spillet. */
+function utstyr(spillId, gid, d) {
+  return medGruppe(spillId, gid, (g) => {
+    const u = UTSTYR && Object.hasOwn(UTSTYR, String(d.id)) ? UTSTYR[d.id] : null;
+    if (!u) return { feil: T('Ukjent utstyr.') };
+    if (g.utstyr?.[d.id]) return { feil: T('Dere har allerede dette utstyret.') };
+    if ((g.saldo || 0) < u.pris) return { feil: T`Dere har ikke råd. ${u.navn} koster ${formaterKr(u.pris)}.` };
+    g.saldo -= u.pris;
+    g.utstyr = { ...(g.utstyr || {}), [d.id]: true };
+    return {
+      melding: T`${u.ikon} ${u.navn} er kjøpt og montert!`,
+      logg: { type: 'utstyr', belop: -u.pris, utstyr: String(d.id), tekst: T`kjøpte ${u.navn.toLowerCase()} ${u.ikon}` },
     };
   });
 }

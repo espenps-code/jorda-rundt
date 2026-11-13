@@ -298,7 +298,7 @@
 import { T, LOKALE } from './js/sprak.js';
 import { auth, r, get, set, push, onValue, loggInnElev, loggUt, vedInnlogging, brukerEmulator } from './js/fb.js';
 import { flyTilbud, hoteller, formaterVarighet, iLokalValuta, avstandKm } from '#pakke/motor.js';
-import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, formaterKr, laasesVed, oppdaterNedtellinger, nedtelling, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER, landInfo, landKode, byerILand, heltLandBonus, PAKKE, ORD, stor, lagringsnokkel, teltQuiz, erSynlig, DIKTATNAVN , avstandTekst, veiviserPakke } from './js/felles.js';
+import { innst, idag, erStengt, erLaast, laasesOm, poengtavle, lagJobb, lagQuiz, formaterKr, laasesVed, oppdaterNedtellinger, nedtelling, hotellEffekt, flyPrisMedRabatt, STJERNE_EFFEKT, FASILITET_EFFEKT, HENDELSE_SJANSE, nyId, LAND, landEtterId, KONTINENTER, landInfo, landKode, byerILand, heltLandBonus, PAKKE, ORD, stor, lagringsnokkel, teltQuiz, erSynlig, DIKTATNAVN , avstandTekst, veiviserPakke, UTSTYR, utstyrMangler } from './js/felles.js';
 fyllPakkeTekster();
 document.title = PAKKE.navn;
 import { lagKlode } from '#pakke/klode.js';
@@ -604,7 +604,8 @@ function sikreMeny() { if (!stabletMq.matches && deling.p >= 100) { deling.p = 5
 
 // ================= FOTOSTUDIO =================
 function fotoLenke() {
-  const u = new URL(window.pakkeLenke ? window.pakkeLenke('fotostudio.html') : 'fotostudio.html', location.href);
+  // spillpakken kan ha sitt eget fotostudio (pakke.js → sider.fotostudio), f.eks. med romrammer i Solsystemet rundt
+  const u = PAKKE.sider?.fotostudio ? new URL((window.SPILLROT || '') + PAKKE.sider.fotostudio, location.href) : new URL(window.pakkeLenke ? window.pakkeLenke('fotostudio.html') : 'fotostudio.html', location.href);
   const l = g && !g.iLufta ? landEtterId[g.posisjon] : null;
   if (l) u.searchParams.set('sted', l.by || l.navn);
   return u.href;
@@ -718,13 +719,38 @@ function tegnReis() {
     .sort((a, b) => avstandKm(her, a) - avstandKm(her, b));
   el.innerHTML = T`
     ${!harHotell() ? T('<div class="infoboks sol">🏨 Dere må booke hotell her før dere kan reise videre – men dere kan godt se på reiser!</div>') : ''}
+    ${utstyrBoks()}
     <h2>Hvor vil dere reise?</h2>
     <p class="liten dempet">Trykk på ${ORD.etSted} på ${PAKKE.kart.navn}, eller søk. Nærmeste ${ORD.sted} står øverst.</p>
     <div class="sok"><input id="soket" placeholder="${esc(ORD.sok)}" value="${esc(sokTekst)}" aria-label="Søk etter reisemål"></div>
-    <div class="landliste">${treff.slice(0, 80).map((l) => { const s = landStatus(l.id); return T`<button data-mal="${l.id}"><span class="f">${l.flagg}</span><span class="vokser"><b>${esc(l.navn)}</b>${l.hovedstad ? T(' <small>★</small>') : ''}<br><small>${esc(PAKKE.modell === 'land' ? l.by : l.landNavn)} · ${avstandTekst(avstandKm(her, l))}${l.oy ? T(' · 🏝️ bare fly') : ''}</small></span><span class="merke ${s.klasse}">${s.tekst}</span></button>`; }).join('') || T('<p class="tom" style="padding:.8rem">Ingen treff.</p>')}</div>`;
+    <div class="landliste">${treff.slice(0, 80).map((l) => { const s = landStatus(l.id); return T`<button data-mal="${l.id}"><span class="f">${l.flagg}</span><span class="vokser"><b>${esc(l.navn)}</b>${l.hovedstad ? T(' <small>★</small>') : ''}<br><small>${esc(PAKKE.modell === 'land' ? l.by : l.landNavn)} · ${avstandTekst(avstandKm(her, l))}${l.oy ? T(' · 🏝️ bare fly') : ''}${utstyrMangler(g, l.id).length ? T` · 🧰 mangler ${utstyrMangler(g, l.id).map((id) => UTSTYR[id].ikon).join(' ')}` : ''}</small></span><span class="merke ${s.klasse}">${s.tekst}</span></button>`; }).join('') || T('<p class="tom" style="padding:.8rem">Ingen treff.</p>')}</div>`;
   const s = $('#soket');
   s.oninput = () => { sokTekst = s.value.trim().toLowerCase(); const pos = s.selectionStart; tegnReis(); const ny = $('#soket'); ny.focus(); ny.setSelectionRange(pos, pos); };
   $$('[data-mal]').forEach((b) => b.onclick = () => { reiseMal = b.dataset.mal; tegnReis(); });
+  koblUtstyr();
+}
+// ---------- UTSTYR (bare spillpakker som har det, f.eks. Solsystemet rundt) ----------
+/** Én rad per utstyr: har vi det, eller hva koster det? bare = vis bare disse id-ene */
+function utstyrRader(bare = null) {
+  return Object.entries(UTSTYR).filter(([id]) => !bare || bare.includes(id)).map(([id, u]) => {
+    const har = !!g.utstyr?.[id], rad = (g.saldo || 0) >= u.pris;
+    return T`<div class="rad" style="justify-content:space-between;gap:.6rem;padding:.45rem 0;border-top:1px solid rgba(0,0,0,.08)"><span><b>${u.ikon} ${esc(u.navn)}</b><br><span class="liten dempet">${esc(u.hvorfor)}</span></span>${har ? T('<span class="merke gress">✓ Montert</span>') : T`<button class="knapp mini ${rad ? 'sol' : ''}" data-utstyr="${id}" ${!rad || venterPa.utstyr ? 'disabled' : ''}>${rad ? T`Kjøp – ${formaterKr(u.pris)}` : T`Ikke råd – ${formaterKr(u.pris)}`}</button>`}</div>`;
+  }).join('');
+}
+function utstyrBoks() {
+  if (!UTSTYR) return '';
+  const antall = Object.keys(UTSTYR).filter((id) => g.utstyr?.[id]).length;
+  return T`<details class="kort" style="padding:.7rem 1rem;margin-bottom:.8rem" ${utstyrApen ? 'open' : ''} id="utstyrboks"><summary style="cursor:pointer"><b>🧰 Utstyr</b> <span class="liten dempet">– ${antall} av ${Object.keys(UTSTYR).length} montert. Noen steder krever spesialutstyr.</span></summary>${utstyrRader()}</details>`;
+}
+let utstyrApen = false;
+function koblUtstyr() {
+  const boks = $('#utstyrboks'); if (boks) boks.ontoggle = () => { utstyrApen = boks.open; };
+  $$('[data-utstyr]').forEach((b) => b.onclick = async () => {
+    const u = UTSTYR[b.dataset.utstyr];
+    if (!await bekreft(u.ikon, T`Kjøpe ${u.navn.toLowerCase()}?`, T`Det koster <b>${formaterKr(u.pris)}</b>. Dere beholder utstyret resten av spillet.`, T('Ja, kjøp'))) return;
+    const res = await send('utstyr', { id: b.dataset.utstyr });
+    if (res.ok) feir(u.ikon);
+  });
 }
 function tegnTilbud(el) {
   const i = innst(spill);
@@ -741,6 +767,8 @@ function tegnTilbud(el) {
   else if (e) advarsel = T`<div class="infoboks gress">Dette er allerede ${ORD.deresSted}.</div>`;
   else if (mal.spesial === 'antarktis') advarsel = T('<div class="infoboks hav">🐧 Til Antarktis går det bare fly fra Chile. Det er dyrt – men gir et helt nytt kontinent!</div>');
   if (!stengt && !tilbud.length && mal.spesial === 'antarktis') advarsel += T('<div class="infoboks korall">Det går ingen fly hit fra der dere er. Reis til Chile først!</div>');
+  const mangler = stengt ? [] : utstyrMangler(g, reiseMal);
+  if (mangler.length) advarsel += T`<div class="infoboks korall">🧰 <b>Dere mangler utstyr for å reise hit.</b>${utstyrRader(mangler)}</div>`;
   const lokalt = iLokalValuta(hoteller(reiseMal)[3]?.prisNatt || 0, mal);
   el.innerHTML = T`
     <button class="knapp lys mini" id="tilbake">← Andre reisemål</button>
@@ -757,11 +785,12 @@ function tegnTilbud(el) {
         <div class="rute"><span>${esc(her.by)}</span><span class="linje"></span><span>${esc(mal.by)}</span></div>
         <div class="liten dempet">Avgang ${t.avgang} · ${formaterVarighet(t.varighetMin)} · ${via}</div></div>
         <div class="hoyre"><div class="liten dempet">${formaterKr(t.prisPerPerson)} × ${t.personer}</div>${rabatt ? `<div class="liten" style="text-decoration:line-through;opacity:.6">${formaterKr(t.totalt)}</div>` : ''}<div class="pris">${formaterKr(pris)}</div>${rabatt ? T('<div class="liten">🚌 −10 % med flyplassbussen</div>') : ''}
-        <button class="knapp mini ${rad ? 'sol' : ''}" data-kjop="${n}" ${!rad || !harHotell() || !kanReise() || venterPa.fly ? 'disabled' : ''}>${venterPa.fly ? T('<span class="venter">Sender</span>') : !kanReise() ? T('Venter på godkjenning') : rad ? T('Kjøp billetter') : T('Ikke råd')}</button></div></div>`;
+        <button class="knapp mini ${rad ? 'sol' : ''}" data-kjop="${n}" ${!rad || !harHotell() || !kanReise() || mangler.length || venterPa.fly ? 'disabled' : ''}>${venterPa.fly ? T('<span class="venter">Sender</span>') : !kanReise() ? T('Venter på godkjenning') : mangler.length ? T('Mangler utstyr') : rad ? T('Kjøp billetter') : T('Ikke råd')}</button></div></div>`;
     }).join('')}
     ${tilbud.length && !harHotell() ? T('<p class="liten dempet">Book hotell der dere er først – da kan dere kjøpe billetter.</p>') : ''}
     ${tilbud.length ? T`<p class="liten dempet">Prisene gjelder i dag (${idag().split('-').reverse().join('.')}). Hotell i ${esc(mal.by)}: fra ${formaterKr(Math.min(...hoteller(reiseMal).map((h) => h.prisNatt)))} per natt${lokalt ? '' : ''}.</p>` : ''}`;
   $('#tilbake').onclick = () => { reiseMal = null; tegnReis(); };
+  koblUtstyr();
   $$('[data-kjop]').forEach((b) => b.onclick = async () => {
     const t = tilbud[Number(b.dataset.kjop)];
     const eierE = spill.eierskap?.[reiseMal];
@@ -896,7 +925,7 @@ function tegnLogg() {
 const KASSA_KAT = {
   jobb: { ikon: '💼', navn: T('Jobb') }, quiz: { ikon: '🧭', navn: T('Quiz') }, diktat: { ikon: '✍️', navn: DIKTATNAVN },
   duell: { ikon: '⚔️', navn: T('Duellpremier') }, heldig: { ikon: '🍀', navn: T('Heldige overraskelser') }, laererPluss: { ikon: '🧑‍🏫', navn: T('Fra læreren') },
-  reise: { ikon: '🧳', navn: T('Reiser') }, hotell: { ikon: '🏨', navn: T('Overnatting') }, uheldig: { ikon: '🌧️', navn: T('Uheldige overraskelser') }, laererMinus: { ikon: '🧑‍🏫', navn: T('Trukket av læreren') },
+  reise: { ikon: '🧳', navn: T('Reiser') }, hotell: { ikon: '🏨', navn: T('Overnatting') }, utstyr: { ikon: '🧰', navn: T('Utstyr') }, uheldig: { ikon: '🌧️', navn: T('Uheldige overraskelser') }, laererMinus: { ikon: '🧑‍🏫', navn: T('Trukket av læreren') },
 };
 const REISEMATE = { fly: T('✈️ Fly'), tog: T('🚆 Tog'), buss: T('🚌 Buss'), bat: T('⛴️ Båt') };
 let kassaAlle = false;
@@ -914,7 +943,7 @@ function kassaPoster() {
       if (pris) ut.push({ tid, kat: 'hotell', belop: -pris, tekst: T`${x.navn || T('Overnatting')}${sted ? T` i ${sted.by || sted.navn}` : ''} – 3 netter` });
       if (kr) ut.push({ tid: tid + 1, kat: kr > 0 ? 'heldig' : 'uheldig', belop: kr, tekst: x.hendelse.tekst || T('Overraskelse') });
     }
-    else if (['jobb', 'quiz', 'diktat', 'duell'].includes(x.type) && b) ut.push({ tid, kat: x.type, belop: b, tekst: x.tekst });
+    else if (['jobb', 'quiz', 'diktat', 'duell', 'utstyr'].includes(x.type) && b) ut.push({ tid, kat: x.type, belop: b, tekst: x.tekst });
     else if (x.type === 'lærer' && b) ut.push({ tid, kat: b > 0 ? 'laererPluss' : 'laererMinus', belop: b, tekst: x.tekst });
   }
   return ut.sort((a, c) => c.tid - a.tid);
