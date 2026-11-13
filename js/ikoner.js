@@ -51,6 +51,14 @@ Object.assign(BILDE, {
   '🔎': 'lupe', '🛏': 'seng', '🪰': 'u1f99f', '🪄': 'stjerne', '📷': 'u1f4f8',
 });
 
+// Romikoner til Solsystemet rundt (tegnet som SVG i samme stil, november 2026).
+Object.assign(BILDE, {
+  '🪐': 'u1fa90', '☄': 'u2604', '🌠': 'u1f320', '📏': 'u1f4cf', '💙': 'u1f499', '🛰': 'u1f6f0', '🎱': 'u1f3b1', '🚨': 'u1f6a8',
+  '🧦': 'u1f9e6', '🔧': 'u1f527', '🥫': 'u1f96b', '🏕': 'u1f3d5', '🧰': 'u1f9f0', '🔭': 'u1f52d', '📡': 'u1f4e1', '🚽': 'u1f6bd',
+  '🎂': 'u1f382', '👣': 'u1f463', '🌗': 'u1f317', '⚪': 'u26aa', '🔩': 'u1f529', '🧪': 'u1f9ea', '🧲': 'u1f9f2', '🕳': 'u1f573',
+  '⛲': 'u26f2', '☯': 'u262f', '🍎': 'u1f34e', '⛄': 'u26c4', '🪂': 'u1fa82', '🥶': 'u1f976', '☢': 'u2622', '⚛': 'u269b',
+});
+
 // Spillpakken kan bytte ikon for enkelte emojier: pakke.js → ikoner: { '✈': 'rakett' } (emoji → ikonfil uten .webp).
 // Slik blir flyet til et romskip i Solsystemet rundt uten at teksten i motoren må endres.
 try { const { PAKKE } = await import('#pakke/pakke.js'); Object.assign(BILDE, PAKKE.ikoner || {}); } catch { /* siden har ingen spillpakke */ }
