@@ -108,7 +108,7 @@
   /* ---------- LÆRER: flyrute ---------- */
   .fasemerke { display: inline-flex; gap: 10px; align-items: center; font-family: var(--font-mono); font-size: .8rem; letter-spacing: .1em;
     text-transform: uppercase; color: var(--hav); background: var(--sol-lys); border: 2px dashed var(--sol); border-radius: 999px; padding: 6px 14px; margin-bottom: 26px; }
-  .rute { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; position: relative; }
+  .rute { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; position: relative; }
   .rute::before { content: ''; position: absolute; left: 10%; right: 10%; top: 38px; border-top: 3px dashed var(--hav-3); z-index: 0; }
   .stopp { text-align: center; display: flex; flex-direction: column; align-items: center; }
   .rute .flyikon { position: absolute; right: calc(10% - 34px); top: 18px; width: 40px; z-index: 1; }
@@ -224,6 +224,7 @@
       <div class="stopp"><div class="medalje"><span class="nr">3</span><img src="../ikoner/liste.webp" alt=""></div><div><div class="nodetittel">Set the rules</div><p class="nodetekst">Starting money, points and dates. The default values work fine.</p></div></div>
       <div class="stopp"><div class="medalje"><span class="nr">4</span><img src="../ikoner/ryggsekk.webp" alt=""></div><div><div class="nodetittel">Make the groups</div><p class="nodetekst">Each group gets a starting place, a code and a PIN.</p></div></div>
       <div class="stopp"><div class="medalje sol"><span class="nr">5</span><img src="../ikoner/printer.webp" alt=""></div><div><div class="nodetittel">Print</div><p class="nodetekst">Login cards and travel logs for everyone.</p></div></div>
+      <div class="stopp"><div class="medalje"><span class="nr">6</span><img src="../ikoner/megafon.webp" alt=""></div><div><div class="nodetittel">Share the link</div><p class="nodetekst"><b>First lesson:</b> QR code under “Share with the students”. Students save it to the home screen or as a favourite.</p></div></div>
       <img class="flyikon" src="../ikoner/fly.webp" alt="">
     </div>
 
@@ -244,8 +245,8 @@
         <div class="ringsenter"><div><img src="../ikoner/penger.webp" alt=""><b>The bank runs by itself</b><small>Purchases, quizzes and jobs are handled automatically in the cloud – also when the teacher page is closed.</small></div></div>
       </div>
       <div class="side h">
-        <div class="oktnode"><div class="medalje"><img src="../ikoner/megafon.webp" alt=""></div><div><div class="nodetittel">Share the link</div><p class="nodetekst">QR code under “Share with the students”.</p></div></div>
-        <div class="oktnode"><div class="medalje gress"><img src="../ikoner/stempel.webp" alt=""></div><div><div class="nodetittel">Approve</div><p class="nodetekst">Travel logs and duels show up under “Waiting for you”.</p></div></div>
+        <div class="oktnode"><div class="medalje"><img src="../ikoner/skriv.webp" alt=""></div><div><div class="nodetittel">Students show the log</div><p class="nodetekst">The group shows you the travel log and presses “handed in”.</p></div></div>
+        <div class="oktnode"><div class="medalje gress"><img src="../ikoner/stempel.webp" alt=""></div><div><div class="nodetittel">Approve</div><p class="nodetekst">Approve under “Waiting for you” on the board.</p></div></div>
       </div>
     </div>
       </div>
@@ -262,6 +263,7 @@
           <li><div><b>Make the groups.</b><p>Under <i>Groups</i>: name, colour and number of students. Each group automatically gets a starting place, a group code and a PIN.</p></div></li>
           <li><div><b>Print.</b><p>“Print login cards” (one per group) and “📓 Travel log” – it works for every place, so you can copy as many as you need.</p></div></li>
           <li><div><b>Do you want a smaller map?</b><p>Under <i>Places</i> you can close places or whole regions – for example to play only in England, or only in Scotland.</p></div></li>
+          <li><div><b>In the first lesson: share the link with the students.</b><p>Under <i>Overview</i> → “Share with the students” you find the student link and a QR code. The students log in with the group code and PIN. <b>Tip:</b> Have the students save the link right away – on iPad: the Share button → “Add to Home Screen”, on PC/Chromebook: the star in the address bar (favourite). Then you don’t need to share it again every lesson.</p></div></li>
         </ol>
       </div>
 
@@ -269,9 +271,8 @@
         <div class="fasenavn">In every lesson<small>how a lesson flows</small></div>
         <ol class="punkter">
           <li><div><b>Open the board on the big screen.</b><p>The board shows the map of the UK, the scoreboard, the latest news and the duels. You can also show the board right in the teacher portal with the button <b>“📺 Board”</b> – with a drawer for travel logs and duels.</p></div></li>
-          <li><div><b>Share the link with the students.</b><p>Under <i>Overview</i> → “Share with the students” you find the student link and a QR code. The students log in with the group code and PIN.</p></div></li>
           <li><div><b>The students travel.</b><p>Find a place to stay → do the travel log → press “handed in” → work, take a quiz or travel on. On the way they spin a wheel and answer general knowledge questions in English: 2 correct for a direct flight, 4 with one stop – and more for trains, coaches and ferries, depending on the distance. The “Next step” box at the top always tells them what to do.</p></div></li>
-          <li><div><b>Approve travel logs.</b><p>Under <i>Overview</i> → “Waiting for you”. If the place is free, it becomes the group's. If another group owns it, there will be a duel.</p></div></li>
+          <li><div><b>Approve travel logs.</b><p>The students show you their travel log. Approve under “Waiting for you” – on the board or under <i>Overview</i>. If the place is free, it becomes the group's. If another group owns it, there will be a duel.</p></div></li>
           <li><div><b>Run duels.</b><p>Press “🎲 Draw a task” – the task spins onto the board. Start the countdown, and press the winner afterwards.</p></div></li>
         </ol>
       </div>

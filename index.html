@@ -108,7 +108,7 @@
   /* ---------- LÆRER: flyrute ---------- */
   .fasemerke { display: inline-flex; gap: 10px; align-items: center; font-family: var(--font-mono); font-size: .8rem; letter-spacing: .1em;
     text-transform: uppercase; color: var(--hav); background: var(--sol-lys); border: 2px dashed var(--sol); border-radius: 999px; padding: 6px 14px; margin-bottom: 26px; }
-  .rute { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; position: relative; }
+  .rute { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; position: relative; }
   .rute::before { content: ''; position: absolute; left: 10%; right: 10%; top: 38px; border-top: 3px dashed var(--hav-3); z-index: 0; }
   .stopp { text-align: center; display: flex; flex-direction: column; align-items: center; }
   .rute .flyikon { position: absolute; right: calc(10% - 34px); top: 18px; width: 40px; z-index: 1; }
@@ -328,6 +328,7 @@
       <div class="stopp"><div class="medalje"><span class="nr">3</span><img src="ikoner/liste.webp" alt=""></div><div><div class="nodetittel">Still inn regler</div><p class="nodetekst">Startbeløp, poeng og datoer. Standardverdiene fungerer fint.</p></div></div>
       <div class="stopp"><div class="medalje"><span class="nr">4</span><img src="ikoner/ryggsekk.webp" alt=""></div><div><div class="nodetittel">Lag gruppene</div><p class="nodetekst">Hver gruppe får startland, kode og PIN.</p></div></div>
       <div class="stopp"><div class="medalje sol"><span class="nr">5</span><img src="ikoner/printer.webp" alt=""></div><div><div class="nodetittel">Skriv ut</div><p class="nodetekst">Innloggingskort og reiselogger til alle.</p></div></div>
+      <div class="stopp"><div class="medalje"><span class="nr">6</span><img src="ikoner/megafon.webp" alt=""></div><div><div class="nodetittel">Del lenken</div><p class="nodetekst"><b>Første time:</b> QR-kode under «Del med elevene». Elevene lagrer den på hjemskjermen eller som favoritt.</p></div></div>
       <img class="flyikon" src="ikoner/fly.webp" alt="">
     </div>
 
@@ -348,8 +349,8 @@
         <div class="ringsenter"><div><img src="ikoner/penger.webp" alt=""><b>Banken går av seg selv</b><small>Kjøp, quiz og jobber behandles automatisk i skyen – også når lærersiden er lukket.</small></div></div>
       </div>
       <div class="side h">
-        <div class="oktnode"><div class="medalje"><img src="ikoner/megafon.webp" alt=""></div><div><div class="nodetittel">Del lenken</div><p class="nodetekst">QR-kode under «Del med elevene».</p></div></div>
-        <div class="oktnode"><div class="medalje gress"><img src="ikoner/stempel.webp" alt=""></div><div><div class="nodetittel">Godkjenn</div><p class="nodetekst">Reiselogger havner i «Venter på deg».</p></div></div>
+        <div class="oktnode"><div class="medalje"><img src="ikoner/skriv.webp" alt=""></div><div><div class="nodetittel">Elevene viser loggen</div><p class="nodetekst">Gruppa viser deg reiseloggen og trykker «levert».</p></div></div>
+        <div class="oktnode"><div class="medalje gress"><img src="ikoner/stempel.webp" alt=""></div><div><div class="nodetittel">Godkjenn</div><p class="nodetekst">Godkjenn under «Venter på deg» på tavla.</p></div></div>
       </div>
     </div>
       </div>
@@ -366,6 +367,7 @@
           <li><div><b>Lag gruppene.</b><p>Under <i>Grupper</i>: navn, farge og antall elever. Hver gruppe får automatisk en startposisjon, en gruppekode og en PIN.</p></div></li>
           <li><div><b>Skriv ut.</b><p>«Skriv ut innloggingskort» (ett per gruppe) og «📓 Reiselogg» – den er landsnøytral, så du kopierer opp så mange du trenger.</p></div></li>
           <li><div><b>Vurder stengte land.</b><p>Land med krig eller uten vanlige flyreiser er stengt fra start. Du kan åpne eller stenge land under <i>Land</i> – en fin anledning til samtale.</p></div></li>
+          <li><div><b>I første time: del lenken med elevene.</b><p>Under <i>Oversikt</i> → «Del med elevene» finner du elevlenken og en QR-kode. Elevene går ikke via forsiden – de bruker lenken og logger inn med gruppekode og PIN. <b>Tips:</b> La elevene lagre lenken med en gang – på iPad: Del-knappen → «Legg til på Hjem-skjerm», på PC/Chromebook: stjerna i adressefeltet (favoritt). Da trenger du ikke dele den på nytt hver økt.</p></div></li>
         </ol>
       </div>
 
@@ -373,9 +375,8 @@
         <div class="fasenavn">I hver økt<small>slik flyter en økt</small></div>
         <ol class="punkter">
           <li><div><b>Åpne tavla på storskjermen.</b><p>Knappen «📺 Åpne tavla» på lærersiden. Tavla viser jordkloden, poengtavla, siste nytt og dueller. Du kan også vise tavla rett i lærerportalen med knappen <b>«📺 Tavle»</b> – med en skuff for reiselogger og dueller.</p></div></li>
-          <li><div><b>Del lenken med elevene.</b><p>Under <i>Oversikt</i> → «Del med elevene» finner du elevlenken og en QR-kode. Elevene går ikke via forsiden – de bruker lenken og logger inn med gruppekode og PIN.</p></div></li>
           <li><div><b>Elevene reiser.</b><p>Book hotell → gjør reiseloggen → trykk «levert» → jobb, quiz eller fly videre. Under flyturen spinner de et lykkehjul og svarer på allmennkunnskap: 2 riktige for direktefly, 4 med ett stopp og 6 med to stopp. «Neste steg»-boksen øverst forteller dem alltid hva de skal gjøre.</p></div></li>
-          <li><div><b>Godkjenn reiselogger.</b><p>Under <i>Oversikt</i> → «Venter på deg». Er landet ledig, blir det gruppas. Eier en annen gruppe det, blir det duell.</p></div></li>
+          <li><div><b>Godkjenn reiselogger.</b><p>Elevene viser deg reiseloggen. Godkjenn under «Venter på deg» – på tavla eller under <i>Oversikt</i>. Er landet ledig, blir det gruppas. Eier en annen gruppe det, blir det duell.</p></div></li>
           <li><div><b>Kjør dueller.</b><p>Trykk «🎲 Trekk oppgave» – oppgaven snurrer fram på tavla. Start nedtellingen, og trykk på vinneren etterpå.</p></div></li>
         </ol>
       </div>
