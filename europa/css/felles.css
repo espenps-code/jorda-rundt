@@ -1,5 +1,5 @@
 /* Jorda rundt – felles utseende */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=DM+Mono:wght@500&display=swap');
+@import url('../../fonts/skrifter.css');
 
 /* Flagg-emojier på Windows: Windows har ingen flagg i emoji-skriften og viser bare bokstaver (f.eks. «MT»).
    Denne skriften inneholder kun landflagg og ligger lokalt i prosjektet. */
